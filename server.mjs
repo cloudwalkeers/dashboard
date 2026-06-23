@@ -47,6 +47,32 @@ const server = http.createServer(async (req, res) => {
       return send(res, 200, ".json", JSON.stringify(payload));
     }
 
+    // Content Creation: extract a reel from a pasted URL (download → pipeline → store).
+    // Returns the stored row instantly if it's already been extracted.
+    if (u.pathname === "/api/extract" && req.method === "POST") {
+      const body = await readJson(req);
+      if (!body.url) return send(res, 400, ".json", JSON.stringify({ error: "missing url" }));
+      try {
+        const { analyzeFromUrl } = await import("./lib/analysis/web.mjs");
+        const result = await analyzeFromUrl(body.url, { intervalSec: Number(body.interval) || 2, force: !!body.force });
+        return send(res, 200, ".json", JSON.stringify(result));
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
+
+    // Generate a new script from a reference reel (id) or a supplied transcript.
+    if (u.pathname === "/api/generate-script" && req.method === "POST") {
+      const body = await readJson(req);
+      try {
+        const { generateScript } = await import("./lib/analysis/script.mjs");
+        const out = await generateScript(body);
+        return send(res, 200, ".json", JSON.stringify(out));
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
+
     // Per-reel AI breakdown (precomputed by `npm run analyze`).
     const ar = u.pathname.match(/^\/api\/reel\/([^/]+)\/analyze$/);
     if (ar) {
@@ -107,6 +133,24 @@ async function getData(force, demo) {
       meta: { source: "live", error: e && e.message ? e.message : String(e) },
     };
   }
+}
+
+function readJson(req) {
+  return new Promise((resolve, reject) => {
+    let d = "";
+    req.on("data", (c) => {
+      d += c;
+      if (d.length > 5e6) req.destroy();
+    });
+    req.on("end", () => {
+      try {
+        resolve(d ? JSON.parse(d) : {});
+      } catch (e) {
+        reject(e);
+      }
+    });
+    req.on("error", reject);
+  });
 }
 
 function send(res, code, ext, body) {

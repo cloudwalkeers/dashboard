@@ -28,6 +28,10 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:14px">
+        <div style="display:flex;gap:2px;background:#fff;border:1px solid #ececec;border-radius:10px;padding:3px">
+          <button style="{{ navOverviewStyle }}" onClick="{{ navOverview }}">Overview</button>
+          <button style="{{ navContentStyle }}" onClick="{{ navContent }}">Content Creation</button>
+        </div>
         <sc-if value="{{ showOverview }}" hint-placeholder-val="{{ true }}">
           <div style="display:flex;gap:2px;background:#fff;border:1px solid #ececec;border-radius:10px;padding:3px">
             <sc-for list="{{ ranges }}" as="rg" hint-placeholder-count="3">
@@ -386,6 +390,100 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
   </main>
   </sc-if>
 
+  <!-- ============ CONTENT CREATION ============ -->
+  <sc-if value="{{ showContent }}" hint-placeholder-val="{{ false }}">
+  <main style="max-width:1240px;margin:0 auto;padding:28px 28px 72px">
+    <h1 style="margin:0 0 4px;font-size:23px;font-weight:680;letter-spacing:-.02em">Content Creation</h1>
+    <p style="margin:0 0 20px;font-size:13.5px;color:#6b7280">Paste any Instagram reel link to decorticate it frame‑by‑frame — script, visuals, and insights you can reuse.</p>
+
+    <div style="display:flex;gap:10px;margin-bottom:8px">
+      <input value="{{ CC.url }}" onInput="{{ CC.onUrl }}" placeholder="https://www.instagram.com/…/reel/…" style="flex:1;padding:12px 14px;border:1px solid #e2e2e6;border-radius:11px;font-size:14px;font-family:inherit"/>
+      <button onClick="{{ CC.extract }}" style="padding:12px 22px;border:none;border-radius:11px;background:#18181b;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">{{ CC.extractLabel }}</button>
+    </div>
+    <sc-if value="{{ CC.error }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:#dc2626;margin-bottom:8px">{{ CC.error }}</div></sc-if>
+    <sc-if value="{{ CC.extracting }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:#9ca3af;margin:10px 0">Downloading + analysing the reel — frames, transcript, written‑text and insights. ~1 minute the first time (instant if already extracted).</div></sc-if>
+
+    <sc-if value="{{ CC.hasResult }}" hint-placeholder-val="{{ false }}">
+      <div style="margin-top:18px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+          <h3 style="margin:0;font-size:16px;font-weight:660">{{ CC.title }}</h3>
+          <span style="font-size:12px;color:#9ca3af">{{ CC.account }}</span>
+        </div>
+        <div style="display:flex;gap:4px;border-bottom:1px solid #ececec;margin-bottom:18px">
+          <button style="{{ CC.tabFramesStyle }}" onClick="{{ CC.tabFrames }}">Frames</button>
+          <button style="{{ CC.tabScriptStyle }}" onClick="{{ CC.tabScript }}">Script</button>
+          <button style="{{ CC.tabVisualsStyle }}" onClick="{{ CC.tabVisuals }}">Visuals</button>
+          <button style="{{ CC.tabInsightsStyle }}" onClick="{{ CC.tabInsights }}">Insights</button>
+        </div>
+
+        <sc-if value="{{ CC.showFrames }}" hint-placeholder-val="{{ true }}">
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px">
+            <sc-for list="{{ CC.frames }}" as="fr" hint-placeholder-count="8">
+              <div style="background:#fff;border:1px solid #ececec;border-radius:12px;overflow:hidden">
+                <img src="{{ fr.src }}" style="width:100%;height:200px;object-fit:cover;display:block"/>
+                <div style="padding:9px 10px">
+                  <div style="font-size:10.5px;color:#9ca3af;font-weight:650;margin-bottom:3px">{{ fr.t }}</div>
+                  <div style="font-size:11.5px;color:#52525b;line-height:1.4">{{ fr.visual }}</div>
+                  <sc-if value="{{ fr.motion }}" hint-placeholder-val="{{ false }}"><div style="font-size:10.5px;color:#9aa0ab;margin-top:4px">🎞 {{ fr.motion }}</div></sc-if>
+                  <sc-if value="{{ fr.written }}" hint-placeholder-val="{{ false }}"><div style="font-size:10.5px;color:#4f46e5;margin-top:4px">📝 {{ fr.written }}</div></sc-if>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ CC.showScript }}" hint-placeholder-val="{{ false }}">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+            <div>
+              <div style="font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9ca3af;font-weight:650;margin-bottom:8px">Original script (spoken)</div>
+              <div style="background:#fafaff;border:1px solid #eef0f4;border-radius:12px;padding:14px 16px;font-size:14px;line-height:1.6;white-space:pre-wrap;color:#3f3f46">{{ CC.transcript }}</div>
+            </div>
+            <div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                <div style="font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9ca3af;font-weight:650">New script (AI)</div>
+                <button onClick="{{ CC.genScript }}" style="padding:7px 14px;border:none;border-radius:9px;background:#6366f1;color:#fff;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit">{{ CC.genLabel }}</button>
+              </div>
+              <input value="{{ CC.brief }}" onInput="{{ CC.onBrief }}" placeholder="optional brief: topic / angle / length…" style="width:100%;padding:9px 12px;border:1px solid #e2e2e6;border-radius:9px;font-size:13px;font-family:inherit;margin-bottom:8px"/>
+              <div style="background:#fff;border:1px solid #ececec;border-radius:12px;padding:14px 16px;font-size:14px;line-height:1.6;white-space:pre-wrap;color:#18181b;min-height:120px">{{ CC.gscript }}</div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ CC.showVisuals }}" hint-placeholder-val="{{ false }}">
+          <p style="margin:0 0 14px;font-size:13px;color:#6b7280">Per‑frame visual descriptions — paste any into Claude design to generate your own visuals.</p>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <sc-for list="{{ CC.visuals }}" as="v" hint-placeholder-count="6">
+              <div style="display:flex;gap:12px;background:#fff;border:1px solid #ececec;border-radius:10px;padding:11px 14px">
+                <span style="flex:none;font-size:11.5px;color:#9ca3af;font-weight:650;min-width:38px">{{ v.t }}</span>
+                <span style="font-size:13px;color:#52525b;line-height:1.5">{{ v.prompt }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ CC.showInsights }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#fafaff;border:1px solid #eef0f4;border-radius:12px;padding:16px 18px;margin-bottom:16px;font-size:14px;line-height:1.55;color:#3f3f46">{{ CC.summary }}</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+            <div>
+              <div style="font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9ca3af;font-weight:650;margin-bottom:8px">Hook &amp; drop‑off</div>
+              <p style="margin:0 0 10px;font-size:13px;color:#52525b;line-height:1.5">{{ CC.hook }}</p>
+              <sc-for list="{{ CC.dropoff }}" as="d" hint-placeholder-count="3">
+                <div style="display:flex;gap:9px;margin-bottom:8px"><span style="flex:none;font-size:12px;font-weight:700;color:#dc2626;min-width:34px">{{ d.t }}</span><span style="font-size:13px;color:#6b7280;line-height:1.5">{{ d.why }}</span></div>
+              </sc-for>
+            </div>
+            <div>
+              <div style="font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9ca3af;font-weight:650;margin-bottom:8px">Suggestions</div>
+              <sc-for list="{{ CC.suggestions }}" as="s" hint-placeholder-count="3">
+                <div style="display:flex;gap:9px;margin-bottom:8px"><span style="width:6px;height:6px;border-radius:50%;background:#16a34a;margin-top:6px;flex:none"></span><span style="font-size:13px;color:#52525b;line-height:1.5">{{ s }}</span></div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+  </main>
+  </sc-if>
+
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script>
@@ -393,7 +491,8 @@ class Component extends DCLogic {
   constructor(props){
     super(props);
     this.MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    this.state = { view:'overview', sel:null, range:'30D', sort:'reach', loading:true, syncing:false, loadError:null, analysis:null, analysisFor:null, analysisLoading:false };
+    this.state = { view:'overview', sel:null, range:'30D', sort:'reach', loading:true, syncing:false, loadError:null, analysis:null, analysisFor:null, analysisLoading:false,
+      ccUrl:'', ccLoading:false, ccResult:null, ccError:'', ccTab:'frames', ccScript:'', ccScriptLoading:false, ccBrief:'' };
     this.db = null; // { reels, reachS, playsS, meta }
   }
 
@@ -616,12 +715,69 @@ class Component extends DCLogic {
       account: (this.db && this.db.meta && this.db.meta.username) || 'Instagram reels',
       syncText,
       syncDotStyle: { width:'7px',height:'7px',borderRadius:'50%',background:dot,boxShadow:'0 0 0 3px '+dot+'22' },
-      refresh: ()=>this.refresh()
+      refresh: ()=>this.refresh(),
+      navOverview: ()=>this.setView('overview'),
+      navContent: ()=>this.setView('content'),
+      navOverviewStyle: this.tabStyle(this.state.view!=='content'),
+      navContentStyle: this.tabStyle(this.state.view==='content')
     };
+  }
+
+  tabStyle(active){ return { padding:'6px 12px',borderRadius:'8px',fontSize:'12.5px',fontWeight:'600',cursor:'pointer',border:'none',background:active?'#18181b':'transparent',color:active?'#fff':'#6b7280',fontFamily:'inherit' }; }
+  ccTabStyle(active){ return { padding:'9px 14px',background:'none',border:'none',borderBottom:active?'2px solid #18181b':'2px solid transparent',color:active?'#18181b':'#9ca3af',fontSize:'13.5px',fontWeight:'600',cursor:'pointer',fontFamily:'inherit',marginBottom:'-1px' }; }
+
+  setView(v){ this.setState({ view:v }); if(typeof window!=='undefined') window.scrollTo(0,0); }
+
+  extract(){
+    const url=(this.state.ccUrl||'').trim();
+    if(!url){ this.setState({ ccError:'Paste an Instagram reel link first.' }); return; }
+    this.setState({ ccLoading:true, ccError:'', ccResult:null, ccScript:'' });
+    fetch('/api/extract',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ url }) })
+      .then(r=>r.json())
+      .then(j=>{ if(j.error) this.setState({ ccLoading:false, ccError:j.error }); else this.setState({ ccLoading:false, ccResult:j, ccTab:'frames' }); })
+      .catch(e=>this.setState({ ccLoading:false, ccError:String(e) }));
+  }
+  generateScript(){
+    const r=this.state.ccResult; if(!r) return;
+    this.setState({ ccScriptLoading:true });
+    fetch('/api/generate-script',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ id:r.id, brief:this.state.ccBrief||'' }) })
+      .then(r=>r.json())
+      .then(j=>this.setState({ ccScriptLoading:false, ccScript: j.error ? ('Error: '+j.error) : j.script }))
+      .catch(e=>this.setState({ ccScriptLoading:false, ccScript:'Error: '+String(e) }));
+  }
+  contentVals(){
+    const s=this.state, r=s.ccResult, tab=s.ccTab||'frames';
+    const cc={
+      url:s.ccUrl||'', onUrl:(e)=>this.setState({ ccUrl: e&&e.target?e.target.value:'' }),
+      extract:()=>this.extract(), extracting:!!s.ccLoading, extractLabel: s.ccLoading?'Extracting…':'Extract',
+      error:s.ccError||'', hasResult:!!r,
+      tabFrames:()=>this.setState({ccTab:'frames'}), tabScript:()=>this.setState({ccTab:'script'}), tabVisuals:()=>this.setState({ccTab:'visuals'}), tabInsights:()=>this.setState({ccTab:'insights'}),
+      tabFramesStyle:this.ccTabStyle(tab==='frames'), tabScriptStyle:this.ccTabStyle(tab==='script'), tabVisualsStyle:this.ccTabStyle(tab==='visuals'), tabInsightsStyle:this.ccTabStyle(tab==='insights'),
+      showFrames:tab==='frames', showScript:tab==='script', showVisuals:tab==='visuals', showInsights:tab==='insights',
+      title:'', account:'', frames:[], transcript:'', visuals:[], summary:'', hook:'', dropoff:[], suggestions:[],
+      gscript:s.ccScript||'', genScript:()=>this.generateScript(), genLabel: s.ccScriptLoading?'Generating…':'Generate script',
+      brief:s.ccBrief||'', onBrief:(e)=>this.setState({ ccBrief: e&&e.target?e.target.value:'' })
+    };
+    if(!r) return cc;
+    const a=r.analysis||{};
+    cc.title=(r.metrics&&(r.metrics.cap||r.metrics.caption))||r.id;
+    cc.account=r.ig_account||'';
+    cc.frames=(r.frames||[]).map(f=>({ src:'/analysis/'+f.img, t:this.fmtT(f.t), visual:f.visual||'', motion:f.motion||'', written:Array.isArray(f.text)?f.text.map(x=>x.content).filter(Boolean).join(' · '):'' }));
+    cc.transcript=(r.transcript&&r.transcript.text)||'(no transcript)';
+    cc.visuals=(r.frames||[]).filter(f=>f.visual).map(f=>({ t:this.fmtT(f.t), prompt:f.visual+(f.motion?' ('+f.motion+')':'') }));
+    cc.summary=a.summary||''; cc.hook=a.hook||'';
+    cc.dropoff=(a.dropoff||[]).map(d=>({ t:this.fmtT(d.t), why:d.why }));
+    cc.suggestions=a.suggestions||[];
+    return cc;
   }
 
   renderVals(){
     const head = this.headerVals();
+
+    // Content Creation tab — independent of the reels payload.
+    if(this.state.view==='content'){
+      return Object.assign({ showOverview:false, hasDetail:false, showContent:true, loading:false, showBanner:false }, head, { CC:this.contentVals() });
+    }
 
     // still loading the first payload
     if(this.state.loading && !this.db){

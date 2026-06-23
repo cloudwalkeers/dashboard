@@ -4,7 +4,8 @@ node_modules/
 !.env.example
 *.log
 .DS_Store
-analysis/
+/analysis/
+_*
 remotion/node_modules/
 remotion/out/
 .claude/settings.local.json
