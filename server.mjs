@@ -164,6 +164,12 @@ async function getData(force, demo) {
     const raw = await collectReels({ max: Number(process.env.MAX_REELS || 40) });
     const payload = toPayload(raw, { source: "live" });
     cache = { t: Date.now(), payload };
+    // Persist the live performance metrics (one snapshot/reel/day) for later
+    // analysis — best-effort and non-blocking, so it never delays the response.
+    import("./lib/store/metrics.mjs")
+      .then((m) => (m.isConfigured() ? m.storeMetrics(payload) : null))
+      .then((r) => r && r.stored && console.log("  metrics → supabase:", r.stored, "reel(s),", r.failed, "failed"))
+      .catch((e) => console.log("  metrics store skipped:", e && e.message ? e.message : e));
     return payload;
   } catch (e) {
     // Surface the error to the dashboard rather than silently faking data.
