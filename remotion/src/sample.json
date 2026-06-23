@@ -1,0 +1,40 @@
+{
+  "id": "sample",
+  "video": { "src": "reel.mp4", "durationSec": 22, "frameCount": 11, "intervalSec": 2 },
+  "frames": [
+    { "t": 0, "img": "sample/frames/f0001.jpg", "desc": "Creator on camera, mid-sentence, neutral background", "onScreenText": "I QUIT MY 9-5" },
+    { "t": 4, "img": "sample/frames/f0003.jpg", "desc": "Close-up of hands shaping clay on a wheel", "onScreenText": "" },
+    { "t": 10, "img": "sample/frames/f0006.jpg", "desc": "Finished pottery pieces on a shelf", "onScreenText": "" },
+    { "t": 18, "img": "sample/frames/f0010.jpg", "desc": "Creator smiling, holding a finished mug", "onScreenText": "the reveal" }
+  ],
+  "transcript": {
+    "segments": [
+      { "start": 0.0, "end": 3.2, "text": "I quit my nine to five to do this full time." },
+      { "start": 3.2, "end": 9.0, "text": "Everyone said it was crazy, but here's what happened." },
+      { "start": 9.0, "end": 16.0, "text": "Six months in, and I'm finally making it work." }
+    ],
+    "text": "I quit my nine to five to do this full time. Everyone said it was crazy, but here's what happened. Six months in, and I'm finally making it work.",
+    "lang": "en"
+  },
+  "metrics": { "cap": "I quit my 9-5 to make pottery", "reach": 248000, "plays": 326000, "avgWatchSec": 14, "len": 22 },
+  "retention": [100, 92, 86, 80, 76, 72, 69, 66, 63, 61, 58, 55, 53, 51, 50, 48, 47, 45, 44, 43, 41],
+  "analysis": {
+    "summary": "Strong hook and a clear payoff structure. Retention holds well past the 3-second mark, with the steepest drop early as viewers wait for the reveal.",
+    "hook": "The first 3 seconds open on a bold on-screen claim ('I QUIT MY 9-5') over a direct-to-camera line — high curiosity, 86% held.",
+    "dropoff": [
+      { "t": 2, "why": "Curiosity gap created but payoff hasn't landed yet — impatient viewers leave." },
+      { "t": 12, "why": "Mid-roll lull on the shelf shot with no narration to pull viewers forward." }
+    ],
+    "suggestions": [
+      "Front-load the reveal: tease the finished mug in the first second.",
+      "Add a caption during the 10-14s shelf shot to maintain momentum.",
+      "Tighten the intro by ~1s to reduce the early drop."
+    ],
+    "moments": [
+      { "t": 0, "label": "Hook" },
+      { "t": 9, "label": "Process" },
+      { "t": 18, "label": "Reveal" }
+    ]
+  },
+  "meta": { "createdAt": 0, "dryRun": false, "costUsd": 0.08 }
+}

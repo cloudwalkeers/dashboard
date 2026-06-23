@@ -1,0 +1,21 @@
+{
+  "name": "reels-remotion",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Remotion compositions that render an annotated-reel overlay and a performance recap from a reels-dashboard analysis JSON.",
+  "scripts": {
+    "studio": "remotion studio",
+    "render:overlay": "remotion render AnnotatedReel out/annotated.mp4",
+    "render:recap": "remotion render RecapVideo out/recap.mp4"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remotion": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.0",
+    "typescript": "^5.4.0"
+  }
+}

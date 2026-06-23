@@ -1,0 +1,10 @@
+node_modules/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+analysis/
+remotion/node_modules/
+remotion/out/
+.claude/settings.local.json

@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reels Analytics</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:#e2e2e2;border-radius:8px;border:3px solid #fafafa}
+</style>
+</helmet>
+<div style="min-height:100vh;background:#fafafa;color:#18181b;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif">
+
+  <header style="position:sticky;top:0;z-index:20;background:rgba(250,250,250,.82);backdrop-filter:blur(10px);border-bottom:1px solid #ececec">
+    <div style="max-width:1240px;margin:0 auto;padding:14px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:30px;height:30px;border-radius:8px;background:#18181b;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px">▶</div>
+        <div style="display:flex;flex-direction:column;line-height:1.15">
+          <span style="font-size:15px;font-weight:650;letter-spacing:-.01em">Reels Analytics</span>
+          <span style="font-size:12px;color:#9ca3af">{{ account }}</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px">
+        <sc-if value="{{ showOverview }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;gap:2px;background:#fff;border:1px solid #ececec;border-radius:10px;padding:3px">
+            <sc-for list="{{ ranges }}" as="rg" hint-placeholder-count="3">
+              <button style="{{ rg.style }}" onClick="{{ rg.onClick }}">{{ rg.r }}</button>
+            </sc-for>
+          </div>
+        </sc-if>
+        <button onClick="{{ refresh }}" title="Refresh from Meta" style="display:flex;align-items:center;gap:7px;font-size:12.5px;color:#6b7280;background:none;border:none;cursor:pointer;font-family:inherit;padding:6px 4px">
+          <span style="{{ syncDotStyle }}"></span>
+          {{ syncText }}
+        </button>
+        <div style="width:32px;height:32px;border-radius:50%;background:repeating-linear-gradient(135deg,#ede9fe 0 7px,#e0d9fb 7px 14px)"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- loading / status -->
+  <sc-if value="{{ loading }}" hint-placeholder-val="{{ false }}">
+    <div style="max-width:1240px;margin:0 auto;padding:90px 28px;text-align:center;color:#9ca3af;font-size:14px">Loading your reels…</div>
+  </sc-if>
+  <sc-if value="{{ showBanner }}" hint-placeholder-val="{{ false }}">
+    <div style="max-width:1240px;margin:18px auto -4px;padding:0 28px">
+      <div style="{{ bannerStyle }}">{{ bannerText }}</div>
+    </div>
+  </sc-if>
+
+  <!-- ============ OVERVIEW ============ -->
+  <sc-if value="{{ showOverview }}" hint-placeholder-val="{{ true }}">
+  <main style="max-width:1240px;margin:0 auto;padding:28px 28px 72px">
+
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:18px;gap:16px">
+      <div>
+        <h1 style="margin:0;font-size:23px;font-weight:680;letter-spacing:-.02em">Performance overview</h1>
+        <p style="margin:5px 0 0;font-size:13.5px;color:#6b7280">{{ rangeLabel }} · {{ reelCount }} reels published · consolidated from Meta Insights</p>
+      </div>
+    </div>
+
+    <!-- KPI grid -->
+    <section style="display:grid;grid-template-columns:repeat(6,1fr);gap:13px;margin-bottom:22px">
+      <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="6">
+        <div style="background:#fff;border:1px solid #ececec;border-radius:14px;padding:15px 15px 13px">
+          <div style="font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:#9ca3af;font-weight:650">{{ k.label }}</div>
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:6px;margin-top:11px">
+            <div style="font-size:25px;font-weight:660;letter-spacing:-.025em;line-height:1">{{ k.value }}</div>
+            <svg width="96" height="32" viewBox="0 0 96 32" preserveAspectRatio="none" style="display:block;flex:none">
+              <path d="{{ k.sparkArea }}" fill="rgba(99,102,241,.10)" stroke="none"></path>
+              <path d="{{ k.spark }}" fill="none" stroke="#6366f1" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></path>
+            </svg>
+          </div>
+          <div style="{{ k.deltaStyle }}"><span>{{ k.deltaArrow }}</span><span>{{ k.deltaText }}</span><span style="color:#9ca3af;font-weight:500">vs prev</span></div>
+        </div>
+      </sc-for>
+    </section>
+
+    <!-- charts row -->
+    <section style="display:grid;grid-template-columns:1.7fr 1fr;gap:13px;margin-bottom:22px">
+      <div style="background:#fff;border:1px solid #ececec;border-radius:14px;padding:18px 20px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <h3 style="margin:0;font-size:14.5px;font-weight:640">Daily reach &amp; plays</h3>
+          <div style="display:flex;gap:14px;font-size:12px;color:#6b7280">
+            <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:2px;background:#6366f1"></span>Reach</span>
+            <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:2px;background:#c7d2fe"></span>Plays</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <div style="display:flex;flex-direction:column;justify-content:space-between;padding:18px 0 26px;font-size:11px;color:#b4b4b8;text-align:right;width:34px;flex:none">
+            <span>{{ trend.yTop }}</span><span>{{ trend.yMid }}</span><span>0</span>
+          </div>
+          <div style="flex:1;min-width:0">
+            <svg width="100%" height="232" viewBox="0 0 760 232" preserveAspectRatio="none" style="display:block;overflow:visible">
+              <line x1="0" y1="20" x2="760" y2="20" stroke="#f1f1f2" stroke-width="1"></line>
+              <line x1="0" y1="116" x2="760" y2="116" stroke="#f1f1f2" stroke-width="1"></line>
+              <line x1="0" y1="206" x2="760" y2="206" stroke="#ececed" stroke-width="1"></line>
+              <path d="{{ trend.playsArea }}" fill="rgba(199,210,254,.45)" stroke="none"></path>
+              <path d="{{ trend.playsLine }}" fill="none" stroke="#c7d2fe" stroke-width="2" vector-effect="non-scaling-stroke"></path>
+              <path d="{{ trend.reachArea }}" fill="rgba(99,102,241,.10)" stroke="none"></path>
+              <path d="{{ trend.reachLine }}" fill="none" stroke="#6366f1" stroke-width="2.2" vector-effect="non-scaling-stroke"></path>
+            </svg>
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:#b4b4b8;margin-top:7px">
+              <sc-for list="{{ trend.xLabels }}" as="xl" hint-placeholder-count="5"><span>{{ xl }}</span></sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:#fff;border:1px solid #ececec;border-radius:14px;padding:18px 20px">
+        <h3 style="margin:0 0 2px;font-size:14.5px;font-weight:640">Engagement mix</h3>
+        <p style="margin:0 0 16px;font-size:12.5px;color:#9ca3af">{{ engTotal }} total interactions</p>
+        <div style="display:flex;flex-direction:column;gap:15px">
+          <sc-for list="{{ engMix }}" as="e" hint-placeholder-count="4">
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px">
+                <span style="color:#52525b;font-weight:550">{{ e.label }}</span>
+                <span style="font-weight:600">{{ e.value }} <span style="color:#b4b4b8;font-weight:500">· {{ e.pct }}</span></span>
+              </div>
+              <div style="height:8px;background:#f3f3f4;border-radius:999px;overflow:hidden">
+                <div style="{{ e.barStyle }}"></div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    <!-- insights -->
+    <section style="display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:22px">
+      <div style="background:#fff;border:1px solid #ececec;border-radius:14px;padding:18px 20px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+          <span style="width:20px;height:20px;border-radius:6px;background:#ecfdf3;color:#16a34a;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">✓</span>
+          <h3 style="margin:0;font-size:14.5px;font-weight:640">What's working</h3>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <sc-for list="{{ insightsGood }}" as="i" hint-placeholder-count="3">
+            <div style="display:flex;gap:11px">
+              <span style="width:6px;height:6px;border-radius:50%;background:#16a34a;margin-top:7px;flex:none"></span>
+              <div>
+                <div style="font-size:13.5px;font-weight:620;margin-bottom:2px">{{ i.title }}</div>
+                <div style="font-size:13px;color:#6b7280;line-height:1.5">{{ i.text }}</div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="background:#fff;border:1px solid #ececec;border-radius:14px;padding:18px 20px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+          <span style="width:20px;height:20px;border-radius:6px;background:#fef2f2;color:#dc2626;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700">!</span>
+          <h3 style="margin:0;font-size:14.5px;font-weight:640">Needs attention</h3>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <sc-for list="{{ insightsBad }}" as="i" hint-placeholder-count="3">
+            <div style="display:flex;gap:11px">
+              <span style="width:6px;height:6px;border-radius:50%;background:#dc2626;margin-top:7px;flex:none"></span>
+              <div>
+                <div style="font-size:13.5px;font-weight:620;margin-bottom:2px">{{ i.title }}</div>
+                <div style="font-size:13px;color:#6b7280;line-height:1.5">{{ i.text }}</div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    <!-- reels table -->
+    <section style="background:#fff;border:1px solid #ececec;border-radius:14px;overflow:hidden">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px 14px">
+        <h3 style="margin:0;font-size:14.5px;font-weight:640">All reels <span style="color:#b4b4b8;font-weight:500">· {{ reelCount }}</span></h3>
+        <span style="font-size:12px;color:#9ca3af">Click a reel for retention &amp; drop-off detail</span>
+      </div>
+      <div style="display:grid;grid-template-columns:minmax(240px,1.7fr) 92px 92px 96px 138px 92px 84px;gap:12px;padding:9px 20px;border-top:1px solid #f1f1f2;border-bottom:1px solid #f1f1f2;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9ca3af;font-weight:650">
+        <span>Reel</span>
+        <button style="{{ sortReachStyle }}" onClick="{{ sortReach }}">Reach {{ sortReachCaret }}</button>
+        <button style="{{ sortPlaysStyle }}" onClick="{{ sortPlays }}">Plays {{ sortPlaysCaret }}</button>
+        <span style="text-align:right">Avg watch</span>
+        <button style="{{ sortWatchStyle }}" onClick="{{ sortWatch }}">Watch-through {{ sortWatchCaret }}</button>
+        <button style="{{ sortEngStyle }}" onClick="{{ sortEng }}">Eng. rate {{ sortEngCaret }}</button>
+        <span style="text-align:right">Retention</span>
+      </div>
+      <sc-for list="{{ reels }}" as="r" hint-placeholder-count="8">
+        <div onClick="{{ r.open }}" style="display:grid;grid-template-columns:minmax(240px,1.7fr) 92px 92px 96px 138px 92px 84px;gap:12px;padding:13px 20px;border-bottom:1px solid #f5f5f5;align-items:center;cursor:pointer;transition:background .12s" style-hover="background:#fafaff">
+          <div style="display:flex;align-items:center;gap:12px;min-width:0">
+            <div style="width:38px;height:50px;border-radius:7px;flex:none;background:repeating-linear-gradient(135deg,#eef0f4 0 7px,#e6e9ef 7px 14px);display:flex;align-items:center;justify-content:center">
+              <span style="width:0;height:0;border-left:8px solid #b9bec8;border-top:5px solid transparent;border-bottom:5px solid transparent;margin-left:2px"></span>
+            </div>
+            <div style="min-width:0">
+              <div style="font-size:13.5px;font-weight:570;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.cap }}</div>
+              <div style="font-size:12px;color:#9ca3af;margin-top:2px">{{ r.date }} · {{ r.lenFmt }}</div>
+            </div>
+          </div>
+          <div style="text-align:right;font-size:13.5px;font-weight:560">{{ r.reachFmt }}</div>
+          <div style="text-align:right;font-size:13.5px;font-weight:560">{{ r.playsFmt }}</div>
+          <div style="text-align:right;font-size:13.5px;font-weight:560">{{ r.avgWatchFmt }}</div>
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px"><span style="color:#9ca3af">&nbsp;</span><span style="font-weight:600">{{ r.completionFmt }}</span></div>
+            <div style="height:6px;background:#f3f3f4;border-radius:999px;overflow:hidden"><div style="{{ r.watchBarStyle }}"></div></div>
+          </div>
+          <div style="text-align:right;font-size:13.5px;font-weight:560">{{ r.engFmt }}</div>
+          <div style="display:flex;justify-content:flex-end">
+            <svg width="72" height="28" viewBox="0 0 72 28" preserveAspectRatio="none" style="display:block">
+              <path d="{{ r.spark }}" fill="none" stroke="#a5b4fc" stroke-width="1.8" stroke-linejoin="round" vector-effect="non-scaling-stroke"></path>
+            </svg>
+          </div>
+        </div>
+      </sc-for>
+    </section>
+  </main>
+  </sc-if>
+
+  <!-- ============ DETAIL ============ -->
+  <sc-if value="{{ hasDetail }}" hint-placeholder-val="{{ false }}">
+  <main style="max-width:1240px;margin:0 auto;padding:22px 28px 72px">
+    <button onClick="{{ back }}" style="display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:#6b7280;font-size:13.5px;font-weight:550;cursor:pointer;padding:6px 0;margin-bottom:14px" style-hover="color:#18181b">← Back to overview</button>
+
+    <section style="display:flex;gap:26px;margin-bottom:22px">
+      <div style="width:188px;height:334px;border-radius:16px;flex:none;background:repeating-linear-gradient(135deg,#eef0f4 0 9px,#e6e9ef 9px 18px);position:relative;display:flex;align-items:center;justify-content:center;border:1px solid #ececec">
+        <span style="width:0;height:0;border-left:18px solid #c2c7d0;border-top:12px solid transparent;border-bottom:12px solid transparent;margin-left:4px"></span>
+        <span style="position:absolute;bottom:12px;left:12px;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;color:#9aa0ab;background:rgba(255,255,255,.7);padding:2px 6px;border-radius:5px">1080×1920</span>
+      </div>
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+        <span style="font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:#9ca3af;font-weight:650">Instagram Reel</span>
+        <h1 style="margin:8px 0 10px;font-size:25px;font-weight:680;letter-spacing:-.02em;line-height:1.2">{{ R.cap }}</h1>
+        <div style="font-size:13.5px;color:#6b7280;margin-bottom:16px">Posted {{ R.date }} · {{ R.time }} · {{ R.lenFmt }} long</div>
+        <div style="font-size:14px;color:#3f3f46;line-height:1.55;background:#fafaff;border:1px solid #eef0f4;border-radius:12px;padding:13px 15px">{{ R.summary }}</div>
+        <div style="flex:1"></div>
+        <a href="{{ R.permalink }}" target="_blank" rel="noopener" style="{{ R.linkStyle }}">{{ R.linkText }}</a>
+      </div>
+    </section>
+
+    <section style="display:grid;grid-template-columns:repeat(6,1fr);gap:13px;margin-bottom:22px">
+      <sc-for list="{{ R.kpiCards }}" as="c" hint-placeholder-count="6">
+        <div style="background:#fff;border:1px solid #ececec;border-radius:14px;padding:15px">
+          <div style="font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:#9ca3af;font-weight:650">{{ c.label }}</div>
+          <div style="font-size:24px;font-weight:660;letter-spacing:-.025em;margin:10px 0 9px;line-height:1">{{ c.value }}</div>
+          <div style="{{ c.deltaStyle }}">{{ c.deltaText }}</div>
+        </div>
+      </sc-for>
+    </section>
+
+    <!-- retention -->
+    <section style="background:#fff;border:1px solid #ececec;border-radius:14px;padding:20px 22px;margin-bottom:22px">
+      <div style="margin-bottom:18px">
+        <h3 style="margin:0;font-size:15px;font-weight:650">Audience retention</h3>
+        <p style="margin:4px 0 0;font-size:13px;color:#9ca3af">{{ R.retSub }}</p>
+      </div>
+      <div style="display:grid;grid-template-columns:1.55fr 1fr;gap:28px;align-items:start">
+        <!-- curve -->
+        <div>
+          <div style="display:flex;gap:8px">
+            <div style="display:flex;flex-direction:column;justify-content:space-between;padding:14px 0 30px;font-size:11px;color:#b4b4b8;text-align:right;width:30px;flex:none">
+              <span>100%</span><span>75%</span><span>50%</span><span>25%</span><span>0</span>
+            </div>
+            <div style="flex:1;min-width:0">
+              <svg width="100%" height="244" viewBox="0 0 520 244" preserveAspectRatio="none" style="display:block;overflow:visible">
+                <line x1="0" y1="14" x2="520" y2="14" stroke="#f1f1f2"></line>
+                <line x1="0" y1="61.5" x2="520" y2="61.5" stroke="#f1f1f2"></line>
+                <line x1="0" y1="109" x2="520" y2="109" stroke="#f1f1f2"></line>
+                <line x1="0" y1="156.5" x2="520" y2="156.5" stroke="#f1f1f2"></line>
+                <line x1="0" y1="204" x2="520" y2="204" stroke="#ececed"></line>
+                <path d="{{ R.retArea }}" fill="rgba(99,102,241,.10)" stroke="none"></path>
+                <path d="{{ R.retLine }}" fill="none" stroke="#6366f1" stroke-width="2.4" stroke-linejoin="round" vector-effect="non-scaling-stroke"></path>
+                <line x1="{{ R.dropX }}" y1="14" x2="{{ R.dropX }}" y2="204" stroke="#dc2626" stroke-width="1.4" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"></line>
+                <circle cx="{{ R.dropX }}" cy="{{ R.dropY }}" r="4" fill="#dc2626" stroke="#fff" stroke-width="2"></circle>
+              </svg>
+              <div style="display:flex;justify-content:space-between;font-size:11px;color:#b4b4b8;margin-top:7px">
+                <span>0s</span><span>{{ R.q1Fmt }}</span><span>{{ R.midFmt }}</span><span>{{ R.q3Fmt }}</span><span>{{ R.lenFmt }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- heatmap + key moments -->
+        <div>
+          <div style="font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9ca3af;font-weight:650;margin-bottom:9px">Drop-off heatmap</div>
+          <div style="display:flex;height:30px;border-radius:8px;overflow:hidden;border:1px solid #f1f1f2">
+            <sc-for list="{{ R.heatSegs }}" as="s" hint-placeholder-count="21">
+              <div style="{{ s.style }}"></div>
+            </sc-for>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:#b4b4b8;margin:7px 0 4px">
+            <span>0s</span><span>{{ R.midFmt }}</span><span>{{ R.lenFmt }}</span>
+          </div>
+          <div style="display:flex;gap:14px;font-size:11px;color:#9ca3af;margin-bottom:18px">
+            <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:2px;background:#16a34a"></span>Holding</span>
+            <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:2px;background:#e07b16"></span>Dropping</span>
+            <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:2px;background:#dc2626"></span>Lost</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:11px">
+            <sc-for list="{{ R.keyMoments }}" as="m" hint-placeholder-count="4">
+              <div style="display:flex;align-items:center;gap:10px">
+                <span style="{{ m.dotStyle }}"></span>
+                <div style="flex:1">
+                  <div style="font-size:13px;font-weight:580">{{ m.label }}</div>
+                  <div style="font-size:11.5px;color:#9ca3af">{{ m.sub }}</div>
+                </div>
+                <div style="font-size:15px;font-weight:640">{{ m.value }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:18px;padding:13px 15px;background:#fef6f6;border:1px solid #fbe3e3;border-radius:11px;font-size:13px;color:#9f3a3a;line-height:1.5">{{ R.dropNote }}</div>
+    </section>
+
+    <!-- engagement -->
+    <section style="background:#fff;border:1px solid #ececec;border-radius:14px;padding:20px 22px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+        <h3 style="margin:0;font-size:15px;font-weight:650">Engagement breakdown</h3>
+        <span style="font-size:13px;color:#6b7280">Engagement rate <strong style="color:#18181b;font-weight:650">{{ R.engRateFmt }}</strong></span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <sc-for list="{{ R.engRows }}" as="e" hint-placeholder-count="5">
+          <div style="display:grid;grid-template-columns:90px 1fr 92px;gap:14px;align-items:center">
+            <span style="font-size:13px;color:#52525b;font-weight:550">{{ e.label }}</span>
+            <div style="height:9px;background:#f3f3f4;border-radius:999px;overflow:hidden"><div style="{{ e.barStyle }}"></div></div>
+            <span style="font-size:13.5px;font-weight:600;text-align:right">{{ e.value }} <span style="color:#b4b4b8;font-weight:500;font-size:12px">· {{ e.rate }}</span></span>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <!-- AI breakdown (frame-by-frame visuals + transcript + analysis) -->
+    <section style="background:#fff;border:1px solid #ececec;border-radius:14px;padding:20px 22px;margin-top:22px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <h3 style="margin:0;font-size:15px;font-weight:650">AI breakdown</h3>
+        <span style="font-size:12px;color:#9ca3af">{{ R.ai.note }}</span>
+      </div>
+      <sc-if value="{{ R.ai.empty }}" hint-placeholder-val="{{ true }}">
+        <div style="font-size:13px;color:#6b7280;line-height:1.55;background:#fafaff;border:1px dashed #dfe1ea;border-radius:11px;padding:14px 16px">{{ R.ai.cta }}</div>
+      </sc-if>
+      <sc-if value="{{ R.ai.has }}" hint-placeholder-val="{{ false }}">
+        <div>
+          <p style="margin:2px 0 14px;font-size:14px;color:#3f3f46;line-height:1.55">{{ R.ai.summary }}</p>
+          <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:16px">
+            <sc-for list="{{ R.ai.frames }}" as="fr" hint-placeholder-count="6">
+              <div style="flex:none;width:104px">
+                <img src="{{ fr.src }}" style="width:104px;height:150px;object-fit:cover;border-radius:8px;border:1px solid #ececec;display:block"/>
+                <div style="font-size:10.5px;color:#9ca3af;margin:4px 0 2px;font-weight:600">{{ fr.t }}</div>
+                <div style="font-size:11px;color:#6b7280;line-height:1.35">{{ fr.visual }}</div>
+                <sc-if value="{{ fr.motion }}" hint-placeholder-val="{{ false }}"><div style="font-size:10.5px;color:#9aa0ab;line-height:1.35;margin-top:3px">🎞 {{ fr.motion }}</div></sc-if>
+                <sc-if value="{{ fr.written }}" hint-placeholder-val="{{ false }}"><div style="font-size:10.5px;color:#4f46e5;line-height:1.35;margin-top:3px">📝 {{ fr.written }}</div></sc-if>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+            <div>
+              <div style="font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9ca3af;font-weight:650;margin-bottom:8px">Hook &amp; drop-off</div>
+              <p style="margin:0 0 10px;font-size:13px;color:#52525b;line-height:1.5">{{ R.ai.hook }}</p>
+              <sc-for list="{{ R.ai.dropoff }}" as="d" hint-placeholder-count="3">
+                <div style="display:flex;gap:9px;margin-bottom:8px">
+                  <span style="flex:none;font-size:12px;font-weight:700;color:#dc2626;min-width:34px">{{ d.t }}</span>
+                  <span style="font-size:13px;color:#6b7280;line-height:1.5">{{ d.why }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div>
+              <div style="font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9ca3af;font-weight:650;margin-bottom:8px">Suggestions</div>
+              <sc-for list="{{ R.ai.suggestions }}" as="s" hint-placeholder-count="3">
+                <div style="display:flex;gap:9px;margin-bottom:8px">
+                  <span style="width:6px;height:6px;border-radius:50%;background:#16a34a;margin-top:6px;flex:none"></span>
+                  <span style="font-size:13px;color:#52525b;line-height:1.5">{{ s }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <sc-if value="{{ R.ai.hasTranscript }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:16px">
+              <div style="font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9ca3af;font-weight:650;margin-bottom:8px">Transcript</div>
+              <div style="max-height:160px;overflow-y:auto;font-size:13px;line-height:1.6">
+                <sc-for list="{{ R.ai.transcript }}" as="ts" hint-placeholder-count="6">
+                  <div style="display:flex;gap:10px;margin-bottom:3px"><span style="flex:none;color:#b4b4b8;font-size:11.5px;min-width:34px;text-align:right">{{ ts.t }}</span><span style="color:#52525b">{{ ts.text }}</span></div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+    </section>
+  </main>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  constructor(props){
+    super(props);
+    this.MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    this.state = { view:'overview', sel:null, range:'30D', sort:'reach', loading:true, syncing:false, loadError:null, analysis:null, analysisFor:null, analysisLoading:false };
+    this.db = null; // { reels, reachS, playsS, meta }
+  }
+
+  // ── data load ───────────────────────────────────────────────────────────
+  componentDidMount(){ this.loadData(false, true); }
+
+  loadData(refresh, initial){
+    if(initial) this.setState({ loading:true });
+    else this.setState({ syncing:true });
+    fetch('/api/data' + (refresh ? '?refresh=1' : ''))
+      .then(res => res.json())
+      .then(payload => {
+        this.db = this.buildFromPayload(payload);
+        const err = payload && payload.meta && payload.meta.error;
+        this.setState({ loading:false, syncing:false, loadError: err || null });
+      })
+      .catch(e => {
+        this.setState({ loading:false, syncing:false,
+          loadError: 'Could not reach the dashboard server: ' + (e && e.message ? e.message : e) });
+      });
+  }
+
+  refresh(){ this.loadData(true, false); }
+
+  // ── formatters ──────────────────────────────────────────────────────────
+  fmtK(n){ n=Math.round(n); const a=Math.abs(n);
+    if(a>=1000000) return (n/1000000).toFixed(a>=10000000?0:1).replace(/\.0$/,'')+'M';
+    if(a>=1000) return (n/1000).toFixed(a>=100000?0:1).replace(/\.0$/,'')+'K';
+    return ''+n;
+  }
+  fmtT(s){ s=Math.round(s); if(s<=0) return '—'; const m=Math.floor(s/60), ss=s%60; return m>0?(m+':'+String(ss).padStart(2,'0')):(s+'s'); }
+  pct(n){ return Math.round(n)+'%'; }
+  pct1(n){ return (Math.round(n*10)/10)+'%'; }
+  mean(a){ return a.length ? a.reduce((x,y)=>x+y,0)/a.length : 0; }
+  sum(a){ return a.reduce((x,y)=>x+y,0); }
+  fmtDate(ts){ const d=new Date(ts); return this.MON[d.getMonth()]+' '+d.getDate(); }
+  relTime(ts){ if(!ts) return 'just now'; const s=Math.max(0,(Date.now()-ts)/1000);
+    if(s<60) return 'just now'; const m=Math.floor(s/60); if(m<60) return m+'m ago';
+    const h=Math.floor(m/60); if(h<24) return h+'h ago'; return Math.floor(h/24)+'d ago'; }
+
+  buildPath(vals,w,h,pl,pr,pt,pb,ymin,ymax){
+    const n=vals.length; if(n<2) return { line:'', area:'' };
+    if(ymax<=ymin) ymax=ymin+1;
+    const iw=w-pl-pr, ih=h-pt-pb;
+    const X=i=>pl+(i/(n-1))*iw;
+    const Y=v=>pt+(1-(v-ymin)/(ymax-ymin))*ih;
+    let d=''; vals.forEach((v,i)=>{ d+=(i?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1); });
+    return { line:d, area:d+'L'+X(n-1).toFixed(1)+' '+(h-pb).toFixed(1)+'L'+X(0).toFixed(1)+' '+(h-pb).toFixed(1)+'Z' };
+  }
+
+  heatColor(v){ if(v>=78)return'#15a34a'; if(v>=62)return'#6aa11c'; if(v>=46)return'#caa006'; if(v>=32)return'#e07b16'; return'#dc2626'; }
+
+  // Retention is not exposed by the Graph API; model a decay curve whose mean
+  // watch fraction matches the real avg watch time (len is real, probed from
+  // the reel's mp4). Labeled "estimated" in the detail view.
+  synthRet(avgWatchSec, len, lenKnown){
+    let target = (lenKnown && len>0 && avgWatchSec>0) ? avgWatchSec/len : 0.5;
+    target = Math.max(0.05, Math.min(0.985, target));
+    const meanOf = k => k<1e-6 ? 1 : (1-Math.exp(-k))/k;
+    let lo=1e-4, hi=40;
+    for(let it=0; it<48; it++){ const mid=(lo+hi)/2; if(meanOf(mid)>target) lo=mid; else hi=mid; }
+    const k=(lo+hi)/2;
+    const p=[];
+    for(let i=0;i<=20;i++){ const x=i/20; let v = i===0 ? 100 : 100*Math.exp(-k*x)+Math.sin(i*1.7)*1.1; p.push(Math.max(3,Math.min(100,Math.round(v)))); }
+    return p;
+  }
+
+  sparkPath(series){
+    let v=(series||[]).map(Number).filter(n=>isFinite(n));
+    if(v.length<2) v=v.concat([0,0]).slice(0,2);
+    let mn=Math.min.apply(null,v), mx=Math.max.apply(null,v);
+    if(mx<=mn) mx=mn+1;
+    const pad=(mx-mn)*0.12;
+    return this.buildPath(v,96,32,3,3,5,5,mn-pad,mx+pad);
+  }
+
+  deltaStyle(up){ return { display:'inline-flex',alignItems:'center',gap:'5px',marginTop:'11px',fontSize:'12px',fontWeight:'600',color: up?'#16a34a':'#dc2626' }; }
+  deltaMuted(){ return { display:'inline-flex',alignItems:'center',gap:'5px',marginTop:'11px',fontSize:'12px',fontWeight:'600',color:'#9ca3af' }; }
+  chip(up){ return { display:'inline-flex',alignItems:'center',gap:'3px',fontSize:'11.5px',fontWeight:'600',padding:'2px 8px',borderRadius:'999px',background: up?'#ecfdf3':'#fef2f2',color: up?'#16a34a':'#dc2626' }; }
+
+  // ── transform payload → internal model ──────────────────────────────────
+  buildFromPayload(payload){
+    payload = payload || {};
+    const defs = payload.defs || [];
+    const reels = defs.map(d => {
+      const lenKnown = !!d.lenKnown && d.len>0;
+      const ret = this.synthRet(d.avgWatchSec, d.len, lenKnown);
+      const eng = (d.likes||0)+(d.comments||0)+(d.shares||0)+(d.saves||0);
+      const completion = ret[20];
+      const avgWatch = d.avgWatchSec || (lenKnown ? d.len*this.mean(ret)/100 : 0);
+      const hookIdx = lenKnown ? Math.max(0,Math.min(20,Math.round((3/d.len)*20))) : 3;
+      const hook = ret[hookIdx];
+      const mid = ret[10];
+      let dIdx=1, dMax=-1; for(let i=1;i<=20;i++){ const dr=ret[i-1]-ret[i]; if(dr>dMax){ dMax=dr; dIdx=i; } }
+      const dropAt = lenKnown ? (dIdx/20)*d.len : 0;
+      const sp = this.buildPath(ret,72,28,2,2,4,4,0,100);
+      return {
+        id:d.id, cap:d.cap||'Untitled reel', permalink:d.permalink||'#',
+        ts:d.ts||Date.now(), date:d.date||this.fmtDate(d.ts||Date.now()), time:d.time||'',
+        len: lenKnown?d.len:0, lenKnown,
+        reach:d.reach||0, plays:d.plays||0, replays:d.replays||0,
+        likes:d.likes||0, comments:d.comments||0, shares:d.shares||0, saves:d.saves||0, follows:d.follows||0,
+        looping:!!d.looping, ret, eng, engRate: d.reach? eng/d.reach*100 : 0,
+        completion, avgWatch, hook, mid, dIdx, dropPct:dMax, dropAt, spark:sp.line
+      };
+    });
+    const trend = payload.trend || {};
+    return { reels, reachS: trend.reachS||[], playsS: trend.playsS||[], meta: payload.meta||{} };
+  }
+
+  aggOf(list){
+    const s = f => list.reduce((a,r)=>a+r[f],0);
+    const m = f => this.mean(list.map(r=>r[f]));
+    const reach=s('reach'), plays=s('plays');
+    const eng=s('likes')+s('comments')+s('shares')+s('saves');
+    return {
+      count:list.length, reach, plays, replays:s('replays'),
+      likes:s('likes'), comments:s('comments'), shares:s('shares'), saves:s('saves'), follows:s('follows'),
+      eng, engRate: reach? eng/reach*100 : 0,
+      avgWatch:m('avgWatch'), avgCompletion:m('completion'),
+      avgReach:m('reach'), avgPlays:m('plays'), avgReplays:m('replays'),
+      avgFollows:m('follows'), avgSaves:m('saves'), avgHook:m('hook')
+    };
+  }
+
+  rangeDays(){ return ({'7D':7,'30D':30,'90D':90})[this.state.range] || 90; }
+
+  // ── actions ─────────────────────────────────────────────────────────────
+  setRange(r){ this.setState({ range:r }); }
+  setSort(s){ this.setState({ sort:s }); }
+  openReel(id){ this.setState({ view:'detail', sel:id }); if(typeof window!=='undefined') window.scrollTo(0,0); this.loadAnalysis(id); }
+  back(){ this.setState({ view:'overview', sel:null }); if(typeof window!=='undefined') window.scrollTo(0,0); }
+
+  // Per-reel AI breakdown, served from analysis/<id>.json by the server.
+  loadAnalysis(id){
+    if(this.state.analysisFor===id && this.state.analysis) return;
+    this.setState({ analysisLoading:true });
+    fetch('/api/reel/'+encodeURIComponent(id)+'/analyze')
+      .then(r=> r.ok ? r.json() : null)
+      .then(a=> this.setState({ analysis:a, analysisFor:id, analysisLoading:false }))
+      .catch(()=> this.setState({ analysis:null, analysisFor:id, analysisLoading:false }));
+  }
+  aiVals(){
+    const blank={ has:false, empty:false, note:'', summary:'', hook:'', cta:'', frames:[], dropoff:[], suggestions:[], transcript:[], hasTranscript:false };
+    const a = (this.state.analysisFor===this.state.sel) ? this.state.analysis : null;
+    if(this.state.analysisLoading && !a) return Object.assign(blank, { note:'loading…' });
+    if(!a) return Object.assign(blank, { empty:true, note:'not generated',
+      cta:'No AI breakdown yet. Generate one with:  npm run analyze -- <reel.mp4> --id '+this.state.sel+'  — it extracts frames, transcribes the audio (OpenAI Whisper) and describes + analyses it (OpenAI vision).' });
+    const A=a.analysis||{};
+    const segs=(a.transcript&&a.transcript.segments)||[];
+    return {
+      has:true, empty:false,
+      note:[a.meta&&a.meta.models&&a.meta.models.vision, a.meta&&a.meta.dryRun?'dry-run':''].filter(Boolean).join(' · '),
+      summary:A.summary||'', hook:A.hook||'', cta:'',
+      frames:(a.frames||[]).map(f=>({ src:'/analysis/'+f.img, t:this.fmtT(f.t), visual:f.visual||f.desc||'', motion:f.motion||'', written: Array.isArray(f.text)? f.text.map(x=>x.content).filter(Boolean).join(' · ') : (f.overlayText||f.onScreenText||'') })),
+      dropoff:(A.dropoff||[]).map(d=>({ t:this.fmtT(d.t), why:d.why })),
+      suggestions:A.suggestions||[],
+      transcript:segs.map(s=>({ t:this.fmtT(s.start), text:s.text })),
+      hasTranscript:segs.length>0
+    };
+  }
+
+  // ── detail view ─────────────────────────────────────────────────────────
+  detail(){
+    const reels = this.db.reels;
+    const a = this.aggOf(reels);
+    const r = reels.find(x=>x.id===this.state.sel) || reels[0];
+    if(!r) return {};
+    const rp = this.buildPath(r.ret,520,244,0,0,14,40,0,100);
+    const dropX = (r.dIdx/20)*520;
+    const dropY = 14+(1-r.ret[r.dIdx]/100)*190;
+    const heatSegs = r.ret.map(v=>({ style:{ flex:'1 1 0', background:this.heatColor(v), height:'100%' } }));
+    const mkChip = (cur,base)=>{ if(!base){ return { text:'—', style:this.chip(true) }; }
+      const d=(cur-base)/base*100; const up=d>=0; return { text:(up?'▲ ':'▼ ')+Math.abs(Math.round(d))+'% vs avg', style:this.chip(up) }; };
+    const kpiCards=[
+      Object.assign({label:'Reach',value:this.fmtK(r.reach)}, this.wrap(mkChip(r.reach,a.avgReach))),
+      Object.assign({label:'Plays',value:this.fmtK(r.plays)}, this.wrap(mkChip(r.plays,a.avgPlays))),
+      Object.assign({label:'Replays',value:this.fmtK(r.replays)}, this.wrap(mkChip(r.replays,a.avgReplays))),
+      Object.assign({label:'Avg watch',value:this.fmtT(r.avgWatch)}, this.wrap(mkChip(r.avgWatch,a.avgWatch))),
+      Object.assign({label:'Watch-through',value:this.pct(r.completion)}, this.wrap(mkChip(r.completion,a.avgCompletion))),
+      Object.assign({label:'Follows',value:r.follows?this.fmtK(r.follows):'n/a'}, this.wrap(mkChip(r.follows,a.avgFollows)))
+    ];
+    const dot = v=>({ width:'9px',height:'9px',borderRadius:'50%',background:this.heatColor(v),flex:'none' });
+    const keyMoments=[
+      { label:'Hook (first 3s)', sub:'Viewers still watching', value:this.pct(r.hook), dotStyle:dot(r.hook) },
+      { label:'Biggest drop', sub:'at '+this.fmtT(r.dropAt)+' · −'+Math.round(r.dropPct)+'pts', value:'−'+Math.round(r.dropPct)+'%', dotStyle:{width:'9px',height:'9px',borderRadius:'50%',background:'#dc2626',flex:'none'} },
+      { label:'Midpoint', sub:'Halfway through the reel', value:this.pct(r.mid), dotStyle:dot(r.mid) },
+      { label:'Completion', sub:'Reached the end', value:this.pct(r.completion), dotStyle:dot(r.completion) }
+    ];
+    const maxEng=Math.max(r.likes,r.comments,r.shares,r.saves,r.follows,1);
+    const erow=(label,val)=>({ label, value:this.fmtK(val), rate:this.pct1(r.reach?val/r.reach*100:0), barStyle:{ height:'100%', width:Math.max(3,val/maxEng*100)+'%', background:'#6366f1', borderRadius:'999px' } });
+    const engRows=[ erow('Likes',r.likes), erow('Comments',r.comments), erow('Shares',r.shares), erow('Saves',r.saves), erow('Follows',r.follows) ];
+    const summary='This reel reached '+this.fmtK(r.reach)+' accounts and held '+this.pct(r.hook)+' of viewers past the 3-second hook. '+(r.completion>=a.avgCompletion?('Strong finish — '+this.pct(r.completion)+' watched to the end, above your '+this.pct(a.avgCompletion)+' average.'):('The steepest drop comes around '+this.fmtT(r.dropAt)+', pulling completion to '+this.pct(r.completion)+'.'));
+    const dropNote='Most viewers leave around '+this.fmtT(r.dropAt)+' — a '+Math.round(r.dropPct)+'-point drop in a single beat. '+(r.dropAt<r.len*0.3?'That early in the video usually means the payoff takes too long to arrive; tighten the intro or front-load the hook.':'Re-cut or add a pattern-break right before this moment to carry attention through to the end.');
+    const linkReal = r.permalink && r.permalink!=='#';
+    return {
+      id:r.id, cap:r.cap, date:r.date, time:r.time||'', lenFmt:this.fmtT(r.len), permalink:r.permalink,
+      linkText: linkReal?'Open on Instagram ↗':'', linkStyle: linkReal?{ alignSelf:'flex-start',marginTop:'14px',fontSize:'13px',fontWeight:'600',color:'#6366f1',textDecoration:'none' }:{ display:'none' },
+      summary, kpiCards,
+      retSub:'Estimated from average watch time across the '+this.fmtT(r.len)+' video — the Graph API does not expose per-second retention.',
+      retLine:rp.line, retArea:rp.area, dropX:+dropX.toFixed(1), dropY:+dropY.toFixed(1),
+      q1Fmt:this.fmtT(r.len*0.25), midFmt:this.fmtT(r.len*0.5), q3Fmt:this.fmtT(r.len*0.75),
+      heatSegs, keyMoments, dropNote,
+      engRateFmt:this.pct1(r.engRate), engRows,
+      ai:this.aiVals()
+    };
+  }
+  wrap(chip){ return { deltaText:chip.text, deltaStyle:chip.style }; }
+
+  // ── header status (shown in every state) ────────────────────────────────
+  headerVals(){
+    const m = this.db ? this.db.meta : {};
+    let syncText, dot;
+    if(this.state.syncing){ syncText='Syncing…'; dot='#d97706'; }
+    else if(this.state.loadError){ syncText='Sync failed'; dot='#dc2626'; }
+    else if(m.source==='demo'){ syncText='Demo data · not connected'; dot='#d97706'; }
+    else if(m.source==='live'){ syncText='Synced from Meta · '+this.relTime(m.fetchedAt); dot='#16a34a'; }
+    else { syncText='Loading…'; dot='#9ca3af'; }
+    return {
+      account: (this.db && this.db.meta && this.db.meta.username) || 'Instagram reels',
+      syncText,
+      syncDotStyle: { width:'7px',height:'7px',borderRadius:'50%',background:dot,boxShadow:'0 0 0 3px '+dot+'22' },
+      refresh: ()=>this.refresh()
+    };
+  }
+
+  renderVals(){
+    const head = this.headerVals();
+
+    // still loading the first payload
+    if(this.state.loading && !this.db){
+      return Object.assign({ showOverview:false, hasDetail:false, loading:true, showBanner:false }, head);
+    }
+
+    // banner (error / demo notice)
+    let showBanner=false, bannerText='', bannerStyle={};
+    const m = this.db.meta || {};
+    if(this.state.loadError){
+      showBanner=true; bannerText=this.state.loadError;
+      bannerStyle={ background:'#fef2f2',border:'1px solid #fbe3e3',color:'#9f3a3a',borderRadius:'11px',padding:'12px 15px',fontSize:'13.5px',lineHeight:'1.5' };
+    } else if(m.source==='demo'){
+      showBanner=true; bannerText='Showing demo data. Add IG_USER_ID and IG_ACCESS_TOKEN to .env (see README) to load your real reels.';
+      bannerStyle={ background:'#fffbeb',border:'1px solid #fde68a',color:'#92670c',borderRadius:'11px',padding:'12px 15px',fontSize:'13.5px',lineHeight:'1.5' };
+    }
+
+    const view = this.state.view;
+    if(view==='detail'){
+      return Object.assign({ showOverview:false, hasDetail:true, loading:false, showBanner:false, R:this.detail(), back:()=>this.back() }, head);
+    }
+
+    const out = Object.assign({ showOverview:true, hasDetail:false, loading:false, showBanner, bannerText, bannerStyle }, head);
+
+    const N = this.rangeDays();
+    const dayMs = 86400000;
+    const now = (this.db.meta && this.db.meta.fetchedAt) || Date.now();
+    const all = this.db.reels;
+    const inWin = (r,a,b)=> r.ts < now-a*dayMs && r.ts >= now-b*dayMs;
+    const cur = all.filter(r=>inWin(r,0,N));
+    const prev = all.filter(r=>inWin(r,N,2*N));
+    const a = this.aggOf(cur), pa = this.aggOf(prev);
+
+    out.range = this.state.range;
+    out.rangeLabel = ({'7D':'Last 7 days','30D':'Last 30 days','90D':'Last 90 days'})[this.state.range];
+    out.reelCount = cur.length;
+
+    // KPI sparklines + deltas. Reach/Plays deltas come from the daily trend
+    // series (real history); the rest compare current vs previous reel windows.
+    const sliceLast=(arr,n)=>arr.slice(Math.max(0,arr.length-n));
+    const reachS=this.db.reachS, playsS=this.db.playsS;
+    const curR=sliceLast(reachS,N), prevR=reachS.slice(Math.max(0,reachS.length-2*N), Math.max(0,reachS.length-N));
+    const curP=sliceLast(playsS,N), prevP=playsS.slice(Math.max(0,playsS.length-2*N), Math.max(0,playsS.length-N));
+    const mkDelta=(cur,prev,ok)=>{ if(!ok || !prev) return null; const d=(cur-prev)/prev*100; return { up:d>=0, text:Math.abs(Math.round(d*10)/10)+'%' }; };
+    const card=(label,value,series,delta)=>{
+      const sp=this.sparkPath(series);
+      const c={ label, value, spark:sp.line, sparkArea:sp.area };
+      if(delta){ c.deltaArrow=delta.up?'▲':'▼'; c.deltaText=delta.text; c.deltaStyle=this.deltaStyle(delta.up); }
+      else { c.deltaArrow=''; c.deltaText='—'; c.deltaStyle=this.deltaMuted(); }
+      return c;
+    };
+    out.kpis=[
+      card('Reach', this.fmtK(a.reach), curR.length?curR:cur.map(r=>r.reach), mkDelta(this.sum(curR),this.sum(prevR),prevR.length>0)),
+      card('Plays', this.fmtK(a.plays), curP.length?curP:cur.map(r=>r.plays), mkDelta(this.sum(curP),this.sum(prevP),prevP.length>0)),
+      card('Avg watch', this.fmtT(a.avgWatch), cur.map(r=>r.avgWatch), mkDelta(a.avgWatch,pa.avgWatch,prev.length>0)),
+      card('Watch-through', this.pct(a.avgCompletion), cur.map(r=>r.completion), mkDelta(a.avgCompletion,pa.avgCompletion,prev.length>0)),
+      card('Eng. rate', this.pct1(a.engRate), cur.map(r=>r.engRate), mkDelta(a.engRate,pa.engRate,prev.length>0)),
+      card('Follows', a.follows?this.fmtK(a.follows):'n/a', cur.map(r=>r.follows), mkDelta(a.follows,pa.follows,prev.length>0))
+    ];
+
+    // trend chart (windowed)
+    const cmax=Math.max(1,...curR,...curP);
+    const rp=this.buildPath(curR,760,232,4,4,20,26,0,cmax);
+    const pp=this.buildPath(curP,760,232,4,4,20,26,0,cmax);
+    const xLabels=[]; const pts=Math.max(curR.length,1);
+    for(let i=0;i<5;i++){ const daysAgo=Math.round((4-i)/4*(Math.max(pts,2)-1)); xLabels.push(this.fmtDate(now-daysAgo*dayMs)); }
+    out.trend={ reachLine:rp.line, reachArea:rp.area, playsLine:pp.line, playsArea:pp.area, yTop:this.fmtK(cmax), yMid:this.fmtK(cmax/2), xLabels };
+
+    // engagement mix
+    const interactions=a.likes+a.comments+a.shares+a.saves;
+    const emax=Math.max(a.likes,a.comments,a.shares,a.saves,1);
+    const em=(label,v)=>({ label, value:this.fmtK(v), pct:this.pct(interactions?v/interactions*100:0), barStyle:{ height:'100%', width:Math.max(3,v/emax*100)+'%', background:'#6366f1', borderRadius:'999px' } });
+    out.engTotal=this.fmtK(interactions);
+    out.engMix=[ em('Likes',a.likes), em('Saves',a.saves), em('Shares',a.shares), em('Comments',a.comments) ];
+
+    // insights (derived from real metrics; hook/drop figures are estimated)
+    out.insightsGood=[]; out.insightsBad=[];
+    if(cur.length){
+      const bySaves=[...cur].sort((x,y)=>y.saves-x.saves);
+      const avgSaves=this.mean(cur.map(r=>r.saves))||1;
+      if(bySaves[0].saves>0) out.insightsGood.push({ title:'Saves are your strongest signal', text:'"'+bySaves[0].cap+'" earned '+this.fmtK(bySaves[0].saves)+' saves — '+(bySaves[0].saves/avgSaves).toFixed(1)+'× your average. How-to and "show-me-your-setup" formats consistently over-index on saves.' });
+      const shorts=cur.filter(r=>r.lenKnown&&r.len<20), longs=cur.filter(r=>r.lenKnown&&r.len>=20);
+      if(shorts.length&&longs.length) out.insightsGood.push({ title:'Short reels finish stronger', text:'Reels under 20s hold '+this.pct(this.mean(shorts.map(r=>r.completion)))+' to the end vs '+this.pct(this.mean(longs.map(r=>r.completion)))+' for longer ones. Tighter edits keep people watching.' });
+      const byHook=[...cur].sort((x,y)=>y.hook-x.hook);
+      out.insightsGood.push({ title:'Your hooks are landing', text:'"'+byHook[0].cap+'" keeps '+this.pct(byHook[0].hook)+' of viewers past 3s and '+this.pct(byHook[0].completion)+' to the end. Lead with the payoff, not the setup.' });
+      const worstHook=byHook[byHook.length-1];
+      out.insightsBad.push({ title:'Weak opening', text:'"'+worstHook.cap+'" loses most viewers in the first 3s ('+this.pct(worstHook.hook)+' hook retention). Promising a reveal but front-loading filler causes the steepest early drop-offs.' });
+      if(longs.length){ const longTour=[...longs].sort((x,y)=>y.len-x.len)[0]; out.insightsBad.push({ title:'Long videos lose the middle', text:'"'+longTour.cap+'" ('+this.fmtT(longTour.len)+') drops to '+this.pct(longTour.mid)+' by the halfway mark. Cut to the highlights or split into parts.' }); }
+      const byDrop=[...cur].sort((x,y)=>y.dropPct-x.dropPct);
+      out.insightsBad.push({ title:'Sharp mid-video drop-off', text:'"'+byDrop[0].cap+'" loses '+Math.round(byDrop[0].dropPct)+' points in a single beat around '+this.fmtT(byDrop[0].dropAt)+'. Add a pattern-break there.' });
+    }
+
+    // reels table (windowed + sorted)
+    const sk=({reach:'reach',plays:'plays',watch:'completion',eng:'engRate'})[this.state.sort];
+    const sorted=[...cur].sort((x,y)=>y[sk]-x[sk]);
+    out.reels=sorted.map(r=>({
+      cap:r.cap, date:r.date, lenFmt:this.fmtT(r.len),
+      reachFmt:this.fmtK(r.reach), playsFmt:this.fmtK(r.plays), avgWatchFmt:this.fmtT(r.avgWatch),
+      completionFmt:this.pct(r.completion), engFmt:this.pct1(r.engRate), spark:r.spark,
+      watchBarStyle:{ height:'100%', width:Math.max(4,Math.min(100,r.completion))+'%', background:'#6366f1', borderRadius:'999px' },
+      open:()=>this.openReel(r.id)
+    }));
+
+    // sort header styling
+    const sortHdr=key=>{ const on=this.state.sort===key; return { style:{ background:'none',border:'none',padding:'0',font:'inherit',cursor:'pointer',textAlign:'right',letterSpacing:'.04em',textTransform:'uppercase',fontSize:'11px',fontWeight:'650',color:on?'#18181b':'#9ca3af' }, caret:on?'▾':'' }; };
+    const hr=sortHdr('reach'), hp=sortHdr('plays'), hw=sortHdr('watch'), he=sortHdr('eng');
+    out.sortReach=()=>this.setSort('reach'); out.sortPlays=()=>this.setSort('plays'); out.sortWatch=()=>this.setSort('watch'); out.sortEng=()=>this.setSort('eng');
+    out.sortReachStyle=hr.style; out.sortReachCaret=hr.caret; out.sortPlaysStyle=hp.style; out.sortPlaysCaret=hp.caret;
+    out.sortWatchStyle=hw.style; out.sortWatchCaret=hw.caret; out.sortEngStyle=he.style; out.sortEngCaret=he.caret;
+
+    // range selector
+    out.ranges=['7D','30D','90D'].map(rr=>({ r:rr, onClick:()=>this.setRange(rr), style:{ padding:'6px 12px',borderRadius:'8px',fontSize:'12.5px',fontWeight:'600',cursor:'pointer',border:'none',background:this.state.range===rr?'#18181b':'transparent',color:this.state.range===rr?'#fff':'#6b7280' } }));
+
+    return out;
+  }
+}
+</script>
+</body>
+</html>
