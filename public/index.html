@@ -15,6 +15,7 @@
   --line:#ececec; --line-2:#f1f1f2;
   --text:#18181b; --text-2:#52525b; --text-3:#9ca3af; --text-faint:#b4b4b8;
   --accent:#6366f1; --accent-soft:#eef2ff;
+  --header:rgba(250,250,250,.82);
   --shadow:0 1px 2px rgba(16,16,24,.04);
 }
 [data-theme=dark]{
@@ -22,6 +23,7 @@
   --line:#2c2c35; --line-2:#26262e;
   --text:#f3f3f5; --text-2:#b6b6c0; --text-3:#85858f; --text-faint:#67676f;
   --accent:#818cf8; --accent-soft:#211d3d;
+  --header:rgba(13,13,16,.82);
   --shadow:0 1px 2px rgba(0,0,0,.32);
 }
 *{box-sizing:border-box}
@@ -31,33 +33,35 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
 </style>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 </helmet>
-<div style="min-height:100vh;background:#fafafa;color:#18181b;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif">
+<div style="min-height:100vh;background:var(--surface-2);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif">
 
-  <header style="position:sticky;top:0;z-index:20;background:rgba(250,250,250,.82);backdrop-filter:blur(10px);border-bottom:1px solid #ececec">
+  <header style="position:sticky;top:0;z-index:20;background:var(--header);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)">
     <div style="max-width:1240px;margin:0 auto;padding:14px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px">
       <div style="display:flex;align-items:center;gap:12px">
-        <div style="width:30px;height:30px;border-radius:8px;background:#18181b;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px">▶</div>
+        <div style="width:30px;height:30px;border-radius:8px;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px">▶</div>
         <div style="display:flex;flex-direction:column;line-height:1.15">
           <span style="font-size:15px;font-weight:650;letter-spacing:-.01em">Reels Analytics</span>
-          <span style="font-size:12px;color:#9ca3af">{{ account }}</span>
+          <span style="font-size:12px;color:var(--text-3)">{{ account }}</span>
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:14px">
-        <div style="display:flex;gap:2px;background:#fff;border:1px solid #ececec;border-radius:10px;padding:3px">
+        <div style="display:flex;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:3px">
           <button style="{{ navOverviewStyle }}" onClick="{{ navOverview }}">Overview</button>
           <button style="{{ navContentStyle }}" onClick="{{ navContent }}">Content Creation</button>
+          <button style="{{ navPipelineStyle }}" onClick="{{ navPipeline }}">Reels Pipeline</button>
         </div>
         <sc-if value="{{ showOverview }}" hint-placeholder-val="{{ true }}">
-          <div style="display:flex;gap:2px;background:#fff;border:1px solid #ececec;border-radius:10px;padding:3px">
+          <div style="display:flex;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:3px">
             <sc-for list="{{ ranges }}" as="rg" hint-placeholder-count="3">
               <button style="{{ rg.style }}" onClick="{{ rg.onClick }}">{{ rg.r }}</button>
             </sc-for>
           </div>
         </sc-if>
-        <button onClick="{{ refresh }}" title="Refresh from Meta" style="display:flex;align-items:center;gap:7px;font-size:12.5px;color:#6b7280;background:none;border:none;cursor:pointer;font-family:inherit;padding:6px 4px">
+        <button onClick="{{ refresh }}" title="Refresh from Meta" style="display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--text-2);background:none;border:none;cursor:pointer;font-family:inherit;padding:6px 4px">
           <span style="{{ syncDotStyle }}"></span>
           {{ syncText }}
         </button>
+        <button onClick="{{ themeToggle }}" title="Toggle dark mode" style="{{ themeBtnStyle }}">{{ themeIcon }}</button>
         <div style="width:32px;height:32px;border-radius:50%;background:repeating-linear-gradient(135deg,#ede9fe 0 7px,#e0d9fb 7px 14px)"></div>
       </div>
     </div>
@@ -65,7 +69,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
 
   <!-- loading / status -->
   <sc-if value="{{ loading }}" hint-placeholder-val="{{ false }}">
-    <div style="max-width:1240px;margin:0 auto;padding:90px 28px;text-align:center;color:#9ca3af;font-size:14px">Loading your reels…</div>
+    <div style="max-width:1240px;margin:0 auto;padding:90px 28px;text-align:center;color:var(--text-3);font-size:14px">Loading your reels…</div>
   </sc-if>
   <sc-if value="{{ showBanner }}" hint-placeholder-val="{{ false }}">
     <div style="max-width:1240px;margin:18px auto -4px;padding:0 28px">
@@ -80,15 +84,15 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
     <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:18px;gap:16px">
       <div>
         <h1 style="margin:0;font-size:23px;font-weight:680;letter-spacing:-.02em">Performance overview</h1>
-        <p style="margin:5px 0 0;font-size:13.5px;color:#6b7280">{{ rangeLabel }} · {{ reelCount }} reels published · consolidated from Meta Insights</p>
+        <p style="margin:5px 0 0;font-size:13.5px;color:var(--text-2)">{{ rangeLabel }} · {{ reelCount }} reels published · consolidated from Meta Insights</p>
       </div>
     </div>
 
     <!-- KPI grid -->
     <section style="display:grid;grid-template-columns:repeat(6,1fr);gap:13px;margin-bottom:22px">
       <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="6">
-        <div style="background:#fff;border:1px solid #ececec;border-radius:14px;padding:15px 15px 13px">
-          <div style="font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:#9ca3af;font-weight:650">{{ k.label }}</div>
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:15px 15px 13px">
+          <div style="font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--text-3);font-weight:650">{{ k.label }}</div>
           <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:6px;margin-top:11px">
             <div style="font-size:25px;font-weight:660;letter-spacing:-.025em;line-height:1">{{ k.value }}</div>
             <svg width="96" height="32" viewBox="0 0 96 32" preserveAspectRatio="none" style="display:block;flex:none">
@@ -96,23 +100,23 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
               <path d="{{ k.spark }}" fill="none" stroke="#6366f1" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></path>
             </svg>
           </div>
-          <div style="{{ k.deltaStyle }}"><span>{{ k.deltaArrow }}</span><span>{{ k.deltaText }}</span><span style="color:#9ca3af;font-weight:500">vs prev</span></div>
+          <div style="{{ k.deltaStyle }}"><span>{{ k.deltaArrow }}</span><span>{{ k.deltaText }}</span><span style="color:var(--text-3);font-weight:500">vs prev</span></div>
         </div>
       </sc-for>
     </section>
 
     <!-- charts row -->
     <section style="display:grid;grid-template-columns:1.7fr 1fr;gap:13px;margin-bottom:22px">
-      <div style="background:#fff;border:1px solid #ececec;border-radius:14px;padding:18px 20px">
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
           <h3 style="margin:0;font-size:14.5px;font-weight:640">Daily reach &amp; plays</h3>
-          <div style="display:flex;gap:14px;font-size:12px;color:#6b7280">
+          <div style="display:flex;gap:14px;font-size:12px;color:var(--text-2)">
             <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:2px;background:#6366f1"></span>Reach</span>
             <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:2px;background:#c7d2fe"></span>Plays</span>
           </div>
         </div>
         <div style="display:flex;gap:8px">
-          <div style="display:flex;flex-direction:column;justify-content:space-between;padding:18px 0 26px;font-size:11px;color:#b4b4b8;text-align:right;width:34px;flex:none">
+          <div style="display:flex;flex-direction:column;justify-content:space-between;padding:18px 0 26px;font-size:11px;color:var(--text-faint);text-align:right;width:34px;flex:none">
             <span>{{ trend.yTop }}</span><span>{{ trend.yMid }}</span><span>0</span>
           </div>
           <div style="flex:1;min-width:0">
@@ -125,24 +129,24 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
               <path d="{{ trend.reachArea }}" fill="rgba(99,102,241,.10)" stroke="none"></path>
               <path d="{{ trend.reachLine }}" fill="none" stroke="#6366f1" stroke-width="2.2" vector-effect="non-scaling-stroke"></path>
             </svg>
-            <div style="display:flex;justify-content:space-between;font-size:11px;color:#b4b4b8;margin-top:7px">
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-faint);margin-top:7px">
               <sc-for list="{{ trend.xLabels }}" as="xl" hint-placeholder-count="5"><span>{{ xl }}</span></sc-for>
             </div>
           </div>
         </div>
       </div>
 
-      <div style="background:#fff;border:1px solid #ececec;border-radius:14px;padding:18px 20px">
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px">
         <h3 style="margin:0 0 2px;font-size:14.5px;font-weight:640">Engagement mix</h3>
-        <p style="margin:0 0 16px;font-size:12.5px;color:#9ca3af">{{ engTotal }} total interactions</p>
+        <p style="margin:0 0 16px;font-size:12.5px;color:var(--text-3)">{{ engTotal }} total interactions</p>
         <div style="display:flex;flex-direction:column;gap:15px">
           <sc-for list="{{ engMix }}" as="e" hint-placeholder-count="4">
             <div>
               <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px">
-                <span style="color:#52525b;font-weight:550">{{ e.label }}</span>
-                <span style="font-weight:600">{{ e.value }} <span style="color:#b4b4b8;font-weight:500">· {{ e.pct }}</span></span>
+                <span style="color:var(--text-2);font-weight:550">{{ e.label }}</span>
+                <span style="font-weight:600">{{ e.value }} <span style="color:var(--text-faint);font-weight:500">· {{ e.pct }}</span></span>
               </div>
-              <div style="height:8px;background:#f3f3f4;border-radius:999px;overflow:hidden">
+              <div style="height:8px;background:var(--fill);border-radius:999px;overflow:hidden">
                 <div style="{{ e.barStyle }}"></div>
               </div>
             </div>
@@ -152,18 +156,18 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
     </section>
 
     <!-- avg engagement rates (Graph API) -->
-    <section style="background:#fff;border:1px solid #ececec;border-radius:14px;padding:16px 20px;margin-bottom:22px">
+    <section style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 20px;margin-bottom:22px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
         <h3 style="margin:0;font-size:14.5px;font-weight:640">Avg engagement rates</h3>
-        <span style="font-size:12px;color:#9ca3af">% of views · {{ reelCount }} reels</span>
+        <span style="font-size:12px;color:var(--text-3)">% of views · {{ reelCount }} reels</span>
       </div>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:13px">
         <sc-for list="{{ avgRates }}" as="ar" hint-placeholder-count="4">
-          <div style="display:flex;align-items:center;gap:11px;background:#fafafa;border:1px solid #f1f1f2;border-radius:11px;padding:12px 14px">
-            <span style="width:32px;height:32px;border-radius:9px;background:#fff;border:1px solid #ececec;display:flex;align-items:center;justify-content:center;font-size:15px;flex:none">{{ ar.icon }}</span>
+          <div style="display:flex;align-items:center;gap:11px;background:var(--surface-2);border:1px solid var(--line-2);border-radius:11px;padding:12px 14px">
+            <span style="width:32px;height:32px;border-radius:9px;background:var(--surface);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:15px;flex:none">{{ ar.icon }}</span>
             <div style="min-width:0">
               <div style="font-size:18px;font-weight:660;letter-spacing:-.02em;line-height:1">{{ ar.value }}</div>
-              <div style="font-size:11.5px;color:#9ca3af;margin-top:3px">{{ ar.label }}</div>
+              <div style="font-size:11.5px;color:var(--text-3);margin-top:3px">{{ ar.label }}</div>
             </div>
           </div>
         </sc-for>
@@ -172,7 +176,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
 
     <!-- insights -->
     <section style="display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:22px">
-      <div style="background:#fff;border:1px solid #ececec;border-radius:14px;padding:18px 20px">
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
           <span style="width:20px;height:20px;border-radius:6px;background:#ecfdf3;color:#16a34a;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">✓</span>
           <h3 style="margin:0;font-size:14.5px;font-weight:640">What's working</h3>
@@ -183,13 +187,13 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
               <span style="width:6px;height:6px;border-radius:50%;background:#16a34a;margin-top:7px;flex:none"></span>
               <div>
                 <div style="font-size:13.5px;font-weight:620;margin-bottom:2px">{{ i.title }}</div>
-                <div style="font-size:13px;color:#6b7280;line-height:1.5">{{ i.text }}</div>
+                <div style="font-size:13px;color:var(--text-2);line-height:1.5">{{ i.text }}</div>
               </div>
             </div>
           </sc-for>
         </div>
       </div>
-      <div style="background:#fff;border:1px solid #ececec;border-radius:14px;padding:18px 20px">
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
           <span style="width:20px;height:20px;border-radius:6px;background:#fef2f2;color:#dc2626;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700">!</span>
           <h3 style="margin:0;font-size:14.5px;font-weight:640">Needs attention</h3>
@@ -200,7 +204,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
               <span style="width:6px;height:6px;border-radius:50%;background:#dc2626;margin-top:7px;flex:none"></span>
               <div>
                 <div style="font-size:13.5px;font-weight:620;margin-bottom:2px">{{ i.title }}</div>
-                <div style="font-size:13px;color:#6b7280;line-height:1.5">{{ i.text }}</div>
+                <div style="font-size:13px;color:var(--text-2);line-height:1.5">{{ i.text }}</div>
               </div>
             </div>
           </sc-for>
@@ -209,7 +213,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
     </section>
 
     <!-- reels table -->
-    <section style="background:#fff;border:1px solid #ececec;border-radius:14px;overflow:hidden">
+    <section style="background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px 14px">
         <h3 style="margin:0;font-size:14.5px;font-weight:640">All reels <span style="color:var(--text-faint);font-weight:500">· {{ reelCount }}</span></h3>
         <div style="display:flex;align-items:center;gap:14px">
@@ -217,7 +221,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
           <button onClick="{{ refresh }}" style="{{ refreshBtnStyle }}" title="Refresh from Instagram">↻ {{ refreshLabel }}</button>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:minmax(240px,1.7fr) 92px 92px 96px 138px 92px 84px;gap:12px;padding:9px 20px;border-top:1px solid #f1f1f2;border-bottom:1px solid #f1f1f2;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9ca3af;font-weight:650">
+      <div style="display:grid;grid-template-columns:minmax(240px,1.7fr) 92px 92px 96px 138px 92px 84px;gap:12px;padding:9px 20px;border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--text-3);font-weight:650">
         <span>Reel</span>
         <button style="{{ sortReachStyle }}" onClick="{{ sortReach }}">Reach {{ sortReachCaret }}</button>
         <button style="{{ sortPlaysStyle }}" onClick="{{ sortPlays }}">Plays {{ sortPlaysCaret }}</button>
@@ -227,22 +231,22 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
         <span style="text-align:right">Retention</span>
       </div>
       <sc-for list="{{ reels }}" as="r" hint-placeholder-count="8">
-        <div onClick="{{ r.open }}" style="display:grid;grid-template-columns:minmax(240px,1.7fr) 92px 92px 96px 138px 92px 84px;gap:12px;padding:13px 20px;border-bottom:1px solid #f5f5f5;align-items:center;cursor:pointer;transition:background .12s" style-hover="background:#fafaff">
+        <div onClick="{{ r.open }}" style="display:grid;grid-template-columns:minmax(240px,1.7fr) 92px 92px 96px 138px 92px 84px;gap:12px;padding:13px 20px;border-bottom:1px solid var(--line-2);align-items:center;cursor:pointer;transition:background .12s" style-hover="background:var(--surface-2)">
           <div style="display:flex;align-items:center;gap:12px;min-width:0">
             <div style="width:38px;height:50px;border-radius:7px;flex:none;background:repeating-linear-gradient(135deg,#eef0f4 0 7px,#e6e9ef 7px 14px);display:flex;align-items:center;justify-content:center">
               <span style="width:0;height:0;border-left:8px solid #b9bec8;border-top:5px solid transparent;border-bottom:5px solid transparent;margin-left:2px"></span>
             </div>
             <div style="min-width:0">
               <div style="font-size:13.5px;font-weight:570;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.cap }}</div>
-              <div style="font-size:12px;color:#9ca3af;margin-top:2px">{{ r.date }} · {{ r.lenFmt }}</div>
+              <div style="font-size:12px;color:var(--text-3);margin-top:2px">{{ r.date }} · {{ r.lenFmt }}</div>
             </div>
           </div>
           <div style="text-align:right;font-size:13.5px;font-weight:560">{{ r.reachFmt }}</div>
           <div style="text-align:right;font-size:13.5px;font-weight:560">{{ r.playsFmt }}</div>
           <div style="text-align:right;font-size:13.5px;font-weight:560">{{ r.avgWatchFmt }}</div>
           <div>
-            <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px"><span style="color:#9ca3af">&nbsp;</span><span style="font-weight:600">{{ r.completionFmt }}</span></div>
-            <div style="height:6px;background:#f3f3f4;border-radius:999px;overflow:hidden"><div style="{{ r.watchBarStyle }}"></div></div>
+            <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px"><span style="color:var(--text-3)">&nbsp;</span><span style="font-weight:600">{{ r.completionFmt }}</span></div>
+            <div style="height:6px;background:var(--fill);border-radius:999px;overflow:hidden"><div style="{{ r.watchBarStyle }}"></div></div>
           </div>
           <div style="text-align:right;font-size:13.5px;font-weight:560">{{ r.engFmt }}</div>
           <div style="display:flex;justify-content:flex-end">
@@ -265,15 +269,15 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
     </div>
 
     <section style="display:flex;gap:26px;margin-bottom:22px">
-      <div style="width:188px;height:334px;border-radius:16px;flex:none;background:repeating-linear-gradient(135deg,#eef0f4 0 9px,#e6e9ef 9px 18px);position:relative;display:flex;align-items:center;justify-content:center;border:1px solid #ececec">
+      <div style="width:188px;height:334px;border-radius:16px;flex:none;background:repeating-linear-gradient(135deg,#eef0f4 0 9px,#e6e9ef 9px 18px);position:relative;display:flex;align-items:center;justify-content:center;border:1px solid var(--line)">
         <span style="width:0;height:0;border-left:18px solid #c2c7d0;border-top:12px solid transparent;border-bottom:12px solid transparent;margin-left:4px"></span>
-        <span style="position:absolute;bottom:12px;left:12px;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;color:#9aa0ab;background:rgba(255,255,255,.7);padding:2px 6px;border-radius:5px">1080×1920</span>
+        <span style="position:absolute;bottom:12px;left:12px;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;color:var(--text-3);background:rgba(255,255,255,.7);padding:2px 6px;border-radius:5px">1080×1920</span>
       </div>
       <div style="flex:1;min-width:0;display:flex;flex-direction:column">
-        <span style="font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:#9ca3af;font-weight:650">Instagram Reel</span>
+        <span style="font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--text-3);font-weight:650">Instagram Reel</span>
         <h1 style="margin:8px 0 10px;font-size:25px;font-weight:680;letter-spacing:-.02em;line-height:1.2">{{ R.cap }}</h1>
-        <div style="font-size:13.5px;color:#6b7280;margin-bottom:16px">Posted {{ R.date }} · {{ R.time }} · {{ R.lenFmt }} long</div>
-        <div style="font-size:14px;color:#3f3f46;line-height:1.55;background:#fafaff;border:1px solid #eef0f4;border-radius:12px;padding:13px 15px">{{ R.summary }}</div>
+        <div style="font-size:13.5px;color:var(--text-2);margin-bottom:16px">Posted {{ R.date }} · {{ R.time }} · {{ R.lenFmt }} long</div>
+        <div style="font-size:14px;color:var(--text-2);line-height:1.55;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:13px 15px">{{ R.summary }}</div>
         <div style="flex:1"></div>
         <a href="{{ R.permalink }}" target="_blank" rel="noopener" style="{{ R.linkStyle }}">{{ R.linkText }}</a>
       </div>
@@ -281,8 +285,8 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
 
     <section style="display:grid;grid-template-columns:repeat(6,1fr);gap:13px;margin-bottom:22px">
       <sc-for list="{{ R.kpiCards }}" as="c" hint-placeholder-count="6">
-        <div style="background:#fff;border:1px solid #ececec;border-radius:14px;padding:15px">
-          <div style="font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:#9ca3af;font-weight:650">{{ c.label }}</div>
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:15px">
+          <div style="font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--text-3);font-weight:650">{{ c.label }}</div>
           <div style="font-size:24px;font-weight:660;letter-spacing:-.025em;margin:10px 0 9px;line-height:1">{{ c.value }}</div>
           <div style="{{ c.deltaStyle }}">{{ c.deltaText }}</div>
         </div>
@@ -290,16 +294,16 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
     </section>
 
     <!-- retention -->
-    <section style="background:#fff;border:1px solid #ececec;border-radius:14px;padding:20px 22px;margin-bottom:22px">
+    <section style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-bottom:22px">
       <div style="margin-bottom:18px">
         <h3 style="margin:0;font-size:15px;font-weight:650">Audience retention</h3>
-        <p style="margin:4px 0 0;font-size:13px;color:#9ca3af">{{ R.retSub }}</p>
+        <p style="margin:4px 0 0;font-size:13px;color:var(--text-3)">{{ R.retSub }}</p>
       </div>
       <div style="display:grid;grid-template-columns:1.55fr 1fr;gap:28px;align-items:start">
         <!-- curve -->
         <div>
           <div style="display:flex;gap:8px">
-            <div style="display:flex;flex-direction:column;justify-content:space-between;padding:14px 0 30px;font-size:11px;color:#b4b4b8;text-align:right;width:30px;flex:none">
+            <div style="display:flex;flex-direction:column;justify-content:space-between;padding:14px 0 30px;font-size:11px;color:var(--text-faint);text-align:right;width:30px;flex:none">
               <span>100%</span><span>75%</span><span>50%</span><span>25%</span><span>0</span>
             </div>
             <div style="flex:1;min-width:0">
@@ -314,7 +318,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
                 <line x1="{{ R.dropX }}" y1="14" x2="{{ R.dropX }}" y2="204" stroke="#dc2626" stroke-width="1.4" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"></line>
                 <circle cx="{{ R.dropX }}" cy="{{ R.dropY }}" r="4" fill="#dc2626" stroke="#fff" stroke-width="2"></circle>
               </svg>
-              <div style="display:flex;justify-content:space-between;font-size:11px;color:#b4b4b8;margin-top:7px">
+              <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-faint);margin-top:7px">
                 <span>0s</span><span>{{ R.q1Fmt }}</span><span>{{ R.midFmt }}</span><span>{{ R.q3Fmt }}</span><span>{{ R.lenFmt }}</span>
               </div>
             </div>
@@ -322,16 +326,16 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
         </div>
         <!-- heatmap + key moments -->
         <div>
-          <div style="font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9ca3af;font-weight:650;margin-bottom:9px">Drop-off heatmap</div>
-          <div style="display:flex;height:30px;border-radius:8px;overflow:hidden;border:1px solid #f1f1f2">
+          <div style="font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--text-3);font-weight:650;margin-bottom:9px">Drop-off heatmap</div>
+          <div style="display:flex;height:30px;border-radius:8px;overflow:hidden;border:1px solid var(--line-2)">
             <sc-for list="{{ R.heatSegs }}" as="s" hint-placeholder-count="21">
               <div style="{{ s.style }}"></div>
             </sc-for>
           </div>
-          <div style="display:flex;justify-content:space-between;font-size:11px;color:#b4b4b8;margin:7px 0 4px">
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-faint);margin:7px 0 4px">
             <span>0s</span><span>{{ R.midFmt }}</span><span>{{ R.lenFmt }}</span>
           </div>
-          <div style="display:flex;gap:14px;font-size:11px;color:#9ca3af;margin-bottom:18px">
+          <div style="display:flex;gap:14px;font-size:11px;color:var(--text-3);margin-bottom:18px">
             <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:2px;background:#16a34a"></span>Holding</span>
             <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:2px;background:#e07b16"></span>Dropping</span>
             <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:2px;background:#dc2626"></span>Lost</span>
@@ -342,7 +346,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
                 <span style="{{ m.dotStyle }}"></span>
                 <div style="flex:1">
                   <div style="font-size:13px;font-weight:580">{{ m.label }}</div>
-                  <div style="font-size:11.5px;color:#9ca3af">{{ m.sub }}</div>
+                  <div style="font-size:11.5px;color:var(--text-3)">{{ m.sub }}</div>
                 </div>
                 <div style="font-size:15px;font-weight:640">{{ m.value }}</div>
               </div>
@@ -354,90 +358,90 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
     </section>
 
     <!-- engagement -->
-    <section style="background:#fff;border:1px solid #ececec;border-radius:14px;padding:20px 22px">
+    <section style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px 22px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
         <h3 style="margin:0;font-size:15px;font-weight:650">Engagement breakdown</h3>
-        <span style="font-size:13px;color:#6b7280">Engagement rate <strong style="color:#18181b;font-weight:650">{{ R.engRateFmt }}</strong></span>
+        <span style="font-size:13px;color:var(--text-2)">Engagement rate <strong style="color:var(--text);font-weight:650">{{ R.engRateFmt }}</strong></span>
       </div>
       <div style="display:flex;flex-direction:column;gap:14px">
         <sc-for list="{{ R.engRows }}" as="e" hint-placeholder-count="5">
           <div style="display:grid;grid-template-columns:90px 1fr 92px;gap:14px;align-items:center">
-            <span style="font-size:13px;color:#52525b;font-weight:550">{{ e.label }}</span>
-            <div style="height:9px;background:#f3f3f4;border-radius:999px;overflow:hidden"><div style="{{ e.barStyle }}"></div></div>
-            <span style="font-size:13.5px;font-weight:600;text-align:right">{{ e.value }} <span style="color:#b4b4b8;font-weight:500;font-size:12px">· {{ e.rate }}</span></span>
+            <span style="font-size:13px;color:var(--text-2);font-weight:550">{{ e.label }}</span>
+            <div style="height:9px;background:var(--fill);border-radius:999px;overflow:hidden"><div style="{{ e.barStyle }}"></div></div>
+            <span style="font-size:13.5px;font-weight:600;text-align:right">{{ e.value }} <span style="color:var(--text-faint);font-weight:500;font-size:12px">· {{ e.rate }}</span></span>
           </div>
         </sc-for>
       </div>
     </section>
 
     <!-- engagement rates (Graph API) -->
-    <section style="background:#fff;border:1px solid #ececec;border-radius:14px;padding:20px 22px;margin-top:22px">
+    <section style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-top:22px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
         <h3 style="margin:0;font-size:15px;font-weight:650">Engagement rates</h3>
-        <span style="font-size:12px;color:#9ca3af">% of views</span>
+        <span style="font-size:12px;color:var(--text-3)">% of views</span>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:13px 40px">
         <sc-for list="{{ R.rates }}" as="rt" hint-placeholder-count="6">
           <div style="display:flex;align-items:center;gap:12px">
-            <span style="width:30px;height:30px;border-radius:8px;background:#f3f3f5;display:flex;align-items:center;justify-content:center;font-size:14px;flex:none">{{ rt.icon }}</span>
-            <span style="flex:1;font-size:13.5px;color:#52525b;font-weight:550">{{ rt.label }}</span>
+            <span style="width:30px;height:30px;border-radius:8px;background:var(--fill);display:flex;align-items:center;justify-content:center;font-size:14px;flex:none">{{ rt.icon }}</span>
+            <span style="flex:1;font-size:13.5px;color:var(--text-2);font-weight:550">{{ rt.label }}</span>
             <span style="{{ rt.valStyle }}">{{ rt.value }}</span>
           </div>
         </sc-for>
       </div>
-      <div style="margin-top:15px;font-size:11.5px;color:#b4b4b8">Skip &amp; repost rates aren't exposed by the Instagram Graph API.</div>
+      <div style="margin-top:15px;font-size:11.5px;color:var(--text-faint)">Skip &amp; repost rates aren't exposed by the Instagram Graph API.</div>
     </section>
 
     <!-- AI breakdown (frame-by-frame visuals + transcript + analysis) -->
-    <section style="background:#fff;border:1px solid #ececec;border-radius:14px;padding:20px 22px;margin-top:22px">
+    <section style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-top:22px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
         <h3 style="margin:0;font-size:15px;font-weight:650">AI breakdown</h3>
-        <span style="font-size:12px;color:#9ca3af">{{ R.ai.note }}</span>
+        <span style="font-size:12px;color:var(--text-3)">{{ R.ai.note }}</span>
       </div>
       <sc-if value="{{ R.ai.empty }}" hint-placeholder-val="{{ true }}">
-        <div style="font-size:13px;color:#6b7280;line-height:1.55;background:#fafaff;border:1px dashed #dfe1ea;border-radius:11px;padding:14px 16px">{{ R.ai.cta }}</div>
+        <div style="font-size:13px;color:var(--text-2);line-height:1.55;background:var(--surface-2);border:1px dashed #dfe1ea;border-radius:11px;padding:14px 16px">{{ R.ai.cta }}</div>
       </sc-if>
       <sc-if value="{{ R.ai.has }}" hint-placeholder-val="{{ false }}">
         <div>
-          <p style="margin:2px 0 14px;font-size:14px;color:#3f3f46;line-height:1.55">{{ R.ai.summary }}</p>
+          <p style="margin:2px 0 14px;font-size:14px;color:var(--text-2);line-height:1.55">{{ R.ai.summary }}</p>
           <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:16px">
             <sc-for list="{{ R.ai.frames }}" as="fr" hint-placeholder-count="6">
               <div style="flex:none;width:104px">
-                <img src="{{ fr.src }}" style="width:104px;height:150px;object-fit:cover;border-radius:8px;border:1px solid #ececec;display:block"/>
-                <div style="font-size:10.5px;color:#9ca3af;margin:4px 0 2px;font-weight:600">{{ fr.t }}</div>
-                <div style="font-size:11px;color:#6b7280;line-height:1.35">{{ fr.visual }}</div>
-                <sc-if value="{{ fr.motion }}" hint-placeholder-val="{{ false }}"><div style="font-size:10.5px;color:#9aa0ab;line-height:1.35;margin-top:3px">🎞 {{ fr.motion }}</div></sc-if>
-                <sc-if value="{{ fr.written }}" hint-placeholder-val="{{ false }}"><div style="font-size:10.5px;color:#4f46e5;line-height:1.35;margin-top:3px">📝 {{ fr.written }}</div></sc-if>
+                <img src="{{ fr.src }}" style="width:104px;height:150px;object-fit:cover;border-radius:8px;border:1px solid var(--line);display:block"/>
+                <div style="font-size:10.5px;color:var(--text-3);margin:4px 0 2px;font-weight:600">{{ fr.t }}</div>
+                <div style="font-size:11px;color:var(--text-2);line-height:1.35">{{ fr.visual }}</div>
+                <sc-if value="{{ fr.motion }}" hint-placeholder-val="{{ false }}"><div style="font-size:10.5px;color:var(--text-3);line-height:1.35;margin-top:3px">🎞 {{ fr.motion }}</div></sc-if>
+                <sc-if value="{{ fr.written }}" hint-placeholder-val="{{ false }}"><div style="font-size:10.5px;color:var(--accent);line-height:1.35;margin-top:3px">📝 {{ fr.written }}</div></sc-if>
               </div>
             </sc-for>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
             <div>
-              <div style="font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9ca3af;font-weight:650;margin-bottom:8px">Hook &amp; drop-off</div>
-              <p style="margin:0 0 10px;font-size:13px;color:#52525b;line-height:1.5">{{ R.ai.hook }}</p>
+              <div style="font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--text-3);font-weight:650;margin-bottom:8px">Hook &amp; drop-off</div>
+              <p style="margin:0 0 10px;font-size:13px;color:var(--text-2);line-height:1.5">{{ R.ai.hook }}</p>
               <sc-for list="{{ R.ai.dropoff }}" as="d" hint-placeholder-count="3">
                 <div style="display:flex;gap:9px;margin-bottom:8px">
                   <span style="flex:none;font-size:12px;font-weight:700;color:#dc2626;min-width:34px">{{ d.t }}</span>
-                  <span style="font-size:13px;color:#6b7280;line-height:1.5">{{ d.why }}</span>
+                  <span style="font-size:13px;color:var(--text-2);line-height:1.5">{{ d.why }}</span>
                 </div>
               </sc-for>
             </div>
             <div>
-              <div style="font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9ca3af;font-weight:650;margin-bottom:8px">Suggestions</div>
+              <div style="font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--text-3);font-weight:650;margin-bottom:8px">Suggestions</div>
               <sc-for list="{{ R.ai.suggestions }}" as="s" hint-placeholder-count="3">
                 <div style="display:flex;gap:9px;margin-bottom:8px">
                   <span style="width:6px;height:6px;border-radius:50%;background:#16a34a;margin-top:6px;flex:none"></span>
-                  <span style="font-size:13px;color:#52525b;line-height:1.5">{{ s }}</span>
+                  <span style="font-size:13px;color:var(--text-2);line-height:1.5">{{ s }}</span>
                 </div>
               </sc-for>
             </div>
           </div>
           <sc-if value="{{ R.ai.hasTranscript }}" hint-placeholder-val="{{ false }}">
             <div style="margin-top:16px">
-              <div style="font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9ca3af;font-weight:650;margin-bottom:8px">Transcript</div>
+              <div style="font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--text-3);font-weight:650;margin-bottom:8px">Transcript</div>
               <div style="max-height:160px;overflow-y:auto;font-size:13px;line-height:1.6">
                 <sc-for list="{{ R.ai.transcript }}" as="ts" hint-placeholder-count="6">
-                  <div style="display:flex;gap:10px;margin-bottom:3px"><span style="flex:none;color:#b4b4b8;font-size:11.5px;min-width:34px;text-align:right">{{ ts.t }}</span><span style="color:#52525b">{{ ts.text }}</span></div>
+                  <div style="display:flex;gap:10px;margin-bottom:3px"><span style="flex:none;color:var(--text-faint);font-size:11.5px;min-width:34px;text-align:right">{{ ts.t }}</span><span style="color:var(--text-2)">{{ ts.text }}</span></div>
                 </sc-for>
               </div>
             </div>
@@ -452,17 +456,17 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
   <sc-if value="{{ showContent }}" hint-placeholder-val="{{ false }}">
   <main style="max-width:1240px;margin:0 auto;padding:28px 28px 72px">
     <h1 style="margin:0 0 4px;font-size:23px;font-weight:680;letter-spacing:-.02em">Content Creation</h1>
-    <p style="margin:0 0 20px;font-size:13.5px;color:#6b7280">Paste any Instagram reel link to decorticate it frame‑by‑frame — script, visuals, and insights you can reuse.</p>
+    <p style="margin:0 0 20px;font-size:13.5px;color:var(--text-2)">Paste any Instagram reel link to decorticate it frame‑by‑frame — script, visuals, and insights you can reuse.</p>
 
     <div style="display:flex;gap:10px;margin-bottom:8px">
-      <input value="{{ CC.url }}" onInput="{{ CC.onUrl }}" placeholder="https://www.instagram.com/…/reel/…" style="flex:1;padding:12px 14px;border:1px solid #e2e2e6;border-radius:11px;font-size:14px;font-family:inherit"/>
+      <input value="{{ CC.url }}" onInput="{{ CC.onUrl }}" placeholder="https://www.instagram.com/…/reel/…" style="flex:1;padding:12px 14px;border:1px solid var(--line);border-radius:11px;font-size:14px;font-family:inherit"/>
       <button onClick="{{ CC.extract }}" style="padding:12px 22px;border:none;border-radius:11px;background:#18181b;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">{{ CC.extractLabel }}</button>
     </div>
     <sc-if value="{{ CC.error }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:#dc2626;margin-bottom:8px">{{ CC.error }}</div></sc-if>
     <sc-if value="{{ CC.extracting }}" hint-placeholder-val="{{ false }}">
       <div style="margin:12px 0 4px">
-        <div style="display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:#6b7280;margin-bottom:6px"><span>{{ CC.step }}</span><span style="font-weight:600;color:#52525b">{{ CC.progressPct }}</span></div>
-        <div style="height:8px;background:#ececed;border-radius:999px;overflow:hidden"><div style="{{ CC.barStyle }}"></div></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--text-2);margin-bottom:6px"><span>{{ CC.step }}</span><span style="font-weight:600;color:var(--text-2)">{{ CC.progressPct }}</span></div>
+        <div style="height:8px;background:var(--fill);border-radius:999px;overflow:hidden"><div style="{{ CC.barStyle }}"></div></div>
       </div>
     </sc-if>
 
@@ -471,12 +475,12 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
         <div style="margin-bottom:16px">
           <h3 style="margin:0 0 7px;font-size:17px;font-weight:670;letter-spacing:-.01em">{{ CC.title }}</h3>
           <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
-            <sc-if value="{{ CC.account }}" hint-placeholder-val="{{ false }}"><span style="font-size:11.5px;font-weight:600;color:#6b7280;background:#f3f3f5;border-radius:999px;padding:3px 10px">{{ CC.account }}</span></sc-if>
-            <span style="font-size:11.5px;font-weight:600;color:#6b7280;background:#f3f3f5;border-radius:999px;padding:3px 10px">{{ CC.frameCount }}</span>
-            <sc-if value="{{ CC.hasLang }}" hint-placeholder-val="{{ false }}"><span style="font-size:11.5px;font-weight:600;color:#4f46e5;background:#eef0ff;border-radius:999px;padding:3px 10px">{{ CC.lang }}</span></sc-if>
+            <sc-if value="{{ CC.account }}" hint-placeholder-val="{{ false }}"><span style="font-size:11.5px;font-weight:600;color:var(--text-2);background:var(--fill);border-radius:999px;padding:3px 10px">{{ CC.account }}</span></sc-if>
+            <span style="font-size:11.5px;font-weight:600;color:var(--text-2);background:var(--fill);border-radius:999px;padding:3px 10px">{{ CC.frameCount }}</span>
+            <sc-if value="{{ CC.hasLang }}" hint-placeholder-val="{{ false }}"><span style="font-size:11.5px;font-weight:600;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:3px 10px">{{ CC.lang }}</span></sc-if>
           </div>
         </div>
-        <div style="display:flex;gap:4px;border-bottom:1px solid #ececec;margin-bottom:18px">
+        <div style="display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:18px">
           <button style="{{ CC.tabFramesStyle }}" onClick="{{ CC.tabFrames }}">Frames</button>
           <button style="{{ CC.tabScriptStyle }}" onClick="{{ CC.tabScript }}">Script</button>
           <button style="{{ CC.tabVisualsStyle }}" onClick="{{ CC.tabVisuals }}">Visuals</button>
@@ -512,52 +516,105 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
         <sc-if value="{{ CC.showScript }}" hint-placeholder-val="{{ false }}">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
             <div>
-              <div style="font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9ca3af;font-weight:650;margin-bottom:8px">Original script (spoken)</div>
-              <div style="background:#fafaff;border:1px solid #eef0f4;border-radius:12px;padding:14px 16px;font-size:14px;line-height:1.6;white-space:pre-wrap;color:#3f3f46">{{ CC.transcript }}</div>
+              <div style="font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--text-3);font-weight:650;margin-bottom:8px">Original script (spoken)</div>
+              <div style="background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-size:14px;line-height:1.6;white-space:pre-wrap;color:var(--text-2)">{{ CC.transcript }}</div>
             </div>
             <div>
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-                <div style="font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9ca3af;font-weight:650">New script (AI)</div>
-                <button onClick="{{ CC.genScript }}" style="padding:7px 14px;border:none;border-radius:9px;background:#6366f1;color:#fff;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit">{{ CC.genLabel }}</button>
+                <div style="font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--text-3);font-weight:650">New script (AI)</div>
+                <button onClick="{{ CC.genScript }}" style="padding:7px 14px;border:none;border-radius:9px;background:var(--accent);color:#fff;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit">{{ CC.genLabel }}</button>
               </div>
-              <input value="{{ CC.brief }}" onInput="{{ CC.onBrief }}" placeholder="optional brief: topic / angle / length…" style="width:100%;padding:9px 12px;border:1px solid #e2e2e6;border-radius:9px;font-size:13px;font-family:inherit;margin-bottom:8px"/>
-              <div style="background:#fff;border:1px solid #ececec;border-radius:12px;padding:14px 16px;font-size:14px;line-height:1.6;white-space:pre-wrap;color:#18181b;min-height:120px">{{ CC.gscript }}</div>
+              <input value="{{ CC.brief }}" onInput="{{ CC.onBrief }}" placeholder="optional brief: topic / angle / length…" style="width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:9px;font-size:13px;font-family:inherit;margin-bottom:8px"/>
+              <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-size:14px;line-height:1.6;white-space:pre-wrap;color:var(--text);min-height:120px">{{ CC.gscript }}</div>
+              <div style="display:flex;align-items:center;gap:12px;margin-top:10px">
+                <button onClick="{{ CC.saveScript }}" style="{{ CC.saveBtnStyle }}">⤓ {{ CC.saveLabel }}</button>
+                <span style="font-size:12.5px;color:var(--text-3)">{{ CC.saved }}</span>
+              </div>
             </div>
           </div>
         </sc-if>
 
         <sc-if value="{{ CC.showVisuals }}" hint-placeholder-val="{{ false }}">
-          <p style="margin:0 0 14px;font-size:13px;color:#6b7280">Per‑frame visual descriptions — paste any into Claude design to generate your own visuals.</p>
+          <p style="margin:0 0 14px;font-size:13px;color:var(--text-2)">Per‑frame visual descriptions — paste any into Claude design to generate your own visuals.</p>
           <div style="display:flex;flex-direction:column;gap:8px">
             <sc-for list="{{ CC.visuals }}" as="v" hint-placeholder-count="6">
-              <div style="display:flex;gap:12px;background:#fff;border:1px solid #ececec;border-radius:10px;padding:11px 14px">
-                <span style="flex:none;font-size:11.5px;color:#9ca3af;font-weight:650;min-width:38px">{{ v.t }}</span>
-                <span style="font-size:13px;color:#52525b;line-height:1.5">{{ v.prompt }}</span>
+              <div style="display:flex;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 14px">
+                <span style="flex:none;font-size:11.5px;color:var(--text-3);font-weight:650;min-width:38px">{{ v.t }}</span>
+                <span style="font-size:13px;color:var(--text-2);line-height:1.5">{{ v.prompt }}</span>
               </div>
             </sc-for>
           </div>
         </sc-if>
 
         <sc-if value="{{ CC.showInsights }}" hint-placeholder-val="{{ false }}">
-          <div style="background:#fafaff;border:1px solid #eef0f4;border-radius:12px;padding:16px 18px;margin-bottom:16px;font-size:14px;line-height:1.55;color:#3f3f46">{{ CC.summary }}</div>
+          <div style="background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:16px;font-size:14px;line-height:1.55;color:var(--text-2)">{{ CC.summary }}</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
             <div>
-              <div style="font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9ca3af;font-weight:650;margin-bottom:8px">Hook &amp; drop‑off</div>
-              <p style="margin:0 0 10px;font-size:13px;color:#52525b;line-height:1.5">{{ CC.hook }}</p>
+              <div style="font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--text-3);font-weight:650;margin-bottom:8px">Hook &amp; drop‑off</div>
+              <p style="margin:0 0 10px;font-size:13px;color:var(--text-2);line-height:1.5">{{ CC.hook }}</p>
               <sc-for list="{{ CC.dropoff }}" as="d" hint-placeholder-count="3">
-                <div style="display:flex;gap:9px;margin-bottom:8px"><span style="flex:none;font-size:12px;font-weight:700;color:#dc2626;min-width:34px">{{ d.t }}</span><span style="font-size:13px;color:#6b7280;line-height:1.5">{{ d.why }}</span></div>
+                <div style="display:flex;gap:9px;margin-bottom:8px"><span style="flex:none;font-size:12px;font-weight:700;color:#dc2626;min-width:34px">{{ d.t }}</span><span style="font-size:13px;color:var(--text-2);line-height:1.5">{{ d.why }}</span></div>
               </sc-for>
             </div>
             <div>
-              <div style="font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9ca3af;font-weight:650;margin-bottom:8px">Suggestions</div>
+              <div style="font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--text-3);font-weight:650;margin-bottom:8px">Suggestions</div>
               <sc-for list="{{ CC.suggestions }}" as="s" hint-placeholder-count="3">
-                <div style="display:flex;gap:9px;margin-bottom:8px"><span style="width:6px;height:6px;border-radius:50%;background:#16a34a;margin-top:6px;flex:none"></span><span style="font-size:13px;color:#52525b;line-height:1.5">{{ s }}</span></div>
+                <div style="display:flex;gap:9px;margin-bottom:8px"><span style="width:6px;height:6px;border-radius:50%;background:#16a34a;margin-top:6px;flex:none"></span><span style="font-size:13px;color:var(--text-2);line-height:1.5">{{ s }}</span></div>
               </sc-for>
             </div>
           </div>
         </sc-if>
       </div>
     </sc-if>
+  </main>
+  </sc-if>
+
+  <sc-if value="{{ showPipeline }}" hint-placeholder-val="{{ false }}">
+  <main style="max-width:980px;margin:0 auto;padding:28px 28px 72px">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:4px">
+      <div>
+        <h1 style="margin:0;font-size:22px;font-weight:680;letter-spacing:-.02em">Reels Pipeline <span style="color:var(--text-faint);font-weight:500;font-size:16px">· {{ PIPE.count }}</span></h1>
+        <p style="margin:6px 0 0;font-size:13.5px;color:var(--text-2)">Saved scripts &amp; visual prompts from Content Creation. Edit the text or tags, then save — stored in Supabase.</p>
+      </div>
+      <button onClick="{{ PIPE.refresh }}" style="{{ refreshBtnStyle }}">↻ Refresh</button>
+    </div>
+
+    <sc-if value="{{ PIPE.notConfigured }}" hint-placeholder-val="{{ false }}">
+      <div style="margin-top:20px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:24px;text-align:center;font-size:13.5px;color:var(--text-2)">Supabase isn't configured on this server — add SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY to .env to save and retrieve scripts.</div>
+    </sc-if>
+    <sc-if value="{{ PIPE.loading }}" hint-placeholder-val="{{ true }}">
+      <div style="margin-top:20px;font-size:13.5px;color:var(--text-3)">Loading saved scripts…</div>
+    </sc-if>
+    <sc-if value="{{ PIPE.empty }}" hint-placeholder-val="{{ false }}">
+      <div style="margin-top:20px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:36px 24px;text-align:center">
+        <div style="font-size:14px;color:var(--text-2);margin-bottom:14px">No saved scripts yet — generate a script in Content Creation and hit “Save to pipeline”.</div>
+        <button onClick="{{ PIPE.goCreate }}" style="padding:9px 16px;border:none;border-radius:9px;background:var(--accent);color:#fff;font-size:13px;font-weight:650;cursor:pointer;font-family:inherit">Go to Content Creation</button>
+      </div>
+    </sc-if>
+    <sc-if value="{{ PIPE.error }}" hint-placeholder-val="{{ false }}">
+      <div style="margin-top:16px;font-size:13px;color:#dc2626">{{ PIPE.error }}</div>
+    </sc-if>
+
+    <div style="display:flex;flex-direction:column;gap:16px;margin-top:20px">
+      <sc-for list="{{ PIPE.items }}" as="it" hint-placeholder-count="3">
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px;box-shadow:var(--shadow)">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <input value="{{ it.title }}" onInput="{{ it.onTitle }}" style="flex:1;min-width:0;font-size:15.5px;font-weight:650;border:none;background:none;color:var(--text);font-family:inherit;padding:2px 0"/>
+            <span style="font-size:12px;color:var(--text-3);flex:none">{{ it.account }}</span>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:14px;font-size:11.5px;color:var(--text-3);margin-bottom:12px">
+            <span>{{ it.source }}</span><span>{{ it.visualCount }}</span><span>{{ it.updated }}</span>
+          </div>
+          <textarea value="{{ it.script }}" onInput="{{ it.onScript }}" style="width:100%;min-height:150px;resize:vertical;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:13.5px;line-height:1.6;color:var(--text);font-family:inherit"></textarea>
+          <div style="display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap">
+            <input value="{{ it.tagsText }}" onInput="{{ it.onTags }}" placeholder="tags, comma separated — ai, finance…" style="flex:1;min-width:160px;padding:8px 12px;border:1px solid var(--line);border-radius:9px;font-size:12.5px;font-family:inherit;background:var(--surface);color:var(--text)"/>
+            <span style="{{ it.statusStyle }}">{{ it.status }}</span>
+            <button onClick="{{ it.save }}" style="padding:8px 16px;border:none;border-radius:9px;background:var(--accent);color:#fff;font-size:12.5px;font-weight:650;cursor:pointer;font-family:inherit">{{ it.saveLabel }}</button>
+            <button onClick="{{ it.del }}" style="padding:8px 14px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:#dc2626;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit">Delete</button>
+          </div>
+        </div>
+      </sc-for>
+    </div>
   </main>
   </sc-if>
 
@@ -570,7 +627,9 @@ class Component extends DCLogic {
     this.MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     this.state = { view:'overview', sel:null, range:'30D', sort:'reach', loading:true, syncing:false, loadError:null, analysis:null, analysisFor:null, analysisLoading:false,
       ccUrl:'', ccLoading:false, ccResult:null, ccError:'', ccTab:'frames', ccScript:'', ccScriptLoading:false, ccBrief:'', ccProgress:0, ccStep:'',
-      ccSel:{}, ccExporting:false, ccSaving:false, ccSaved:'', theme:this.initialTheme() };
+      ccSel:{}, ccExporting:false, ccSaving:false, ccSaved:'',
+      pipeItems:null, pipeLoading:false, pipeError:'', pipeLoaded:false,
+      theme:this.initialTheme() };
     // Restore Content Creation results so an extracted reel + generated script
     // survive view switches and full page reloads — cleared only on a new extract.
     try {
@@ -791,7 +850,7 @@ class Component extends DCLogic {
       { icon:'⤓', label:'Skip rate', v:rt.skip }, { icon:'➤', label:'Share rate', v:rt.share },
       { icon:'♥', label:'Like rate', v:rt.like }, { icon:'🔖', label:'Save rate', v:rt.save },
       { icon:'⟳', label:'Repost rate', v:rt.repost }, { icon:'💬', label:'Comment rate', v:rt.comment }
-    ].map(x=>({ icon:x.icon, label:x.label, value:fmtRate(x.v), valStyle:{ fontSize:'15px', fontWeight:'660', color: x.v==null?'#c4c4cc':'#18181b' } }));
+    ].map(x=>({ icon:x.icon, label:x.label, value:fmtRate(x.v), valStyle:{ fontSize:'15px', fontWeight:'660', color: x.v==null?'var(--text-faint)':'var(--text)' } }));
     const summary='This reel reached '+this.fmtK(r.reach)+' accounts and held '+this.pct(r.hook)+' of viewers past the 3-second hook. '+(r.completion>=a.avgCompletion?('Strong finish — '+this.pct(r.completion)+' watched to the end, above your '+this.pct(a.avgCompletion)+' average.'):('The steepest drop comes around '+this.fmtT(r.dropAt)+', pulling completion to '+this.pct(r.completion)+'.'));
     const dropNote='Most viewers leave around '+this.fmtT(r.dropAt)+' — a '+Math.round(r.dropPct)+'-point drop in a single beat. '+(r.dropAt<r.len*0.3?'That early in the video usually means the payoff takes too long to arrive; tighten the intro or front-load the hook.':'Re-cut or add a pattern-break right before this moment to carry attention through to the end.');
     const linkReal = r.permalink && r.permalink!=='#';
@@ -832,15 +891,15 @@ class Component extends DCLogic {
       themeBtnStyle: { display:'inline-flex',alignItems:'center',justifyContent:'center',width:'30px',height:'30px',borderRadius:'8px',border:'1px solid var(--line)',background:'var(--surface)',color:'var(--text-2)',fontSize:'14px',cursor:'pointer',fontFamily:'inherit' },
       navOverview: ()=>this.setView('overview'),
       navContent: ()=>this.setView('content'),
-      navPipeline: ()=>this.setView('pipeline'),
+      navPipeline: ()=>{ this.setView('pipeline'); this.loadScripts(false); },
       navOverviewStyle: this.tabStyle(this.state.view!=='content'&&this.state.view!=='pipeline'),
       navContentStyle: this.tabStyle(this.state.view==='content'),
       navPipelineStyle: this.tabStyle(this.state.view==='pipeline')
     };
   }
 
-  tabStyle(active){ return { padding:'6px 12px',borderRadius:'8px',fontSize:'12.5px',fontWeight:'600',cursor:'pointer',border:'none',background:active?'#18181b':'transparent',color:active?'#fff':'#6b7280',fontFamily:'inherit' }; }
-  ccTabStyle(active){ return { padding:'9px 14px',background:'none',border:'none',borderBottom:active?'2px solid #18181b':'2px solid transparent',color:active?'#18181b':'#9ca3af',fontSize:'13.5px',fontWeight:'600',cursor:'pointer',fontFamily:'inherit',marginBottom:'-1px' }; }
+  tabStyle(active){ return { padding:'6px 12px',borderRadius:'8px',fontSize:'12.5px',fontWeight:'600',cursor:'pointer',border:'none',background:active?'var(--text)':'transparent',color:active?'var(--bg)':'var(--text-2)',fontFamily:'inherit' }; }
+  ccTabStyle(active){ return { padding:'9px 14px',background:'none',border:'none',borderBottom:active?'2px solid var(--text)':'2px solid transparent',color:active?'var(--text)':'var(--text-3)',fontSize:'13.5px',fontWeight:'600',cursor:'pointer',fontFamily:'inherit',marginBottom:'-1px' }; }
 
   setView(v){ this.setState({ view:v }); if(typeof window!=='undefined') window.scrollTo(0,0); }
 
@@ -885,6 +944,56 @@ class Component extends DCLogic {
       .then(j=>this.setState({ ccScriptLoading:false, ccScript: j.error ? ('Error: '+j.error) : j.script }))
       .catch(e=>this.setState({ ccScriptLoading:false, ccScript:'Error: '+String(e) }));
   }
+  // Save the current Content-Creation output (script + visual prompts) to the pipeline.
+  saveCurrentScript(){
+    const r=this.state.ccResult; if(!r) return;
+    const script=(this.state.ccScript||'').trim() || (r.transcript&&r.transcript.text)||'';
+    if(!script){ this.setState({ ccSaved:'Nothing to save yet.' }); return; }
+    const visuals=(r.frames||[]).filter(f=>f.visual).map(f=>({ t:f.t, prompt:f.visual+(f.motion?(' ('+f.motion+')'):'') }));
+    const payload={
+      sourceShortcode:r.id, account:r.ig_account||null,
+      title:(r.metrics&&(r.metrics.cap||r.metrics.caption))||('Script · '+r.id),
+      brief:this.state.ccBrief||'', script,
+      transcript:(r.transcript&&r.transcript.text)||'', visuals
+    };
+    this.setState({ ccSaving:true, ccSaved:'' });
+    fetch('/api/scripts',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify(payload) })
+      .then(res=>res.json())
+      .then(j=>{ if(j.error) this.setState({ ccSaving:false, ccSaved:'Error: '+j.error }); else { this.setState({ ccSaving:false, ccSaved:'Saved to pipeline ✓', pipeLoaded:false }); } })
+      .catch(e=>this.setState({ ccSaving:false, ccSaved:'Error: '+String(e) }));
+  }
+  // ── Reels Pipeline ────────────────────────────────────────────────────────
+  loadScripts(force){
+    if(this.state.pipeLoading) return;
+    if(this.state.pipeLoaded && !force) return;
+    this.setState({ pipeLoading:true, pipeError:'' });
+    fetch('/api/scripts')
+      .then(r=>r.json())
+      .then(j=>this.setState({ pipeLoading:false, pipeLoaded:true, pipeItems:j.items||[], pipeConfigured:j.configured!==false, pipeError: j.error||'' }))
+      .catch(e=>this.setState({ pipeLoading:false, pipeLoaded:true, pipeError:String(e) }));
+  }
+  pipeEdit(id, field, value){
+    const items=(this.state.pipeItems||[]).map(it=> it.id===id ? Object.assign({}, it, { [field]:value, _dirty:true }) : it);
+    this.setState({ pipeItems:items });
+  }
+  pipeSave(id){
+    const it=(this.state.pipeItems||[]).find(x=>x.id===id); if(!it) return;
+    const tags=typeof it.tags==='string' ? it.tags.split(',').map(t=>t.trim()).filter(Boolean) : (it.tags||[]);
+    const body={ title:it.title, script:it.script, brief:it.brief, tags, visuals:it.visuals, account:it.account, sourceShortcode:it.source_shortcode };
+    const items=(this.state.pipeItems||[]).map(x=> x.id===id ? Object.assign({}, x, { _saving:true }) : x);
+    this.setState({ pipeItems:items });
+    fetch('/api/scripts/'+encodeURIComponent(id),{ method:'PUT', headers:{'content-type':'application/json'}, body:JSON.stringify(body) })
+      .then(r=>r.json())
+      .then(j=>{ const next=(this.state.pipeItems||[]).map(x=> x.id===id ? Object.assign({}, j.item||x, { _saving:false, _dirty:false, _saved:!j.error, _err:j.error||'' }) : x); this.setState({ pipeItems:next }); })
+      .catch(e=>{ const next=(this.state.pipeItems||[]).map(x=> x.id===id ? Object.assign({}, x, { _saving:false, _err:String(e) }) : x); this.setState({ pipeItems:next }); });
+  }
+  pipeDelete(id){
+    if(typeof window!=='undefined' && window.confirm && !window.confirm('Delete this saved script?')) return;
+    fetch('/api/scripts/'+encodeURIComponent(id),{ method:'DELETE' })
+      .then(r=>r.json())
+      .then(()=>this.setState({ pipeItems:(this.state.pipeItems||[]).filter(x=>x.id!==id) }))
+      .catch(()=>{});
+  }
   toggleFrame(t){ const sel=Object.assign({}, this.state.ccSel); if(sel[t]) delete sel[t]; else sel[t]=true; this.setState({ ccSel:sel }); }
   selectAllFrames(){ const r=this.state.ccResult; if(!r) return; const sel={}; (r.frames||[]).forEach(f=>{ sel[f.t]=true; }); this.setState({ ccSel:sel }); }
   clearFrames(){ this.setState({ ccSel:{} }); }
@@ -928,7 +1037,9 @@ class Component extends DCLogic {
       showFrames:tab==='frames', showScript:tab==='script', showVisuals:tab==='visuals', showInsights:tab==='insights',
       title:'', account:'', frames:[], transcript:'', visuals:[], summary:'', hook:'', dropoff:[], suggestions:[],
       gscript:s.ccScript||'', genScript:()=>this.generateScript(), genLabel: s.ccScriptLoading?'Generating…':'Generate script',
-      brief:s.ccBrief||'', onBrief:(e)=>this.setState({ ccBrief: e&&e.target?e.target.value:'' })
+      brief:s.ccBrief||'', onBrief:(e)=>this.setState({ ccBrief: e&&e.target?e.target.value:'' }),
+      saveScript:()=>this.saveCurrentScript(), saveLabel: s.ccSaving?'Saving…':'Save to pipeline', saved:s.ccSaved||'',
+      saveBtnStyle:{ display:'inline-flex',alignItems:'center',gap:'7px',padding:'8px 15px',borderRadius:'9px',border:'1px solid var(--line)',background:'var(--surface)',color:'var(--text)',fontSize:'12.5px',fontWeight:'650',cursor:'pointer',fontFamily:'inherit' }
     };
     if(!r) return cc;
     const a=r.analysis||{};
@@ -960,12 +1071,49 @@ class Component extends DCLogic {
     return cc;
   }
 
+  pipelineVals(){
+    const s=this.state;
+    const items=(s.pipeItems||[]).map(it=>{
+      const tagsText = Array.isArray(it.tags) ? it.tags.join(', ') : (it.tags||'');
+      const vis = Array.isArray(it.visuals) ? it.visuals : [];
+      return {
+        id:it.id,
+        title:it.title||'', source:it.source_shortcode?('from '+it.source_shortcode):'', account:it.account?('@'+it.account):'',
+        script:it.script||'', brief:it.brief||'', tagsText,
+        visualCount: vis.length?(vis.length+' visual prompt'+(vis.length>1?'s':'')):'no visual prompts',
+        updated: it.updated_at?('Updated '+this.relTime(Date.parse(it.updated_at))):'',
+        onTitle:(e)=>this.pipeEdit(it.id,'title', e&&e.target?e.target.value:''),
+        onScript:(e)=>this.pipeEdit(it.id,'script', e&&e.target?e.target.value:''),
+        onTags:(e)=>this.pipeEdit(it.id,'tags', e&&e.target?e.target.value:''),
+        save:()=>this.pipeSave(it.id), del:()=>this.pipeDelete(it.id),
+        saveLabel: it._saving?'Saving…':(it._dirty?'Save changes':(it._saved?'Saved ✓':'Save')),
+        statusStyle:{ fontSize:'12px', color: it._err?'#dc2626':'var(--text-3)' },
+        status: it._err? ('Error: '+it._err) : ''
+      };
+    });
+    return {
+      items,
+      count: items.length,
+      loading: !!s.pipeLoading,
+      empty: s.pipeLoaded && !s.pipeLoading && !items.length && s.pipeConfigured!==false,
+      notConfigured: s.pipeConfigured===false,
+      error: s.pipeError||'',
+      refresh:()=>this.loadScripts(true),
+      goCreate:()=>this.setView('content')
+    };
+  }
+
   renderVals(){
     const head = this.headerVals();
 
     // Content Creation tab — independent of the reels payload.
     if(this.state.view==='content'){
       return Object.assign({ showOverview:false, hasDetail:false, showContent:true, loading:false, showBanner:false }, head, { CC:this.contentVals() });
+    }
+
+    // Reels Pipeline tab — saved scripts/visuals from Supabase.
+    if(this.state.view==='pipeline'){
+      return Object.assign({ showOverview:false, hasDetail:false, showContent:false, showPipeline:true, loading:false, showBanner:false }, head, { PIPE:this.pipelineVals() });
     }
 
     // still loading the first payload

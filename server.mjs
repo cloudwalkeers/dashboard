@@ -81,6 +81,38 @@ const server = http.createServer(async (req, res) => {
       }
     }
 
+    // Reels Pipeline: saved scripts + visual prompts (list / save / edit / delete).
+    if (u.pathname === "/api/scripts") {
+      const mod = await import("./lib/store/scripts.mjs");
+      if (!mod.isConfigured())
+        return send(res, 200, ".json", JSON.stringify({ items: [], configured: false }));
+      try {
+        if (req.method === "GET")
+          return send(res, 200, ".json", JSON.stringify({ items: await mod.listScripts(), configured: true }));
+        if (req.method === "POST") {
+          const body = await readJson(req);
+          return send(res, 200, ".json", JSON.stringify({ item: await mod.saveScript(body) }));
+        }
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
+    const sm = u.pathname.match(/^\/api\/scripts\/([^/]+)$/);
+    if (sm) {
+      const mod = await import("./lib/store/scripts.mjs");
+      const id = decodeURIComponent(sm[1]);
+      try {
+        if (req.method === "PUT") {
+          const body = await readJson(req);
+          return send(res, 200, ".json", JSON.stringify({ item: await mod.saveScript({ ...body, id }) }));
+        }
+        if (req.method === "DELETE")
+          return send(res, 200, ".json", JSON.stringify(await mod.deleteScript(id)));
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
+
     // Per-reel AI breakdown (precomputed by `npm run analyze`).
     const ar = u.pathname.match(/^\/api\/reel\/([^/]+)\/analyze$/);
     if (ar) {
