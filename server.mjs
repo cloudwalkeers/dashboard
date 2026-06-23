@@ -52,13 +52,21 @@ const server = http.createServer(async (req, res) => {
     if (u.pathname === "/api/extract" && req.method === "POST") {
       const body = await readJson(req);
       if (!body.url) return send(res, 400, ".json", JSON.stringify({ error: "missing url" }));
+      // Stream progress as newline-delimited JSON: {step} … then {done,result} or {error}.
+      res.writeHead(200, { "content-type": "application/x-ndjson; charset=utf-8", "cache-control": "no-cache", "x-accel-buffering": "no" });
+      const write = (o) => res.write(JSON.stringify(o) + "\n");
       try {
         const { analyzeFromUrl } = await import("./lib/analysis/web.mjs");
-        const result = await analyzeFromUrl(body.url, { intervalSec: Number(body.interval) || 2, force: !!body.force });
-        return send(res, 200, ".json", JSON.stringify(result));
+        const result = await analyzeFromUrl(body.url, {
+          intervalSec: Number(body.interval) || 2,
+          force: !!body.force,
+          onStep: (s) => write({ step: s }),
+        });
+        write({ done: true, result });
       } catch (e) {
-        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+        write({ error: e && e.message ? e.message : String(e) });
       }
+      return res.end();
     }
 
     // Generate a new script from a reference reel (id) or a supplied transcript.

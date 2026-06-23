@@ -401,7 +401,12 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
       <button onClick="{{ CC.extract }}" style="padding:12px 22px;border:none;border-radius:11px;background:#18181b;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">{{ CC.extractLabel }}</button>
     </div>
     <sc-if value="{{ CC.error }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:#dc2626;margin-bottom:8px">{{ CC.error }}</div></sc-if>
-    <sc-if value="{{ CC.extracting }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:#9ca3af;margin:10px 0">Downloading + analysing the reel — frames, transcript, written‑text and insights. ~1 minute the first time (instant if already extracted).</div></sc-if>
+    <sc-if value="{{ CC.extracting }}" hint-placeholder-val="{{ false }}">
+      <div style="margin:12px 0 4px">
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:#6b7280;margin-bottom:6px"><span>{{ CC.step }}</span><span style="font-weight:600;color:#52525b">{{ CC.progressPct }}</span></div>
+        <div style="height:8px;background:#ececed;border-radius:999px;overflow:hidden"><div style="{{ CC.barStyle }}"></div></div>
+      </div>
+    </sc-if>
 
     <sc-if value="{{ CC.hasResult }}" hint-placeholder-val="{{ false }}">
       <div style="margin-top:18px">
@@ -492,7 +497,7 @@ class Component extends DCLogic {
     super(props);
     this.MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     this.state = { view:'overview', sel:null, range:'30D', sort:'reach', loading:true, syncing:false, loadError:null, analysis:null, analysisFor:null, analysisLoading:false,
-      ccUrl:'', ccLoading:false, ccResult:null, ccError:'', ccTab:'frames', ccScript:'', ccScriptLoading:false, ccBrief:'' };
+      ccUrl:'', ccLoading:false, ccResult:null, ccError:'', ccTab:'frames', ccScript:'', ccScriptLoading:false, ccBrief:'', ccProgress:0, ccStep:'' };
     this.db = null; // { reels, reachS, playsS, meta }
   }
 
@@ -728,14 +733,38 @@ class Component extends DCLogic {
 
   setView(v){ this.setState({ view:v }); if(typeof window!=='undefined') window.scrollTo(0,0); }
 
+  progressFor(s){
+    if(s.indexOf('vision')===0){ const m=s.match(/(\d+)\/(\d+)/); return m? Math.round(30+(+m[1]/+m[2])*45) : 50; }
+    const map={ 'metadata':5,'download':12,'frames':25,'transcribe':82,'analyze':92,'store':98,'cached (supabase)':100 };
+    return map[s]!=null?map[s]:(this.state.ccProgress||0);
+  }
+  stepLabel(s){
+    if(s.indexOf('vision')===0){ const m=s.match(/(\d+)\/(\d+)/); return m?('Describing frames (AI vision) '+m[1]+'/'+m[2]+'…'):'Describing frames…'; }
+    const map={ 'metadata':'Reading reel info…','download':'Downloading reel…','frames':'Extracting frames + audio…','transcribe':'Transcribing audio…','analyze':'Writing the analysis…','store':'Saving to database…','cached (supabase)':'Loaded from database' };
+    return map[s]||s;
+  }
   extract(){
     const url=(this.state.ccUrl||'').trim();
     if(!url){ this.setState({ ccError:'Paste an Instagram reel link first.' }); return; }
-    this.setState({ ccLoading:true, ccError:'', ccResult:null, ccScript:'' });
+    this.setState({ ccLoading:true, ccError:'', ccResult:null, ccScript:'', ccProgress:2, ccStep:'Starting…' });
     fetch('/api/extract',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ url }) })
-      .then(r=>r.json())
-      .then(j=>{ if(j.error) this.setState({ ccLoading:false, ccError:j.error }); else this.setState({ ccLoading:false, ccResult:j, ccTab:'frames' }); })
-      .catch(e=>this.setState({ ccLoading:false, ccError:String(e) }));
+      .then(async (res)=>{
+        if(!res.body){ const j=await res.json().catch(()=>({error:'no response'})); this.setState({ ccLoading:false, ccError:j.error||'failed' }); return; }
+        const reader=res.body.getReader(), dec=new TextDecoder(); let buf='';
+        for(;;){
+          const { done, value }=await reader.read(); if(done) break;
+          buf+=dec.decode(value,{stream:true}); let nl;
+          while((nl=buf.indexOf('\n'))>=0){
+            const line=buf.slice(0,nl).trim(); buf=buf.slice(nl+1); if(!line) continue;
+            let o; try{ o=JSON.parse(line); }catch{ continue; }
+            if(o.step) this.setState({ ccStep:this.stepLabel(o.step), ccProgress:this.progressFor(o.step) });
+            else if(o.error) this.setState({ ccLoading:false, ccError:o.error, ccProgress:0 });
+            else if(o.done) this.setState({ ccLoading:false, ccResult:o.result, ccTab:'frames', ccProgress:100 });
+          }
+        }
+        if(this.state.ccLoading) this.setState({ ccLoading:false });
+      })
+      .catch(e=>this.setState({ ccLoading:false, ccError:String(e), ccProgress:0 }));
   }
   generateScript(){
     const r=this.state.ccResult; if(!r) return;
@@ -750,6 +779,8 @@ class Component extends DCLogic {
     const cc={
       url:s.ccUrl||'', onUrl:(e)=>this.setState({ ccUrl: e&&e.target?e.target.value:'' }),
       extract:()=>this.extract(), extracting:!!s.ccLoading, extractLabel: s.ccLoading?'Extracting…':'Extract',
+      step:s.ccStep||'', progressPct:(s.ccProgress||0)+'%',
+      barStyle:{ height:'100%', width:(s.ccProgress||0)+'%', background:'#6366f1', borderRadius:'999px', transition:'width .3s ease' },
       error:s.ccError||'', hasResult:!!r,
       tabFrames:()=>this.setState({ccTab:'frames'}), tabScript:()=>this.setState({ccTab:'script'}), tabVisuals:()=>this.setState({ccTab:'visuals'}), tabInsights:()=>this.setState({ccTab:'insights'}),
       tabFramesStyle:this.ccTabStyle(tab==='frames'), tabScriptStyle:this.ccTabStyle(tab==='script'), tabVisualsStyle:this.ccTabStyle(tab==='visuals'), tabInsightsStyle:this.ccTabStyle(tab==='insights'),

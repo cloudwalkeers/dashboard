@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node server.mjs",
     "analyze": "node bin/analyze-reel.mjs",
-    "backfill": "node bin/backfill.mjs"
+    "backfill": "node bin/backfill.mjs",
+    "backfill:links": "node bin/backfill-links.mjs"
   },
   "engines": {
     "node": ">=18"
