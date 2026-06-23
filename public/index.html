@@ -10,11 +10,26 @@
 <x-dc>
 <helmet>
 <style>
+:root{
+  --bg:#fafafa; --surface:#ffffff; --surface-2:#fafaff; --fill:#f3f3f4; --fill-2:#f5f5f5;
+  --line:#ececec; --line-2:#f1f1f2;
+  --text:#18181b; --text-2:#52525b; --text-3:#9ca3af; --text-faint:#b4b4b8;
+  --accent:#6366f1; --accent-soft:#eef2ff;
+  --shadow:0 1px 2px rgba(16,16,24,.04);
+}
+[data-theme=dark]{
+  --bg:#0d0d10; --surface:#18181d; --surface-2:#1f1f27; --fill:#26262e; --fill-2:#222229;
+  --line:#2c2c35; --line-2:#26262e;
+  --text:#f3f3f5; --text-2:#b6b6c0; --text-3:#85858f; --text-faint:#67676f;
+  --accent:#818cf8; --accent-soft:#211d3d;
+  --shadow:0 1px 2px rgba(0,0,0,.32);
+}
 *{box-sizing:border-box}
-body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;background:var(--bg);color:var(--text);transition:background .2s ease,color .2s ease}
 ::-webkit-scrollbar{width:10px;height:10px}
-::-webkit-scrollbar-thumb{background:#e2e2e2;border-radius:8px;border:3px solid #fafafa}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px;border:3px solid var(--bg)}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 </helmet>
 <div style="min-height:100vh;background:#fafafa;color:#18181b;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif">
 
@@ -136,6 +151,25 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
       </div>
     </section>
 
+    <!-- avg engagement rates (Graph API) -->
+    <section style="background:#fff;border:1px solid #ececec;border-radius:14px;padding:16px 20px;margin-bottom:22px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <h3 style="margin:0;font-size:14.5px;font-weight:640">Avg engagement rates</h3>
+        <span style="font-size:12px;color:#9ca3af">% of views · {{ reelCount }} reels</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:13px">
+        <sc-for list="{{ avgRates }}" as="ar" hint-placeholder-count="4">
+          <div style="display:flex;align-items:center;gap:11px;background:#fafafa;border:1px solid #f1f1f2;border-radius:11px;padding:12px 14px">
+            <span style="width:32px;height:32px;border-radius:9px;background:#fff;border:1px solid #ececec;display:flex;align-items:center;justify-content:center;font-size:15px;flex:none">{{ ar.icon }}</span>
+            <div style="min-width:0">
+              <div style="font-size:18px;font-weight:660;letter-spacing:-.02em;line-height:1">{{ ar.value }}</div>
+              <div style="font-size:11.5px;color:#9ca3af;margin-top:3px">{{ ar.label }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
     <!-- insights -->
     <section style="display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:22px">
       <div style="background:#fff;border:1px solid #ececec;border-radius:14px;padding:18px 20px">
@@ -177,8 +211,11 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
     <!-- reels table -->
     <section style="background:#fff;border:1px solid #ececec;border-radius:14px;overflow:hidden">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px 14px">
-        <h3 style="margin:0;font-size:14.5px;font-weight:640">All reels <span style="color:#b4b4b8;font-weight:500">· {{ reelCount }}</span></h3>
-        <span style="font-size:12px;color:#9ca3af">Click a reel for retention &amp; drop-off detail</span>
+        <h3 style="margin:0;font-size:14.5px;font-weight:640">All reels <span style="color:var(--text-faint);font-weight:500">· {{ reelCount }}</span></h3>
+        <div style="display:flex;align-items:center;gap:14px">
+          <span style="font-size:12px;color:var(--text-3)">Click a reel for retention &amp; drop-off detail</span>
+          <button onClick="{{ refresh }}" style="{{ refreshBtnStyle }}" title="Refresh from Instagram">↻ {{ refreshLabel }}</button>
+        </div>
       </div>
       <div style="display:grid;grid-template-columns:minmax(240px,1.7fr) 92px 92px 96px 138px 92px 84px;gap:12px;padding:9px 20px;border-top:1px solid #f1f1f2;border-bottom:1px solid #f1f1f2;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9ca3af;font-weight:650">
         <span>Reel</span>
@@ -222,7 +259,10 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
   <!-- ============ DETAIL ============ -->
   <sc-if value="{{ hasDetail }}" hint-placeholder-val="{{ false }}">
   <main style="max-width:1240px;margin:0 auto;padding:22px 28px 72px">
-    <button onClick="{{ back }}" style="display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:#6b7280;font-size:13.5px;font-weight:550;cursor:pointer;padding:6px 0;margin-bottom:14px" style-hover="color:#18181b">← Back to overview</button>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <button onClick="{{ back }}" style="display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:var(--text-2);font-size:13.5px;font-weight:550;cursor:pointer;padding:6px 0" style-hover="color:var(--text)">← Back to overview</button>
+      <button onClick="{{ R.refresh }}" style="{{ refreshBtnStyle }}" title="Refresh this reel">↻ {{ R.refreshLabel }}</button>
+    </div>
 
     <section style="display:flex;gap:26px;margin-bottom:22px">
       <div style="width:188px;height:334px;border-radius:16px;flex:none;background:repeating-linear-gradient(135deg,#eef0f4 0 9px,#e6e9ef 9px 18px);position:relative;display:flex;align-items:center;justify-content:center;border:1px solid #ececec">
@@ -330,6 +370,24 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
       </div>
     </section>
 
+    <!-- engagement rates (Graph API) -->
+    <section style="background:#fff;border:1px solid #ececec;border-radius:14px;padding:20px 22px;margin-top:22px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <h3 style="margin:0;font-size:15px;font-weight:650">Engagement rates</h3>
+        <span style="font-size:12px;color:#9ca3af">% of views</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:13px 40px">
+        <sc-for list="{{ R.rates }}" as="rt" hint-placeholder-count="6">
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="width:30px;height:30px;border-radius:8px;background:#f3f3f5;display:flex;align-items:center;justify-content:center;font-size:14px;flex:none">{{ rt.icon }}</span>
+            <span style="flex:1;font-size:13.5px;color:#52525b;font-weight:550">{{ rt.label }}</span>
+            <span style="{{ rt.valStyle }}">{{ rt.value }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="margin-top:15px;font-size:11.5px;color:#b4b4b8">Skip &amp; repost rates aren't exposed by the Instagram Graph API.</div>
+    </section>
+
     <!-- AI breakdown (frame-by-frame visuals + transcript + analysis) -->
     <section style="background:#fff;border:1px solid #ececec;border-radius:14px;padding:20px 22px;margin-top:22px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
@@ -426,17 +484,25 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
         </div>
 
         <sc-if value="{{ CC.showFrames }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+            <button onClick="{{ CC.selectAll }}" style="{{ CC.miniBtnStyle }}">Select all</button>
+            <button onClick="{{ CC.clearSel }}" style="{{ CC.miniBtnStyle }}">Clear</button>
+            <span style="font-size:12px;color:var(--text-3)">{{ CC.selCount }} selected · click a frame to toggle</span>
+            <div style="flex:1"></div>
+            <button onClick="{{ CC.doExport }}" style="{{ CC.exportBtnStyle }}">{{ CC.exportLabel }}</button>
+          </div>
           <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(208px,1fr));gap:16px">
             <sc-for list="{{ CC.frames }}" as="fr" hint-placeholder-count="8">
-              <div style="background:#fff;border:1px solid #ececed;border-radius:14px;overflow:hidden;box-shadow:0 1px 2px rgba(16,16,24,.04)">
-                <div style="position:relative;background:#f3f3f4">
+              <div onClick="{{ fr.toggle }}" style="{{ fr.cardStyle }}">
+                <div style="position:relative;background:var(--fill)">
                   <img src="{{ fr.src }}" style="width:100%;aspect-ratio:9/16;object-fit:cover;display:block"/>
                   <span style="position:absolute;top:8px;left:8px;background:rgba(0,0,0,.62);color:#fff;font-size:11px;font-weight:600;padding:2px 9px;border-radius:999px">{{ fr.t }}</span>
+                  <span style="{{ fr.checkStyle }}">{{ fr.check }}</span>
                 </div>
                 <div style="padding:11px 12px 13px">
-                  <div style="font-size:12px;color:#3f3f46;line-height:1.45">{{ fr.visual }}</div>
-                  <sc-if value="{{ fr.motion }}" hint-placeholder-val="{{ false }}"><div style="margin-top:8px;font-size:11px;color:#8b8b9a;display:flex;gap:5px"><span>🎞</span><span style="line-height:1.4">{{ fr.motion }}</span></div></sc-if>
-                  <sc-if value="{{ fr.written }}" hint-placeholder-val="{{ false }}"><div style="margin-top:8px;font-size:11px;color:#4338ca;background:#eef0ff;border-radius:8px;padding:7px 9px;line-height:1.45">📝 {{ fr.written }}</div></sc-if>
+                  <div style="font-size:12px;color:var(--text-2);line-height:1.45">{{ fr.visual }}</div>
+                  <sc-if value="{{ fr.motion }}" hint-placeholder-val="{{ false }}"><div style="margin-top:8px;font-size:11px;color:var(--text-3);display:flex;gap:5px"><span>🎞</span><span style="line-height:1.4">{{ fr.motion }}</span></div></sc-if>
+                  <sc-if value="{{ fr.written }}" hint-placeholder-val="{{ false }}"><div style="margin-top:8px;font-size:11px;color:var(--accent);background:var(--accent-soft);border-radius:8px;padding:7px 9px;line-height:1.45">📝 {{ fr.written }}</div></sc-if>
                 </div>
               </div>
             </sc-for>
@@ -503,12 +569,33 @@ class Component extends DCLogic {
     super(props);
     this.MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     this.state = { view:'overview', sel:null, range:'30D', sort:'reach', loading:true, syncing:false, loadError:null, analysis:null, analysisFor:null, analysisLoading:false,
-      ccUrl:'', ccLoading:false, ccResult:null, ccError:'', ccTab:'frames', ccScript:'', ccScriptLoading:false, ccBrief:'', ccProgress:0, ccStep:'' };
+      ccUrl:'', ccLoading:false, ccResult:null, ccError:'', ccTab:'frames', ccScript:'', ccScriptLoading:false, ccBrief:'', ccProgress:0, ccStep:'',
+      ccSel:{}, ccExporting:false, ccSaving:false, ccSaved:'', theme:this.initialTheme() };
+    // Restore Content Creation results so an extracted reel + generated script
+    // survive view switches and full page reloads — cleared only on a new extract.
+    try {
+      const saved = JSON.parse(sessionStorage.getItem('cc') || 'null');
+      if(saved) Object.assign(this.state, { ccResult:saved.ccResult||null, ccUrl:saved.ccUrl||'', ccScript:saved.ccScript||'', ccBrief:saved.ccBrief||'', ccTab:saved.ccTab||'frames' });
+    } catch(e){}
     this.db = null; // { reels, reachS, playsS, meta }
   }
 
+  initialTheme(){
+    try { const t = localStorage.getItem('theme'); if(t==='dark'||t==='light') return t; } catch(e){}
+    return 'light';
+  }
+  persistCC(){
+    try {
+      const { ccResult, ccUrl, ccScript, ccBrief, ccTab } = this.state;
+      sessionStorage.setItem('cc', JSON.stringify({ ccResult, ccUrl, ccScript, ccBrief, ccTab }));
+    } catch(e){}
+  }
+  componentDidUpdate(){ this.persistCC(); this.applyTheme(); }
+  applyTheme(){ try { document.documentElement.setAttribute('data-theme', this.state.theme==='dark'?'dark':'light'); } catch(e){} }
+  toggleTheme(){ const t=this.state.theme==='dark'?'light':'dark'; try{ localStorage.setItem('theme',t); }catch(e){} this.setState({ theme:t }); }
+
   // ── data load ───────────────────────────────────────────────────────────
-  componentDidMount(){ this.loadData(false, true); }
+  componentDidMount(){ this.applyTheme(); this.loadData(false, true); }
 
   loadData(refresh, initial){
     if(initial) this.setState({ loading:true });
@@ -607,7 +694,8 @@ class Component extends DCLogic {
         reach:d.reach||0, plays:d.plays||0, replays:d.replays||0,
         likes:d.likes||0, comments:d.comments||0, shares:d.shares||0, saves:d.saves||0, follows:d.follows||0,
         looping:!!d.looping, ret, eng, engRate: d.reach? eng/d.reach*100 : 0,
-        completion, avgWatch, hook, mid, dIdx, dropPct:dMax, dropAt, spark:sp.line
+        completion, avgWatch, hook, mid, dIdx, dropPct:dMax, dropAt, spark:sp.line,
+        rates: d.rates || null
       };
     });
     const trend = payload.trend || {};
@@ -636,10 +724,11 @@ class Component extends DCLogic {
   setSort(s){ this.setState({ sort:s }); }
   openReel(id){ this.setState({ view:'detail', sel:id }); if(typeof window!=='undefined') window.scrollTo(0,0); this.loadAnalysis(id); }
   back(){ this.setState({ view:'overview', sel:null }); if(typeof window!=='undefined') window.scrollTo(0,0); }
+  refreshReel(id){ this.loadData(true,false); this.loadAnalysis(id,true); }
 
   // Per-reel AI breakdown, served from analysis/<id>.json by the server.
-  loadAnalysis(id){
-    if(this.state.analysisFor===id && this.state.analysis) return;
+  loadAnalysis(id, force){
+    if(!force && this.state.analysisFor===id && this.state.analysis) return;
     this.setState({ analysisLoading:true });
     fetch('/api/reel/'+encodeURIComponent(id)+'/analyze')
       .then(r=> r.ok ? r.json() : null)
@@ -696,6 +785,13 @@ class Component extends DCLogic {
     const maxEng=Math.max(r.likes,r.comments,r.shares,r.saves,r.follows,1);
     const erow=(label,val)=>({ label, value:this.fmtK(val), rate:this.pct1(r.reach?val/r.reach*100:0), barStyle:{ height:'100%', width:Math.max(3,val/maxEng*100)+'%', background:'#6366f1', borderRadius:'999px' } });
     const engRows=[ erow('Likes',r.likes), erow('Comments',r.comments), erow('Shares',r.shares), erow('Saves',r.saves), erow('Follows',r.follows) ];
+    const rt = r.rates || {};
+    const fmtRate = (v) => v==null ? '—' : (Math.round(v*10)/10)+'%';
+    const ratesList = [
+      { icon:'⤓', label:'Skip rate', v:rt.skip }, { icon:'➤', label:'Share rate', v:rt.share },
+      { icon:'♥', label:'Like rate', v:rt.like }, { icon:'🔖', label:'Save rate', v:rt.save },
+      { icon:'⟳', label:'Repost rate', v:rt.repost }, { icon:'💬', label:'Comment rate', v:rt.comment }
+    ].map(x=>({ icon:x.icon, label:x.label, value:fmtRate(x.v), valStyle:{ fontSize:'15px', fontWeight:'660', color: x.v==null?'#c4c4cc':'#18181b' } }));
     const summary='This reel reached '+this.fmtK(r.reach)+' accounts and held '+this.pct(r.hook)+' of viewers past the 3-second hook. '+(r.completion>=a.avgCompletion?('Strong finish — '+this.pct(r.completion)+' watched to the end, above your '+this.pct(a.avgCompletion)+' average.'):('The steepest drop comes around '+this.fmtT(r.dropAt)+', pulling completion to '+this.pct(r.completion)+'.'));
     const dropNote='Most viewers leave around '+this.fmtT(r.dropAt)+' — a '+Math.round(r.dropPct)+'-point drop in a single beat. '+(r.dropAt<r.len*0.3?'That early in the video usually means the payoff takes too long to arrive; tighten the intro or front-load the hook.':'Re-cut or add a pattern-break right before this moment to carry attention through to the end.');
     const linkReal = r.permalink && r.permalink!=='#';
@@ -707,7 +803,8 @@ class Component extends DCLogic {
       retLine:rp.line, retArea:rp.area, dropX:+dropX.toFixed(1), dropY:+dropY.toFixed(1),
       q1Fmt:this.fmtT(r.len*0.25), midFmt:this.fmtT(r.len*0.5), q3Fmt:this.fmtT(r.len*0.75),
       heatSegs, keyMoments, dropNote,
-      engRateFmt:this.pct1(r.engRate), engRows,
+      engRateFmt:this.pct1(r.engRate), engRows, rates:ratesList,
+      refresh:()=>this.refreshReel(r.id), refreshLabel: (this.state.syncing||this.state.analysisLoading)?'Refreshing…':'Refresh',
       ai:this.aiVals()
     };
   }
@@ -727,10 +824,18 @@ class Component extends DCLogic {
       syncText,
       syncDotStyle: { width:'7px',height:'7px',borderRadius:'50%',background:dot,boxShadow:'0 0 0 3px '+dot+'22' },
       refresh: ()=>this.refresh(),
+      refreshing: !!this.state.syncing,
+      refreshLabel: this.state.syncing ? 'Refreshing…' : 'Refresh',
+      refreshBtnStyle: { display:'inline-flex',alignItems:'center',gap:'6px',padding:'6px 12px',borderRadius:'8px',border:'1px solid var(--line)',background:'var(--surface)',color:'var(--text-2)',fontSize:'12px',fontWeight:'600',cursor:'pointer',fontFamily:'inherit' },
+      themeToggle: ()=>this.toggleTheme(),
+      themeIcon: this.state.theme==='dark' ? '☀' : '☾',
+      themeBtnStyle: { display:'inline-flex',alignItems:'center',justifyContent:'center',width:'30px',height:'30px',borderRadius:'8px',border:'1px solid var(--line)',background:'var(--surface)',color:'var(--text-2)',fontSize:'14px',cursor:'pointer',fontFamily:'inherit' },
       navOverview: ()=>this.setView('overview'),
       navContent: ()=>this.setView('content'),
-      navOverviewStyle: this.tabStyle(this.state.view!=='content'),
-      navContentStyle: this.tabStyle(this.state.view==='content')
+      navPipeline: ()=>this.setView('pipeline'),
+      navOverviewStyle: this.tabStyle(this.state.view!=='content'&&this.state.view!=='pipeline'),
+      navContentStyle: this.tabStyle(this.state.view==='content'),
+      navPipelineStyle: this.tabStyle(this.state.view==='pipeline')
     };
   }
 
@@ -752,7 +857,7 @@ class Component extends DCLogic {
   extract(){
     const url=(this.state.ccUrl||'').trim();
     if(!url){ this.setState({ ccError:'Paste an Instagram reel link first.' }); return; }
-    this.setState({ ccLoading:true, ccError:'', ccResult:null, ccScript:'', ccProgress:2, ccStep:'Starting…' });
+    this.setState({ ccLoading:true, ccError:'', ccResult:null, ccScript:'', ccSel:{}, ccSaved:'', ccProgress:2, ccStep:'Starting…' });
     fetch('/api/extract',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ url }) })
       .then(async (res)=>{
         if(!res.body){ const j=await res.json().catch(()=>({error:'no response'})); this.setState({ ccLoading:false, ccError:j.error||'failed' }); return; }
@@ -780,6 +885,36 @@ class Component extends DCLogic {
       .then(j=>this.setState({ ccScriptLoading:false, ccScript: j.error ? ('Error: '+j.error) : j.script }))
       .catch(e=>this.setState({ ccScriptLoading:false, ccScript:'Error: '+String(e) }));
   }
+  toggleFrame(t){ const sel=Object.assign({}, this.state.ccSel); if(sel[t]) delete sel[t]; else sel[t]=true; this.setState({ ccSel:sel }); }
+  selectAllFrames(){ const r=this.state.ccResult; if(!r) return; const sel={}; (r.frames||[]).forEach(f=>{ sel[f.t]=true; }); this.setState({ ccSel:sel }); }
+  clearFrames(){ this.setState({ ccSel:{} }); }
+  async exportFrames(){
+    const r=this.state.ccResult; if(!r) return;
+    if(typeof window==='undefined' || !window.JSZip){ this.setState({ ccError:'Export library still loading — try again in a moment.' }); return; }
+    const sel=this.state.ccSel||{};
+    const picked=(r.frames||[]).filter(f=>sel[f.t]);
+    const frames = picked.length ? picked : (r.frames||[]);   // none selected → export all
+    if(!frames.length) return;
+    this.setState({ ccExporting:true, ccError:'' });
+    try{
+      const zip=new window.JSZip();
+      const folder=zip.folder(r.id);
+      let desc='Reel '+r.id+(r.ig_account?(' · @'+r.ig_account):'')+'\n'+frames.length+' frame(s)\n\n';
+      for(const f of frames){
+        const name='frame_'+String(f.t).padStart(4,'0')+'s';
+        try{ const resp=await fetch('/analysis/'+f.img); if(resp.ok) folder.file(name+'.jpg', await resp.blob()); }catch(e){}
+        const written=Array.isArray(f.text)?f.text.map(x=>x.content).filter(Boolean).join(' | '):'';
+        desc+='['+f.t+'s] '+name+'.jpg\n  visual: '+(f.visual||'')+'\n'+(f.motion?'  motion: '+f.motion+'\n':'')+(written?'  on-screen text: '+written+'\n':'')+'\n';
+      }
+      folder.file('descriptions.txt', desc);
+      folder.file('frames.json', JSON.stringify(frames.map(f=>({ t:f.t, img:f.img, visual:f.visual, motion:f.motion, text:f.text })), null, 2));
+      const blob=await zip.generateAsync({ type:'blob' });
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a'); a.href=url; a.download=r.id+'-frames.zip'; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url), 4000);
+    }catch(e){ this.setState({ ccError:'Export failed: '+String((e&&e.message)||e) }); }
+    this.setState({ ccExporting:false });
+  }
   contentVals(){
     const s=this.state, r=s.ccResult, tab=s.ccTab||'frames';
     const cc={
@@ -802,7 +937,21 @@ class Component extends DCLogic {
     cc.frameCount=(r.frames||[]).length+' frames';
     cc.lang=((r.transcript&&r.transcript.lang)||'').toUpperCase();
     cc.hasLang=!!(r.transcript&&r.transcript.lang);
-    cc.frames=(r.frames||[]).map(f=>({ src:'/analysis/'+f.img, t:this.fmtT(f.t), visual:f.visual||'', motion:f.motion||'', written:Array.isArray(f.text)?f.text.map(x=>x.content).filter(Boolean).join(' · '):'' }));
+    const sel=s.ccSel||{};
+    cc.frames=(r.frames||[]).map(f=>{
+      const on=!!sel[f.t];
+      return { src:'/analysis/'+f.img, t:this.fmtT(f.t), visual:f.visual||'', motion:f.motion||'',
+        written:Array.isArray(f.text)?f.text.map(x=>x.content).filter(Boolean).join(' · '):'',
+        toggle:()=>this.toggleFrame(f.t), check:on?'✓':'',
+        cardStyle:{ background:'var(--surface)', border:'2px solid '+(on?'var(--accent)':'var(--line)'), borderRadius:'14px', overflow:'hidden', boxShadow:'var(--shadow)', cursor:'pointer' },
+        checkStyle:{ position:'absolute', top:'8px', right:'8px', width:'22px', height:'22px', borderRadius:'50%', border:'2px solid #fff', background:on?'var(--accent)':'rgba(0,0,0,.35)', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'12px', fontWeight:'700' } };
+    });
+    const selCount=Object.keys(sel).length;
+    cc.selCount=selCount;
+    cc.exportLabel=s.ccExporting?'Exporting…':('⬇ Download '+(selCount?(selCount+' selected'):'all'));
+    cc.selectAll=()=>this.selectAllFrames(); cc.clearSel=()=>this.clearFrames(); cc.doExport=()=>this.exportFrames();
+    cc.exportBtnStyle={ display:'inline-flex',alignItems:'center',gap:'7px',padding:'8px 16px',borderRadius:'9px',border:'none',background:'var(--accent)',color:'#fff',fontSize:'13px',fontWeight:'650',cursor:'pointer',fontFamily:'inherit' };
+    cc.miniBtnStyle={ padding:'7px 12px',borderRadius:'8px',border:'1px solid var(--line)',background:'var(--surface)',color:'var(--text-2)',fontSize:'12.5px',fontWeight:'600',cursor:'pointer',fontFamily:'inherit' };
     cc.transcript=(r.transcript&&r.transcript.text)||'(no transcript)';
     cc.visuals=(r.frames||[]).filter(f=>f.visual).map(f=>({ t:this.fmtT(f.t), prompt:f.visual+(f.motion?' ('+f.motion+')':'') }));
     cc.summary=a.summary||''; cc.hook=a.hook||'';
@@ -892,6 +1041,15 @@ class Component extends DCLogic {
     const em=(label,v)=>({ label, value:this.fmtK(v), pct:this.pct(interactions?v/interactions*100:0), barStyle:{ height:'100%', width:Math.max(3,v/emax*100)+'%', background:'#6366f1', borderRadius:'999px' } });
     out.engTotal=this.fmtK(interactions);
     out.engMix=[ em('Likes',a.likes), em('Saves',a.saves), em('Shares',a.shares), em('Comments',a.comments) ];
+    // average engagement rates (% of views) across the window
+    const rateAvg=(k)=>{ const vs=cur.map(r=>r.rates&&r.rates[k]).filter(v=>v!=null); return vs.length?Math.round(vs.reduce((s,v)=>s+v,0)/vs.length*10)/10:null; };
+    const fr=(v)=>v==null?'—':v+'%';
+    out.avgRates=[
+      { icon:'♥', label:'Like rate', value:fr(rateAvg('like')) },
+      { icon:'🔖', label:'Save rate', value:fr(rateAvg('save')) },
+      { icon:'➤', label:'Share rate', value:fr(rateAvg('share')) },
+      { icon:'💬', label:'Comment rate', value:fr(rateAvg('comment')) }
+    ];
 
     // insights (derived from real metrics; hook/drop figures are estimated)
     out.insightsGood=[]; out.insightsBad=[];
