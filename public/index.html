@@ -180,7 +180,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
         <span>Reel</span>
         <button style="{{ sortReachStyle }}" onClick="{{ sortReach }}">Reach {{ sortReachCaret }}</button>
         <button style="{{ sortPlaysStyle }}" onClick="{{ sortPlays }}">Plays {{ sortPlaysCaret }}</button>
-        <span style="text-align:right">Avg watch</span>
+        <button style="{{ sortAvgWatchStyle }}" onClick="{{ sortAvgWatch }}">Avg watch {{ sortAvgWatchCaret }}</button>
         <button style="{{ sortWatchStyle }}" onClick="{{ sortWatch }}">Watch-through {{ sortWatchCaret }}</button>
         <button style="{{ sortEngStyle }}" onClick="{{ sortEng }}">Eng. rate {{ sortEngCaret }}</button>
         <span style="text-align:right">Retention</span>
@@ -715,7 +715,7 @@ class Component extends DCLogic {
     }
 
     // reels table (windowed + sorted)
-    const sk=({reach:'reach',plays:'plays',watch:'completion',eng:'engRate'})[this.state.sort];
+    const sk=({reach:'reach',plays:'plays',watch:'completion',awt:'avgWatch',eng:'engRate'})[this.state.sort];
     const sorted=[...cur].sort((x,y)=>y[sk]-x[sk]);
     out.reels=sorted.map(r=>({
       cap:r.cap, date:r.date, lenFmt:this.fmtT(r.len),
@@ -727,10 +727,11 @@ class Component extends DCLogic {
 
     // sort header styling
     const sortHdr=key=>{ const on=this.state.sort===key; return { style:{ background:'none',border:'none',padding:'0',font:'inherit',cursor:'pointer',textAlign:'right',letterSpacing:'.04em',textTransform:'uppercase',fontSize:'11px',fontWeight:'650',color:on?'#18181b':'#9ca3af' }, caret:on?'▾':'' }; };
-    const hr=sortHdr('reach'), hp=sortHdr('plays'), hw=sortHdr('watch'), he=sortHdr('eng');
-    out.sortReach=()=>this.setSort('reach'); out.sortPlays=()=>this.setSort('plays'); out.sortWatch=()=>this.setSort('watch'); out.sortEng=()=>this.setSort('eng');
+    const hr=sortHdr('reach'), hp=sortHdr('plays'), hw=sortHdr('watch'), he=sortHdr('eng'), ha=sortHdr('awt');
+    out.sortReach=()=>this.setSort('reach'); out.sortPlays=()=>this.setSort('plays'); out.sortWatch=()=>this.setSort('watch'); out.sortEng=()=>this.setSort('eng'); out.sortAvgWatch=()=>this.setSort('awt');
     out.sortReachStyle=hr.style; out.sortReachCaret=hr.caret; out.sortPlaysStyle=hp.style; out.sortPlaysCaret=hp.caret;
     out.sortWatchStyle=hw.style; out.sortWatchCaret=hw.caret; out.sortEngStyle=he.style; out.sortEngCaret=he.caret;
+    out.sortAvgWatchStyle=ha.style; out.sortAvgWatchCaret=ha.caret;
 
     // range selector
     out.ranges=['7D','30D','90D'].map(rr=>({ r:rr, onClick:()=>this.setRange(rr), style:{ padding:'6px 12px',borderRadius:'8px',fontSize:'12.5px',fontWeight:'600',cursor:'pointer',border:'none',background:this.state.range===rr?'#18181b':'transparent',color:this.state.range===rr?'#fff':'#6b7280' } }));
