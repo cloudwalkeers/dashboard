@@ -233,17 +233,22 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
           <button onClick="{{ refresh }}" style="{{ refreshBtnStyle }}" title="Refresh from Instagram">↻ {{ refreshLabel }}</button>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:minmax(240px,1.7fr) 92px 92px 96px 138px 92px 84px;gap:12px;padding:9px 20px;border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--text-3);font-weight:650">
+      <div class="sg-scroll" style="overflow-x:auto">
+      <div style="display:grid;grid-template-columns:minmax(180px,1.4fr) 72px 72px 82px 110px 64px 58px 58px 58px 66px 70px;gap:10px;padding:9px 20px;border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--text-3);font-weight:650;min-width:1000px">
         <span>Reel</span>
         <button style="{{ sortReachStyle }}" onClick="{{ sortReach }}">Reach {{ sortReachCaret }}</button>
         <button style="{{ sortPlaysStyle }}" onClick="{{ sortPlays }}">Plays {{ sortPlaysCaret }}</button>
         <button style="{{ sortAvgWatchStyle }}" onClick="{{ sortAvgWatch }}">Avg watch {{ sortAvgWatchCaret }}</button>
-        <button style="{{ sortWatchStyle }}" onClick="{{ sortWatch }}">Watch-through {{ sortWatchCaret }}</button>
-        <button style="{{ sortEngStyle }}" onClick="{{ sortEng }}">Eng. rate {{ sortEngCaret }}</button>
+        <button style="{{ sortWatchStyle }}" onClick="{{ sortWatch }}">Watch-thru {{ sortWatchCaret }}</button>
+        <button style="{{ sortEngStyle }}" onClick="{{ sortEng }}">Eng. {{ sortEngCaret }}</button>
+        <button style="{{ sortLikeStyle }}" onClick="{{ sortLike }}">Like {{ sortLikeCaret }}</button>
+        <button style="{{ sortSaveStyle }}" onClick="{{ sortSave }}">Save {{ sortSaveCaret }}</button>
+        <button style="{{ sortShareStyle }}" onClick="{{ sortShare }}">Share {{ sortShareCaret }}</button>
+        <button style="{{ sortCommentStyle }}" onClick="{{ sortComment }}">Comm. {{ sortCommentCaret }}</button>
         <span style="text-align:right">Retention</span>
       </div>
       <sc-for list="{{ reels }}" as="r" hint-placeholder-count="8">
-        <div onClick="{{ r.open }}" style="display:grid;grid-template-columns:minmax(240px,1.7fr) 92px 92px 96px 138px 92px 84px;gap:12px;padding:13px 20px;border-bottom:1px solid var(--line-2);align-items:center;cursor:pointer;transition:background .12s" style-hover="background:var(--surface-2)">
+        <div onClick="{{ r.open }}" style="display:grid;grid-template-columns:minmax(180px,1.4fr) 72px 72px 82px 110px 64px 58px 58px 58px 66px 70px;gap:10px;padding:13px 20px;border-bottom:1px solid var(--line-2);align-items:center;cursor:pointer;transition:background .12s;min-width:1000px" style-hover="background:var(--surface-2)">
           <div style="display:flex;align-items:center;gap:12px;min-width:0">
             <div style="width:38px;height:50px;border-radius:7px;flex:none;background:repeating-linear-gradient(135deg,#eef0f4 0 7px,#e6e9ef 7px 14px);display:flex;align-items:center;justify-content:center">
               <span style="width:0;height:0;border-left:8px solid #b9bec8;border-top:5px solid transparent;border-bottom:5px solid transparent;margin-left:2px"></span>
@@ -261,6 +266,10 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
             <div style="height:6px;background:var(--fill);border-radius:999px;overflow:hidden"><div style="{{ r.watchBarStyle }}"></div></div>
           </div>
           <div style="text-align:right;font-size:13.5px;font-weight:560">{{ r.engFmt }}</div>
+          <div style="text-align:right;font-size:13px;font-weight:540;color:var(--text-2)">{{ r.likeRateFmt }}</div>
+          <div style="text-align:right;font-size:13px;font-weight:540;color:var(--text-2)">{{ r.saveRateFmt }}</div>
+          <div style="text-align:right;font-size:13px;font-weight:540;color:var(--text-2)">{{ r.shareRateFmt }}</div>
+          <div style="text-align:right;font-size:13px;font-weight:540;color:var(--text-2)">{{ r.commentRateFmt }}</div>
           <div style="display:flex;justify-content:flex-end">
             <svg width="72" height="28" viewBox="0 0 72 28" preserveAspectRatio="none" style="display:block">
               <path d="{{ r.spark }}" fill="none" stroke="#a5b4fc" stroke-width="1.8" stroke-linejoin="round" vector-effect="non-scaling-stroke"></path>
@@ -268,6 +277,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
           </div>
         </div>
       </sc-for>
+      </div>
     </section>
   </main>
   </sc-if>
@@ -726,7 +736,8 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
           <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px"><div style="font-size:26px;font-weight:800;letter-spacing:-.02em;color:var(--cc)">{{ CC.uiCount }}</div><div style="font-size:12px;color:var(--text-2);margin-top:3px">UI / B-Roll</div></div>
           <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px"><div style="font-size:26px;font-weight:800;letter-spacing:-.02em">{{ CC.avgInt }}</div><div style="font-size:12px;color:var(--text-2);margin-top:3px">Ø Visual-Intensität</div></div>
         </div>
-        <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:22px;align-items:start">
+        <sc-if value="{{ CC.summary }}" hint-placeholder-val="{{ false }}"><p style="margin:0 0 20px;font-size:13.5px;line-height:1.6;color:var(--text-2);max-width:920px">{{ CC.summary }}</p></sc-if>
+        <div style="display:grid;grid-template-columns:1.25fr 1fr;gap:22px;align-items:start">
           <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px">
             <div style="font-weight:700;font-size:15px;margin-bottom:4px">Visual-Intensität über die Zeit</div>
             <p style="margin:0 0 18px;font-size:12.5px;color:var(--text-2)">Geschätzte Stufe 0–4 pro Szene (aus Bewegung + On-Screen-Text). Klick öffnet den Frame.</p>
@@ -737,16 +748,26 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
                 </button>
               </sc-for>
             </div>
+            <div style="display:flex;gap:16px;margin-top:16px;flex-wrap:wrap">
+              <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-2)"><div style="width:11px;height:11px;border-radius:3px;background:#d9d8e6"></div>0–1 Ruhe</div>
+              <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-2)"><div style="width:11px;height:11px;border-radius:3px;background:#9d96ee"></div>2 Support</div>
+              <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-2)"><div style="width:11px;height:11px;border-radius:3px;background:#7165e9"></div>3 Hero</div>
+              <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-2)"><div style="width:11px;height:11px;border-radius:3px;background:#5b50e6"></div>4 Scroll-Stopper</div>
+            </div>
           </div>
           <div style="display:flex;flex-direction:column;gap:14px">
-            <sc-if value="{{ CC.summary }}" hint-placeholder-val="{{ false }}"><div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;font-size:13px;line-height:1.55;color:var(--text-2)">{{ CC.summary }}</div></sc-if>
             <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px">
-              <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px"><div style="font-size:13px;font-weight:700;color:#16a34a">▲</div><div style="font-weight:700;font-size:14px">Hook</div></div>
+              <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px"><div style="width:8px;height:8px;border-radius:50%;background:#16a34a;flex:none"></div><div style="font-weight:700;font-size:14px">Hook</div></div>
               <p style="margin:0;font-size:13px;line-height:1.55;color:var(--text-2)">{{ CC.hook }}</p>
             </div>
-            <sc-for list="{{ CC.dropoff }}" as="d" hint-placeholder-count="2">
-              <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px"><div style="display:flex;gap:9px"><span class="cc-mono" style="flex:none;font-size:12px;font-weight:700;color:#dc2626;min-width:34px">{{ d.t }}</span><span style="font-size:13px;color:var(--text-2);line-height:1.5">{{ d.why }}</span></div></div>
-            </sc-for>
+            <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px">
+              <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px"><div style="width:8px;height:8px;border-radius:50%;background:#5b50e6;flex:none"></div><div style="font-weight:700;font-size:14px">Pacing</div></div>
+              <p style="margin:0;font-size:13px;line-height:1.55;color:var(--text-2)">{{ CC.pacing }}</p>
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px">
+              <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px"><div style="width:8px;height:8px;border-radius:50%;background:#d97757;flex:none"></div><div style="font-weight:700;font-size:14px">Höhepunkt</div></div>
+              <p style="margin:0;font-size:13px;line-height:1.55;color:var(--text-2)">{{ CC.climax }}</p>
+            </div>
           </div>
         </div>
         <sc-if value="{{ CC.suggestions }}" hint-placeholder-val="{{ false }}">
@@ -957,7 +978,8 @@ class Component extends DCLogic {
         likes:d.likes||0, comments:d.comments||0, shares:d.shares||0, saves:d.saves||0, follows:d.follows||0,
         looping:!!d.looping, ret, eng, engRate: d.reach? eng/d.reach*100 : 0,
         completion, avgWatch, hook, mid, dIdx, dropPct:dMax, dropAt, spark:sp.line,
-        rates: d.rates || null
+        rates: d.rates || null,
+        likeRate: d.rates?d.rates.like:null, saveRate: d.rates?d.rates.save:null, shareRate: d.rates?d.rates.share:null, commentRate: d.rates?d.rates.comment:null
       };
     });
     const trend = payload.trend || {};
@@ -1342,7 +1364,7 @@ Hier ist das Skript:
       exportBtnStyle:{ display:'inline-flex',alignItems:'center',gap:'7px',padding:'8px 16px',borderRadius:'9px',border:'none',background:'var(--cc)',color:'var(--cc-on)',fontSize:'13px',fontWeight:'650',cursor:'pointer',fontFamily:'inherit' },
       miniBtnStyle:{ padding:'7px 12px',borderRadius:'8px',border:'1px solid var(--line)',background:'var(--surface)',color:'var(--text-2)',fontSize:'12.5px',fontWeight:'600',cursor:'pointer',fontFamily:'inherit' },
       title:'', creator:'', account:'', lang:'', hasLang:false, frames2:[], visuals:[], upNext:[], curFrame:{},
-      transcript:'', gscript:s.ccScript||'', summary:'', hook:'', dropoff:[], suggestions:[],
+      transcript:'', gscript:s.ccScript||'', summary:'', hook:'', dropoff:[], suggestions:[], pacing:'', climax:'',
       frameCount:0, totalTime:'0s', counter:'00 / 0', cur:0, maxIdx:0, curTime:'0s', pct:'0%', selCount:0, exportLabel:'⬇ all',
       talkCount:0, uiCount:0, avgInt:'0.0'
     };
@@ -1382,6 +1404,17 @@ Hier ist das Skript:
     cc.summary=a.summary||''; cc.hook=a.hook||'';
     cc.dropoff=(a.dropoff||[]).map(d=>({ t:this.fmtT(d.t), why:d.why }));
     cc.suggestions=a.suggestions||[];
+    // Derived Pacing + Höhepunkt cards (from the visual-rhythm model) so the
+    // Insights layout matches the design's three tidy cards with real data.
+    if(n){
+      const firstUI=base.findIndex(f=>f.type==='ui');
+      if(firstUI>0) cc.pacing=firstUI+' Talking-Frame'+(firstUI>1?'s':'')+' am Stück vor dem ersten UI-Overlay ('+Math.round(base[firstUI].t)+'s). '+(firstUI>=4?'Erwäge ein Stufe-2-Visual dazwischen, damit die Aufmerksamkeit nicht abfällt.':'Solide Mischung aus Reden und Visuals.');
+      else if(firstUI===0) cc.pacing='Direkt mit einem UI-/B-Roll-Overlay gestartet — visuell stark; achte darauf, dass der gesprochene Hook trotzdem klar ankommt.';
+      else cc.pacing='Durchgehender Talking-Head ohne UI-Overlays. Erwäge unterstützende Visuals (Stufe 2) an den wichtigsten Punkten.';
+      let pk=0; for(let i=1;i<n;i++) if(base[i].intensity>base[pk].intensity) pk=i;
+      const peaks=base.filter(f=>f.intensity>=4).length;
+      cc.climax='Stärkster Visual-Moment: Stufe '+base[pk].intensity+' bei '+Math.round(base[pk].t)+'s'+(base[pk].stat?(' (Zahl „'+base[pk].stat+'“)'):'')+'. '+(peaks<=1?'Gut als einzelner Kontrastpunkt — nicht mehr hinzufügen, der Kontrast macht ihn stark.':'Mehrere Hochpunkte — der Effekt ist am stärksten, wenn ruhige Frames sie umgeben.');
+    }
     return cc;
   }
 
@@ -1531,26 +1564,32 @@ Hier ist das Skript:
     }
 
     // reels table (windowed + sorted)
-    const sk=({reach:'reach',plays:'plays',watch:'completion',awt:'avgWatch',eng:'engRate'})[this.state.sort];
-    const sorted=[...cur].sort((x,y)=>y[sk]-x[sk]);
+    const sk=({reach:'reach',plays:'plays',watch:'completion',awt:'avgWatch',eng:'engRate',like:'likeRate',save:'saveRate',share:'shareRate',comment:'commentRate'})[this.state.sort];
+    const sorted=[...cur].sort((x,y)=>(y[sk]||0)-(x[sk]||0));
+    const rateFmt=v=> v==null?'—':((Math.round(v*10)/10)+'%');
     out.reels=sorted.map(r=>({
       cap:r.cap, date:r.date, lenFmt:this.fmtT(r.len),
       reachFmt:this.fmtK(r.reach), playsFmt:this.fmtK(r.plays), avgWatchFmt:this.fmtT(r.avgWatch),
       completionFmt:this.pct(r.completion), engFmt:this.pct1(r.engRate), spark:r.spark,
-      watchBarStyle:{ height:'100%', width:Math.max(4,Math.min(100,r.completion))+'%', background:'#6366f1', borderRadius:'999px' },
+      likeRateFmt:rateFmt(r.likeRate), saveRateFmt:rateFmt(r.saveRate), shareRateFmt:rateFmt(r.shareRate), commentRateFmt:rateFmt(r.commentRate),
+      watchBarStyle:{ height:'100%', width:Math.max(4,Math.min(100,r.completion))+'%', background:'var(--accent)', borderRadius:'999px' },
       open:()=>this.openReel(r.id)
     }));
 
     // sort header styling
-    const sortHdr=key=>{ const on=this.state.sort===key; return { style:{ background:'none',border:'none',padding:'0',font:'inherit',cursor:'pointer',textAlign:'right',letterSpacing:'.04em',textTransform:'uppercase',fontSize:'11px',fontWeight:'650',color:on?'#18181b':'#9ca3af' }, caret:on?'▾':'' }; };
+    const sortHdr=key=>{ const on=this.state.sort===key; return { style:{ background:'none',border:'none',padding:'0',font:'inherit',cursor:'pointer',textAlign:'right',letterSpacing:'.04em',textTransform:'uppercase',fontSize:'11px',fontWeight:'650',color:on?'var(--text)':'var(--text-3)' }, caret:on?'▾':'' }; };
     const hr=sortHdr('reach'), hp=sortHdr('plays'), hw=sortHdr('watch'), he=sortHdr('eng'), ha=sortHdr('awt');
+    const hl=sortHdr('like'), hs=sortHdr('save'), hsh=sortHdr('share'), hc=sortHdr('comment');
     out.sortReach=()=>this.setSort('reach'); out.sortPlays=()=>this.setSort('plays'); out.sortWatch=()=>this.setSort('watch'); out.sortEng=()=>this.setSort('eng'); out.sortAvgWatch=()=>this.setSort('awt');
+    out.sortLike=()=>this.setSort('like'); out.sortSave=()=>this.setSort('save'); out.sortShare=()=>this.setSort('share'); out.sortComment=()=>this.setSort('comment');
     out.sortReachStyle=hr.style; out.sortReachCaret=hr.caret; out.sortPlaysStyle=hp.style; out.sortPlaysCaret=hp.caret;
     out.sortWatchStyle=hw.style; out.sortWatchCaret=hw.caret; out.sortEngStyle=he.style; out.sortEngCaret=he.caret;
     out.sortAvgWatchStyle=ha.style; out.sortAvgWatchCaret=ha.caret;
+    out.sortLikeStyle=hl.style; out.sortLikeCaret=hl.caret; out.sortSaveStyle=hs.style; out.sortSaveCaret=hs.caret;
+    out.sortShareStyle=hsh.style; out.sortShareCaret=hsh.caret; out.sortCommentStyle=hc.style; out.sortCommentCaret=hc.caret;
 
     // range selector
-    out.ranges=['7D','30D','90D'].map(rr=>({ r:rr, onClick:()=>this.setRange(rr), style:{ padding:'6px 12px',borderRadius:'8px',fontSize:'12.5px',fontWeight:'600',cursor:'pointer',border:'none',background:this.state.range===rr?'#18181b':'transparent',color:this.state.range===rr?'#fff':'#6b7280' } }));
+    out.ranges=['7D','30D','90D'].map(rr=>({ r:rr, onClick:()=>this.setRange(rr), style:{ padding:'6px 12px',borderRadius:'8px',fontSize:'12.5px',fontWeight:'600',cursor:'pointer',border:'none',background:this.state.range===rr?'var(--text)':'transparent',color:this.state.range===rr?'var(--bg)':'var(--text-2)' } }));
 
     return out;
   }
