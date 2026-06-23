@@ -61,6 +61,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
           <button style="{{ navOverviewStyle }}" onClick="{{ navOverview }}">Overview</button>
           <button style="{{ navContentStyle }}" onClick="{{ navContent }}">Content Creation</button>
           <button style="{{ navPipelineStyle }}" onClick="{{ navPipeline }}">Reels Pipeline</button>
+          <button style="{{ navDiscoveryStyle }}" onClick="{{ navDiscovery }}">Discovery</button>
         </div>
         <sc-if value="{{ showOverview }}" hint-placeholder-val="{{ true }}">
           <div style="display:flex;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:3px">
@@ -841,6 +842,92 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
   </main>
   </sc-if>
 
+  <sc-if value="{{ showDiscovery }}" hint-placeholder-val="{{ false }}">
+  <main class="cc-font" style="max-width:1100px;margin:0 auto;padding:30px 28px 80px">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:6px">
+      <div>
+        <h1 style="margin:0;font-size:24px;font-weight:800;letter-spacing:-.03em">Discovery <span style="color:var(--text-faint);font-weight:500;font-size:16px">· {{ DISC.totalCount }}</span></h1>
+        <p style="margin:6px 0 0;font-size:13.5px;color:var(--text-2);max-width:640px">Find inspiration reels by hashtag or by pasting links, tag &amp; categorize them, then browse the library for content ideas.</p>
+      </div>
+      <button onClick="{{ DISC.refresh }}" style="{{ refreshBtnStyle }}">↻ Refresh</button>
+    </div>
+
+    <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin:18px 0 22px;box-shadow:var(--shadow)">
+      <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end">
+        <div style="flex:1;min-width:250px">
+          <div class="cc-mono" style="font-size:10px;letter-spacing:.1em;color:var(--text-3);margin-bottom:7px">BY HASHTAG · GRAPH API</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <input value="{{ DISC.hashtag }}" onInput="{{ DISC.onHashtag }}" placeholder="#ai, #finance…" style="flex:1;min-width:120px;padding:10px 13px;border:1px solid var(--line);border-radius:10px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text)"/>
+            <div style="display:inline-flex;background:var(--fill);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px">
+              <button onClick="{{ DISC.typeTop }}" style="{{ DISC.segTop }}">Top</button>
+              <button onClick="{{ DISC.typeRecent }}" style="{{ DISC.segRecent }}">Recent</button>
+            </div>
+            <button onClick="{{ DISC.discoverHashtag }}" style="padding:10px 18px;border:none;border-radius:10px;background:var(--cc);color:var(--cc-on);font-size:13px;font-weight:650;cursor:pointer;font-family:inherit">{{ DISC.discoverLabel }}</button>
+          </div>
+        </div>
+        <div style="flex:1;min-width:250px">
+          <div class="cc-mono" style="font-size:10px;letter-spacing:.1em;color:var(--text-3);margin-bottom:7px">OR PASTE LINKS · NO TOKEN</div>
+          <div style="display:flex;gap:8px">
+            <input value="{{ DISC.links }}" onInput="{{ DISC.onLinks }}" placeholder="reel links, comma/space separated" style="flex:1;min-width:0;padding:10px 13px;border:1px solid var(--line);border-radius:10px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text)"/>
+            <button onClick="{{ DISC.discoverLinks }}" style="padding:10px 18px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--text);font-size:13px;font-weight:650;cursor:pointer;font-family:inherit">{{ DISC.addLabel }}</button>
+          </div>
+        </div>
+        <div style="min-width:150px">
+          <div class="cc-mono" style="font-size:10px;letter-spacing:.1em;color:var(--text-3);margin-bottom:7px">CATEGORY</div>
+          <input value="{{ DISC.category }}" onInput="{{ DISC.onCategory }}" placeholder="AI, Finance…" style="width:150px;padding:10px 13px;border:1px solid var(--line);border-radius:10px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text)"/>
+        </div>
+      </div>
+      <sc-if value="{{ DISC.error }}" hint-placeholder-val="{{ false }}"><div style="margin-top:12px;font-size:12.5px;color:#dc2626">{{ DISC.error }}</div></sc-if>
+      <sc-if value="{{ DISC.msg }}" hint-placeholder-val="{{ false }}"><div style="margin-top:12px;font-size:12.5px;color:#16a34a">{{ DISC.msg }}</div></sc-if>
+    </div>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px">
+      <sc-for list="{{ DISC.chips }}" as="ch" hint-placeholder-count="3">
+        <button onClick="{{ ch.click }}" style="{{ ch.style }}">{{ ch.label }}</button>
+      </sc-for>
+    </div>
+
+    <sc-if value="{{ DISC.notConfigured }}" hint-placeholder-val="{{ false }}"><div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:24px;text-align:center;font-size:13.5px;color:var(--text-2)">Supabase isn't configured — add SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY to .env to use the discovery library.</div></sc-if>
+    <sc-if value="{{ DISC.loading }}" hint-placeholder-val="{{ true }}"><div style="font-size:13.5px;color:var(--text-3)">Loading…</div></sc-if>
+    <sc-if value="{{ DISC.empty }}" hint-placeholder-val="{{ false }}"><div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:36px 24px;text-align:center;font-size:14px;color:var(--text-2)">Nothing in the library yet — discover by hashtag or paste a few reel links above.</div></sc-if>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px">
+      <sc-for list="{{ DISC.items }}" as="d" hint-placeholder-count="6">
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column">
+          <div style="display:flex">
+            <div style="width:84px;flex:none;background:var(--fill);overflow:hidden">
+              <sc-if value="{{ d.hasThumb }}" hint-placeholder-val="{{ false }}"><img src="{{ d.thumb }}" style="width:84px;height:100%;object-fit:cover;display:block"/></sc-if>
+            </div>
+            <div style="flex:1;min-width:0;padding:13px 14px">
+              <div style="display:flex;align-items:center;gap:7px;margin-bottom:6px">
+                <span class="cc-mono" style="font-size:10px;color:var(--cc);background:var(--cc-soft);padding:2px 7px;border-radius:99px;font-weight:600">{{ d.sourceBadge }}</span>
+                <span style="font-size:11.5px;color:var(--text-3)">{{ d.account }}</span>
+              </div>
+              <div style="font-size:12.5px;line-height:1.45;color:var(--text-2);max-height:54px;overflow:hidden">{{ d.caption }}</div>
+              <div style="display:flex;gap:13px;margin-top:9px;font-size:11.5px;color:var(--text-2)">
+                <span>▶ {{ d.views }}</span><span>♥ {{ d.likes }}</span><span>💬 {{ d.comments }}</span>
+              </div>
+            </div>
+          </div>
+          <div style="padding:11px 14px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;gap:8px">
+              <input value="{{ d.category }}" onInput="{{ d.onCategory }}" placeholder="category" style="width:108px;flex:none;padding:6px 10px;border:1px solid var(--line);border-radius:8px;font-size:12px;font-family:inherit;background:var(--surface);color:var(--text)"/>
+              <input value="{{ d.tagsText }}" onInput="{{ d.onTags }}" placeholder="tags, comma separated" style="flex:1;min-width:0;padding:6px 10px;border:1px solid var(--line);border-radius:8px;font-size:12px;font-family:inherit;background:var(--surface);color:var(--text)"/>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <button onClick="{{ d.save }}" style="padding:6px 12px;border:none;border-radius:8px;background:var(--cc);color:var(--cc-on);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">{{ d.saveLabel }}</button>
+              <button onClick="{{ d.toCC }}" style="padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">→ Content</button>
+              <a href="{{ d.permalink }}" target="_blank" rel="noopener" style="font-size:12px;color:var(--cc);text-decoration:none;font-weight:600">Open ↗</a>
+              <div style="flex:1"></div>
+              <button onClick="{{ d.del }}" style="padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:#dc2626;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">Delete</button>
+            </div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </main>
+  </sc-if>
+
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script>
@@ -853,6 +940,8 @@ class Component extends DCLogic {
       ccSel:{}, ccExporting:false, ccSaving:false, ccSaved:'',
       ccCur:0, ccCView:'scrubber', ccPlaying:false, ccZones:false, ccPromptSrc:'original', ccIncVis:false, ccToast:'',
       pipeItems:null, pipeLoading:false, pipeError:'', pipeLoaded:false,
+      discItems:null, discCats:[], discLoading:false, discLoaded:false, discError:'', discMsg:'', discBusy:false,
+      discHashtag:'', discType:'top', discCategory:'', discLinks:'', discFilter:'',
       theme:this.initialTheme() };
     // Restore Content Creation results so an extracted reel + generated script
     // survive view switches and full page reloads — cleared only on a new extract.
@@ -1117,9 +1206,11 @@ class Component extends DCLogic {
       navOverview: ()=>this.setView('overview'),
       navContent: ()=>this.setView('content'),
       navPipeline: ()=>{ this.setView('pipeline'); this.loadScripts(false); },
-      navOverviewStyle: this.tabStyle(this.state.view!=='content'&&this.state.view!=='pipeline'),
+      navDiscovery: ()=>{ this.setView('discovery'); this.loadDiscovery(false); },
+      navOverviewStyle: this.tabStyle(this.state.view!=='content'&&this.state.view!=='pipeline'&&this.state.view!=='discovery'),
       navContentStyle: this.tabStyle(this.state.view==='content'),
-      navPipelineStyle: this.tabStyle(this.state.view==='pipeline')
+      navPipelineStyle: this.tabStyle(this.state.view==='pipeline'),
+      navDiscoveryStyle: this.tabStyle(this.state.view==='discovery')
     };
   }
 
@@ -1220,6 +1311,46 @@ class Component extends DCLogic {
       .then(()=>this.setState({ pipeItems:(this.state.pipeItems||[]).filter(x=>x.id!==id) }))
       .catch(()=>{});
   }
+  // ── Reels Discovery ───────────────────────────────────────────────────────
+  loadDiscovery(force){
+    if(this.state.discLoading) return;
+    if(this.state.discLoaded && !force) return;
+    this.setState({ discLoading:true, discError:'' });
+    fetch('/api/discovery')
+      .then(r=>r.json())
+      .then(j=>this.setState({ discLoading:false, discLoaded:true, discItems:j.items||[], discCats:j.categories||[], discConfigured:j.configured!==false }))
+      .catch(e=>this.setState({ discLoading:false, discLoaded:true, discError:String(e) }));
+  }
+  runDiscover(body){
+    this.setState({ discBusy:true, discError:'', discMsg:'' });
+    fetch('/api/discover',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify(body) })
+      .then(r=>r.json())
+      .then(j=>{
+        if(j.error){ this.setState({ discBusy:false, discError:j.error }); return; }
+        const n=(j.items||[]).length;
+        this.setState({ discBusy:false, discMsg: n?('Added '+n+' reel'+(n>1?'s':'')+' to the library.'):'No reels found for that.', discLinks:'', discLoaded:false });
+        this.loadDiscovery(true);
+      })
+      .catch(e=>this.setState({ discBusy:false, discError:String(e) }));
+  }
+  discoverHashtag(){ const h=(this.state.discHashtag||'').trim(); if(!h){ this.setState({ discError:'Enter a hashtag.' }); return; } this.runDiscover({ hashtag:h, type:this.state.discType||'top', category:(this.state.discCategory||'').trim()||null }); }
+  discoverLinks(){ const u=(this.state.discLinks||'').trim(); if(!u){ this.setState({ discError:'Paste at least one reel link.' }); return; } this.runDiscover({ urls:u, category:(this.state.discCategory||'').trim()||null }); }
+  discEdit(id, field, value){ const items=(this.state.discItems||[]).map(it=> it.id===id ? Object.assign({}, it, { [field]:value, _dirty:true }) : it); this.setState({ discItems:items }); }
+  discSave(id){
+    const it=(this.state.discItems||[]).find(x=>x.id===id); if(!it) return;
+    const tags=typeof it.tags==='string'? it.tags : (Array.isArray(it.tags)? it.tags.join(', ') : '');
+    fetch('/api/discovery/'+encodeURIComponent(id),{ method:'PUT', headers:{'content-type':'application/json'}, body:JSON.stringify({ category:it.category, tags }) })
+      .then(r=>r.json())
+      .then(j=>{ const items=(this.state.discItems||[]).map(x=> x.id===id ? Object.assign({}, j.item||x, { _dirty:false, _saved:true }) : x); this.setState({ discItems:items, discLoaded:false }); })
+      .catch(()=>{});
+  }
+  discDelete(id){
+    if(typeof window!=='undefined' && window.confirm && !window.confirm('Remove this reel from the library?')) return;
+    fetch('/api/discovery/'+encodeURIComponent(id),{ method:'DELETE' })
+      .then(r=>r.json()).then(()=>this.setState({ discItems:(this.state.discItems||[]).filter(x=>x.id!==id) })).catch(()=>{});
+  }
+  discToCC(permalink){ if(!permalink) return; this.setState({ view:'content', ccUrl:permalink }); if(typeof window!=='undefined') window.scrollTo(0,0); }
+  discChip(on){ return { padding:'6px 13px',borderRadius:'999px',border:'1px solid '+(on?'var(--cc)':'var(--line)'),background:on?'var(--cc-soft)':'var(--surface)',color:on?'var(--cc)':'var(--text-2)',fontSize:'12.5px',fontWeight:'600',cursor:'pointer',fontFamily:'inherit' }; }
   toggleFrame(t){ const sel=Object.assign({}, this.state.ccSel); if(sel[t]) delete sel[t]; else sel[t]=true; this.setState({ ccSel:sel }); }
   selectAllFrames(){ const r=this.state.ccResult; if(!r) return; const sel={}; (r.frames||[]).forEach(f=>{ sel[f.t]=true; }); this.setState({ ccSel:sel }); }
   clearFrames(){ this.setState({ ccSel:{} }); }
@@ -1450,8 +1581,49 @@ Hier ist das Skript:
     };
   }
 
+  discoveryVals(){
+    const s=this.state, filter=s.discFilter||'', all=s.discItems||[];
+    const shown = filter ? all.filter(it=>it.category===filter) : all;
+    const fk=(v)=> v==null?'—':this.fmtK(v);
+    const items=shown.map(it=>{
+      const tagsText = Array.isArray(it.tags) ? it.tags.join(', ') : (it.tags||'');
+      return {
+        id:it.id, permalink:it.permalink||'#', shortcode:it.shortcode||'',
+        account: it.ig_account ? ('@'+String(it.ig_account).replace(/^@/,'')) : '',
+        caption: (it.caption||'').slice(0,150) || '(no caption)',
+        thumb: it.thumbnail_url||'', hasThumb: !!it.thumbnail_url,
+        views:fk(it.views), likes:fk(it.like_count), comments:fk(it.comments_count),
+        sourceBadge: it.source==='hashtag' ? ('#'+(it.hashtag||'')) : 'link',
+        category: it.category||'', tagsText,
+        onCategory:(e)=>this.discEdit(it.id,'category', e&&e.target?e.target.value:''),
+        onTags:(e)=>this.discEdit(it.id,'tags', e&&e.target?e.target.value:''),
+        save:()=>this.discSave(it.id), del:()=>this.discDelete(it.id), toCC:()=>this.discToCC(it.permalink||''),
+        saveLabel: it._dirty?'Save':(it._saved?'Saved ✓':'Save')
+      };
+    });
+    const chips=[{label:'All',v:''}].concat((s.discCats||[]).map(c=>({label:c,v:c}))).map(ch=>({ label:ch.label, style:this.discChip(filter===ch.v), click:(()=>{ const v=ch.v; return ()=>this.setState({discFilter:v}); })() }));
+    return {
+      items, count:items.length, totalCount:all.length, chips,
+      loading:!!s.discLoading, empty: s.discLoaded&&!s.discLoading&&!all.length&&s.discConfigured!==false,
+      notConfigured: s.discConfigured===false, error:s.discError||'', msg:s.discMsg||'', busy:!!s.discBusy,
+      hashtag:s.discHashtag||'', onHashtag:(e)=>this.setState({ discHashtag:e&&e.target?e.target.value:'' }),
+      segTop:this.ccSeg(s.discType!=='recent'), segRecent:this.ccSeg(s.discType==='recent'),
+      typeTop:()=>this.setState({discType:'top'}), typeRecent:()=>this.setState({discType:'recent'}),
+      category:s.discCategory||'', onCategory:(e)=>this.setState({ discCategory:e&&e.target?e.target.value:'' }),
+      links:s.discLinks||'', onLinks:(e)=>this.setState({ discLinks:e&&e.target?e.target.value:'' }),
+      discoverHashtag:()=>this.discoverHashtag(), discoverLinks:()=>this.discoverLinks(),
+      discoverLabel: s.discBusy?'Working…':'Discover', addLabel: s.discBusy?'Working…':'Add links',
+      refresh:()=>this.loadDiscovery(true)
+    };
+  }
+
   renderVals(){
     const head = this.headerVals();
+
+    // Reels Discovery tab — inspiration library from Supabase.
+    if(this.state.view==='discovery'){
+      return Object.assign({ showOverview:false, hasDetail:false, showContent:false, showPipeline:false, showDiscovery:true, loading:false, showBanner:false }, head, { DISC:this.discoveryVals() });
+    }
 
     // Content Creation tab — independent of the reels payload.
     if(this.state.view==='content'){

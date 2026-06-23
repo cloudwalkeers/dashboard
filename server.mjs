@@ -113,6 +113,51 @@ const server = http.createServer(async (req, res) => {
       }
     }
 
+    // Reels discovery: library (list/edit/delete) + live discover (hashtag / links).
+    if (u.pathname === "/api/discovery") {
+      const store = await import("./lib/store/discovery.mjs");
+      if (!store.isConfigured())
+        return send(res, 200, ".json", JSON.stringify({ items: [], categories: [], configured: false }));
+      try {
+        if (req.method === "GET") {
+          const category = u.searchParams.get("category") || null;
+          const tag = u.searchParams.get("tag") || null;
+          const [items, cats] = await Promise.all([store.listDiscovery({ category, tag }), store.categories()]);
+          return send(res, 200, ".json", JSON.stringify({ items, categories: cats, configured: true }));
+        }
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
+    const dm = u.pathname.match(/^\/api\/discovery\/([^/]+)$/);
+    if (dm) {
+      const store = await import("./lib/store/discovery.mjs");
+      const id = decodeURIComponent(dm[1]);
+      try {
+        if (req.method === "PUT") {
+          const body = await readJson(req);
+          return send(res, 200, ".json", JSON.stringify({ item: await store.updateDiscovery(id, body) }));
+        }
+        if (req.method === "DELETE")
+          return send(res, 200, ".json", JSON.stringify(await store.deleteDiscovery(id)));
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
+    if (u.pathname === "/api/discover" && req.method === "POST") {
+      const body = await readJson(req);
+      try {
+        const { discoverByHashtag, discoverByLinks } = await import("./lib/discover.mjs");
+        let items;
+        if (body.urls || body.links) items = await discoverByLinks(body.urls || body.links, { category: body.category });
+        else if (body.hashtag) items = await discoverByHashtag(body.hashtag, { type: body.type || "top", category: body.category });
+        else return send(res, 400, ".json", JSON.stringify({ error: "provide a hashtag or urls" }));
+        return send(res, 200, ".json", JSON.stringify({ items }));
+      } catch (e) {
+        return send(res, e && e.code === "NO_CREDS" ? 200 : 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e), code: e && e.code }));
+      }
+    }
+
     // Per-reel AI breakdown (precomputed by `npm run analyze`).
     const ar = u.pathname.match(/^\/api\/reel\/([^/]+)\/analyze$/);
     if (ar) {
