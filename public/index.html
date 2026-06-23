@@ -410,9 +410,13 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
 
     <sc-if value="{{ CC.hasResult }}" hint-placeholder-val="{{ false }}">
       <div style="margin-top:18px">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
-          <h3 style="margin:0;font-size:16px;font-weight:660">{{ CC.title }}</h3>
-          <span style="font-size:12px;color:#9ca3af">{{ CC.account }}</span>
+        <div style="margin-bottom:16px">
+          <h3 style="margin:0 0 7px;font-size:17px;font-weight:670;letter-spacing:-.01em">{{ CC.title }}</h3>
+          <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
+            <sc-if value="{{ CC.account }}" hint-placeholder-val="{{ false }}"><span style="font-size:11.5px;font-weight:600;color:#6b7280;background:#f3f3f5;border-radius:999px;padding:3px 10px">{{ CC.account }}</span></sc-if>
+            <span style="font-size:11.5px;font-weight:600;color:#6b7280;background:#f3f3f5;border-radius:999px;padding:3px 10px">{{ CC.frameCount }}</span>
+            <sc-if value="{{ CC.hasLang }}" hint-placeholder-val="{{ false }}"><span style="font-size:11.5px;font-weight:600;color:#4f46e5;background:#eef0ff;border-radius:999px;padding:3px 10px">{{ CC.lang }}</span></sc-if>
+          </div>
         </div>
         <div style="display:flex;gap:4px;border-bottom:1px solid #ececec;margin-bottom:18px">
           <button style="{{ CC.tabFramesStyle }}" onClick="{{ CC.tabFrames }}">Frames</button>
@@ -422,15 +426,17 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
         </div>
 
         <sc-if value="{{ CC.showFrames }}" hint-placeholder-val="{{ true }}">
-          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px">
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(208px,1fr));gap:16px">
             <sc-for list="{{ CC.frames }}" as="fr" hint-placeholder-count="8">
-              <div style="background:#fff;border:1px solid #ececec;border-radius:12px;overflow:hidden">
-                <img src="{{ fr.src }}" style="width:100%;height:200px;object-fit:cover;display:block"/>
-                <div style="padding:9px 10px">
-                  <div style="font-size:10.5px;color:#9ca3af;font-weight:650;margin-bottom:3px">{{ fr.t }}</div>
-                  <div style="font-size:11.5px;color:#52525b;line-height:1.4">{{ fr.visual }}</div>
-                  <sc-if value="{{ fr.motion }}" hint-placeholder-val="{{ false }}"><div style="font-size:10.5px;color:#9aa0ab;margin-top:4px">🎞 {{ fr.motion }}</div></sc-if>
-                  <sc-if value="{{ fr.written }}" hint-placeholder-val="{{ false }}"><div style="font-size:10.5px;color:#4f46e5;margin-top:4px">📝 {{ fr.written }}</div></sc-if>
+              <div style="background:#fff;border:1px solid #ececed;border-radius:14px;overflow:hidden;box-shadow:0 1px 2px rgba(16,16,24,.04)">
+                <div style="position:relative;background:#f3f3f4">
+                  <img src="{{ fr.src }}" style="width:100%;aspect-ratio:9/16;object-fit:cover;display:block"/>
+                  <span style="position:absolute;top:8px;left:8px;background:rgba(0,0,0,.62);color:#fff;font-size:11px;font-weight:600;padding:2px 9px;border-radius:999px">{{ fr.t }}</span>
+                </div>
+                <div style="padding:11px 12px 13px">
+                  <div style="font-size:12px;color:#3f3f46;line-height:1.45">{{ fr.visual }}</div>
+                  <sc-if value="{{ fr.motion }}" hint-placeholder-val="{{ false }}"><div style="margin-top:8px;font-size:11px;color:#8b8b9a;display:flex;gap:5px"><span>🎞</span><span style="line-height:1.4">{{ fr.motion }}</span></div></sc-if>
+                  <sc-if value="{{ fr.written }}" hint-placeholder-val="{{ false }}"><div style="margin-top:8px;font-size:11px;color:#4338ca;background:#eef0ff;border-radius:8px;padding:7px 9px;line-height:1.45">📝 {{ fr.written }}</div></sc-if>
                 </div>
               </div>
             </sc-for>
@@ -792,7 +798,10 @@ class Component extends DCLogic {
     if(!r) return cc;
     const a=r.analysis||{};
     cc.title=(r.metrics&&(r.metrics.cap||r.metrics.caption))||r.id;
-    cc.account=r.ig_account||'';
+    cc.account=r.ig_account?('@'+r.ig_account):'';
+    cc.frameCount=(r.frames||[]).length+' frames';
+    cc.lang=((r.transcript&&r.transcript.lang)||'').toUpperCase();
+    cc.hasLang=!!(r.transcript&&r.transcript.lang);
     cc.frames=(r.frames||[]).map(f=>({ src:'/analysis/'+f.img, t:this.fmtT(f.t), visual:f.visual||'', motion:f.motion||'', written:Array.isArray(f.text)?f.text.map(x=>x.content).filter(Boolean).join(' · '):'' }));
     cc.transcript=(r.transcript&&r.transcript.text)||'(no transcript)';
     cc.visuals=(r.frames||[]).filter(f=>f.visual).map(f=>({ t:this.fmtT(f.t), prompt:f.visual+(f.motion?' ('+f.motion+')':'') }));
