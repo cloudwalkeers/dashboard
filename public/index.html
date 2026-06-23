@@ -9,12 +9,16 @@
 <body>
 <x-dc>
 <helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#fafafa; --surface:#ffffff; --surface-2:#fafaff; --fill:#f3f3f4; --fill-2:#f5f5f5;
   --line:#ececec; --line-2:#f1f1f2;
   --text:#18181b; --text-2:#52525b; --text-3:#9ca3af; --text-faint:#b4b4b8;
   --accent:#6366f1; --accent-soft:#eef2ff;
+  --cc:#5b50e6; --cc-2:#7d72ec; --cc-soft:#efeefe; --cc-on:#ffffff;
   --header:rgba(250,250,250,.82);
   --shadow:0 1px 2px rgba(16,16,24,.04);
 }
@@ -23,6 +27,7 @@
   --line:#2c2c35; --line-2:#26262e;
   --text:#f3f3f5; --text-2:#b6b6c0; --text-3:#85858f; --text-faint:#67676f;
   --accent:#818cf8; --accent-soft:#211d3d;
+  --cc:#8b80f0; --cc-2:#9d93f3; --cc-soft:#211d3d; --cc-on:#0d0d10;
   --header:rgba(13,13,16,.82);
   --shadow:0 1px 2px rgba(0,0,0,.32);
 }
@@ -30,6 +35,13 @@
 body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;background:var(--bg);color:var(--text);transition:background .2s ease,color .2s ease}
 ::-webkit-scrollbar{width:10px;height:10px}
 ::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px;border:3px solid var(--bg)}
+.sg-scroll::-webkit-scrollbar{height:8px;width:8px}
+.sg-scroll::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px;border:none}
+@keyframes sgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes sgToast{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
+.sg-panel{animation:sgIn .28s ease both}
+.cc-font{font-family:'Plus Jakarta Sans',-apple-system,system-ui,sans-serif}
+.cc-mono{font-family:'JetBrains Mono',ui-monospace,monospace}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 </helmet>
@@ -454,117 +466,307 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
 
   <!-- ============ CONTENT CREATION ============ -->
   <sc-if value="{{ showContent }}" hint-placeholder-val="{{ false }}">
-  <main style="max-width:1240px;margin:0 auto;padding:28px 28px 72px">
-    <h1 style="margin:0 0 4px;font-size:23px;font-weight:680;letter-spacing:-.02em">Content Creation</h1>
-    <p style="margin:0 0 20px;font-size:13.5px;color:var(--text-2)">Paste any Instagram reel link to decorticate it frame‑by‑frame — script, visuals, and insights you can reuse.</p>
+  <main class="cc-font" style="max-width:1180px;margin:0 auto;padding:30px 28px 80px">
+    <h1 style="font-size:28px;font-weight:800;letter-spacing:-.03em;margin:0 0 6px">Turn any reel into script &amp; visuals</h1>
+    <p style="margin:0 0 22px;color:var(--text-2);font-size:14.5px;max-width:580px">Paste an Instagram reel to deconstruct it frame‑by‑frame — then scrub the footage, rewrite the script, and generate a ready‑to‑paste Claude design prompt.</p>
 
-    <div style="display:flex;gap:10px;margin-bottom:8px">
-      <input value="{{ CC.url }}" onInput="{{ CC.onUrl }}" placeholder="https://www.instagram.com/…/reel/…" style="flex:1;padding:12px 14px;border:1px solid var(--line);border-radius:11px;font-size:14px;font-family:inherit"/>
-      <button onClick="{{ CC.extract }}" style="padding:12px 22px;border:none;border-radius:11px;background:#18181b;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">{{ CC.extractLabel }}</button>
+    <div style="display:flex;gap:10px;margin-bottom:10px">
+      <div style="flex:1;display:flex;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:0 16px">
+        <div style="width:7px;height:7px;border-radius:50%;background:#34c759;margin-right:11px;box-shadow:0 0 0 3px rgba(52,199,89,.16)"></div>
+        <input value="{{ CC.url }}" onInput="{{ CC.onUrl }}" placeholder="https://www.instagram.com/…/reel/…" class="cc-mono" style="flex:1;border:none;outline:none;background:transparent;font-size:13px;color:var(--text);padding:14px 0"/>
+      </div>
+      <button onClick="{{ CC.extract }}" style="border:none;background:var(--text);color:var(--bg);font-family:inherit;font-weight:600;font-size:14px;padding:0 26px;border-radius:12px;cursor:pointer">{{ CC.extractLabel }}</button>
     </div>
     <sc-if value="{{ CC.error }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:#dc2626;margin-bottom:8px">{{ CC.error }}</div></sc-if>
     <sc-if value="{{ CC.extracting }}" hint-placeholder-val="{{ false }}">
-      <div style="margin:12px 0 4px">
-        <div style="display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--text-2);margin-bottom:6px"><span>{{ CC.step }}</span><span style="font-weight:600;color:var(--text-2)">{{ CC.progressPct }}</span></div>
+      <div style="margin:6px 0 8px">
+        <div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--text-2);margin-bottom:6px"><span>{{ CC.step }}</span><span style="font-weight:600">{{ CC.progressPct }}</span></div>
         <div style="height:8px;background:var(--fill);border-radius:999px;overflow:hidden"><div style="{{ CC.barStyle }}"></div></div>
       </div>
     </sc-if>
 
     <sc-if value="{{ CC.hasResult }}" hint-placeholder-val="{{ false }}">
-      <div style="margin-top:18px">
-        <div style="margin-bottom:16px">
-          <h3 style="margin:0 0 7px;font-size:17px;font-weight:670;letter-spacing:-.01em">{{ CC.title }}</h3>
-          <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
-            <sc-if value="{{ CC.account }}" hint-placeholder-val="{{ false }}"><span style="font-size:11.5px;font-weight:600;color:var(--text-2);background:var(--fill);border-radius:999px;padding:3px 10px">{{ CC.account }}</span></sc-if>
-            <span style="font-size:11.5px;font-weight:600;color:var(--text-2);background:var(--fill);border-radius:999px;padding:3px 10px">{{ CC.frameCount }}</span>
-            <sc-if value="{{ CC.hasLang }}" hint-placeholder-val="{{ false }}"><span style="font-size:11.5px;font-weight:600;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:3px 10px">{{ CC.lang }}</span></sc-if>
+    <div class="sg-panel">
+
+      <div style="display:flex;align-items:center;gap:12px;margin:18px 0">
+        <div style="width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,var(--cc-2),var(--cc));display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px">▶</div>
+        <div style="min-width:0">
+          <div style="font-weight:700;font-size:15px;letter-spacing:-.01em">{{ CC.title }}</div>
+          <div style="display:flex;gap:7px;margin-top:5px;flex-wrap:wrap">
+            <sc-if value="{{ CC.account }}" hint-placeholder-val="{{ false }}"><span class="cc-mono" style="font-size:11px;color:var(--text-2);background:var(--surface);border:1px solid var(--line);padding:3px 9px;border-radius:99px">{{ CC.account }}</span></sc-if>
+            <span class="cc-mono" style="font-size:11px;color:var(--text-2);background:var(--surface);border:1px solid var(--line);padding:3px 9px;border-radius:99px">{{ CC.frameCount }} frames</span>
+            <sc-if value="{{ CC.hasLang }}" hint-placeholder-val="{{ false }}"><span class="cc-mono" style="font-size:11px;color:var(--cc);background:var(--cc-soft);padding:3px 9px;border-radius:99px;font-weight:600">{{ CC.lang }}</span></sc-if>
+            <span class="cc-mono" style="font-size:11px;color:var(--text-2);background:var(--surface);border:1px solid var(--line);padding:3px 9px;border-radius:99px">9:16</span>
           </div>
         </div>
-        <div style="display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:18px">
-          <button style="{{ CC.tabFramesStyle }}" onClick="{{ CC.tabFrames }}">Frames</button>
-          <button style="{{ CC.tabScriptStyle }}" onClick="{{ CC.tabScript }}">Script</button>
-          <button style="{{ CC.tabVisualsStyle }}" onClick="{{ CC.tabVisuals }}">Visuals</button>
-          <button style="{{ CC.tabInsightsStyle }}" onClick="{{ CC.tabInsights }}">Insights</button>
+      </div>
+
+      <div style="display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:24px;flex-wrap:wrap">
+        <button onClick="{{ CC.goFrames }}" style="position:relative;border:none;background:transparent;font-family:inherit;font-size:14px;font-weight:600;padding:11px 16px;cursor:pointer;color:{{ CC.tFrames }}">Frames<sc-if value="{{ CC.isFrames }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;left:12px;right:12px;bottom:-1px;height:2.5px;background:var(--cc);border-radius:2px"></div></sc-if></button>
+        <button onClick="{{ CC.goScript }}" style="position:relative;border:none;background:transparent;font-family:inherit;font-size:14px;font-weight:600;padding:11px 16px;cursor:pointer;color:{{ CC.tScript }}">Script<sc-if value="{{ CC.isScript }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;left:12px;right:12px;bottom:-1px;height:2.5px;background:var(--cc);border-radius:2px"></div></sc-if></button>
+        <button onClick="{{ CC.goPrompt }}" style="position:relative;border:none;background:transparent;font-family:inherit;font-size:14px;font-weight:600;padding:11px 16px;cursor:pointer;color:{{ CC.tPrompt }}">Visuals &amp; Prompt<sc-if value="{{ CC.isPrompt }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;left:12px;right:12px;bottom:-1px;height:2.5px;background:var(--cc);border-radius:2px"></div></sc-if></button>
+        <button onClick="{{ CC.goInsights }}" style="position:relative;border:none;background:transparent;font-family:inherit;font-size:14px;font-weight:600;padding:11px 16px;cursor:pointer;color:{{ CC.tInsights }}">Insights<sc-if value="{{ CC.isInsights }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;left:12px;right:12px;bottom:-1px;height:2.5px;background:var(--cc);border-radius:2px"></div></sc-if></button>
+      </div>
+
+      <!-- FRAMES -->
+      <sc-if value="{{ CC.isFrames }}" hint-placeholder-val="{{ true }}">
+      <div>
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:22px;flex-wrap:wrap">
+          <div style="display:inline-flex;background:var(--fill);border:1px solid var(--line);border-radius:11px;padding:3px;gap:2px">
+            <button onClick="{{ CC.viewScrub }}" style="{{ CC.segScrub }}">Scrubber</button>
+            <button onClick="{{ CC.viewGrid }}" style="{{ CC.segGrid }}">Grid</button>
+          </div>
+          <sc-if value="{{ CC.isScrubber }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;align-items:center;gap:6px">
+            <button onClick="{{ CC.prev }}" style="width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-size:14px;color:var(--text)">‹</button>
+            <button onClick="{{ CC.togglePlay }}" style="width:38px;height:38px;border-radius:10px;border:none;background:var(--cc);color:var(--cc-on);cursor:pointer;font-size:12px">{{ CC.playIcon }}</button>
+            <button onClick="{{ CC.next }}" style="width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-size:14px;color:var(--text)">›</button>
+          </div>
+          <button onClick="{{ CC.toggleZones }}" style="{{ CC.zonesBtn }}">Safe zones</button>
+          <div class="cc-mono" style="font-size:12px;color:var(--text-2)">{{ CC.counter }}</div>
+          </sc-if>
+          <div style="flex:1"></div>
+          <button onClick="{{ CC.doExport }}" style="{{ CC.exportBtnStyle }}">{{ CC.exportLabel }}</button>
         </div>
 
-        <sc-if value="{{ CC.showFrames }}" hint-placeholder-val="{{ true }}">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
-            <button onClick="{{ CC.selectAll }}" style="{{ CC.miniBtnStyle }}">Select all</button>
-            <button onClick="{{ CC.clearSel }}" style="{{ CC.miniBtnStyle }}">Clear</button>
-            <span style="font-size:12px;color:var(--text-3)">{{ CC.selCount }} selected · click a frame to toggle</span>
-            <div style="flex:1"></div>
-            <button onClick="{{ CC.doExport }}" style="{{ CC.exportBtnStyle }}">{{ CC.exportLabel }}</button>
-          </div>
-          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(208px,1fr));gap:16px">
-            <sc-for list="{{ CC.frames }}" as="fr" hint-placeholder-count="8">
-              <div onClick="{{ fr.toggle }}" style="{{ fr.cardStyle }}">
-                <div style="position:relative;background:var(--fill)">
-                  <img src="{{ fr.src }}" style="width:100%;aspect-ratio:9/16;object-fit:cover;display:block"/>
-                  <span style="position:absolute;top:8px;left:8px;background:rgba(0,0,0,.62);color:#fff;font-size:11px;font-weight:600;padding:2px 9px;border-radius:999px">{{ fr.t }}</span>
-                  <span style="{{ fr.checkStyle }}">{{ fr.check }}</span>
-                </div>
-                <div style="padding:11px 12px 13px">
-                  <div style="font-size:12px;color:var(--text-2);line-height:1.45">{{ fr.visual }}</div>
-                  <sc-if value="{{ fr.motion }}" hint-placeholder-val="{{ false }}"><div style="margin-top:8px;font-size:11px;color:var(--text-3);display:flex;gap:5px"><span>🎞</span><span style="line-height:1.4">{{ fr.motion }}</span></div></sc-if>
-                  <sc-if value="{{ fr.written }}" hint-placeholder-val="{{ false }}"><div style="margin-top:8px;font-size:11px;color:var(--accent);background:var(--accent-soft);border-radius:8px;padding:7px 9px;line-height:1.45">📝 {{ fr.written }}</div></sc-if>
-                </div>
-              </div>
-            </sc-for>
-          </div>
-        </sc-if>
-
-        <sc-if value="{{ CC.showScript }}" hint-placeholder-val="{{ false }}">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
-            <div>
-              <div style="font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--text-3);font-weight:650;margin-bottom:8px">Original script (spoken)</div>
-              <div style="background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-size:14px;line-height:1.6;white-space:pre-wrap;color:var(--text-2)">{{ CC.transcript }}</div>
-            </div>
-            <div>
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-                <div style="font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--text-3);font-weight:650">New script (AI)</div>
-                <button onClick="{{ CC.genScript }}" style="padding:7px 14px;border:none;border-radius:9px;background:var(--accent);color:#fff;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit">{{ CC.genLabel }}</button>
-              </div>
-              <input value="{{ CC.brief }}" onInput="{{ CC.onBrief }}" placeholder="optional brief: topic / angle / length…" style="width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:9px;font-size:13px;font-family:inherit;margin-bottom:8px"/>
-              <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-size:14px;line-height:1.6;white-space:pre-wrap;color:var(--text);min-height:120px">{{ CC.gscript }}</div>
-              <div style="display:flex;align-items:center;gap:12px;margin-top:10px">
-                <button onClick="{{ CC.saveScript }}" style="{{ CC.saveBtnStyle }}">⤓ {{ CC.saveLabel }}</button>
-                <span style="font-size:12.5px;color:var(--text-3)">{{ CC.saved }}</span>
+        <sc-if value="{{ CC.isScrubber }}" hint-placeholder-val="{{ true }}">
+        <div>
+          <div style="display:flex;gap:30px;align-items:flex-start;flex-wrap:wrap">
+            <div style="flex:none;width:330px">
+              <div style="position:relative;width:330px;height:587px;border-radius:20px;overflow:hidden;background:var(--fill);box-shadow:0 22px 50px -22px rgba(34,30,68,.42),0 0 0 1px var(--line)">
+                <img src="{{ CC.curFrame.src }}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"/>
+                <sc-if value="{{ CC.showZones }}" hint-placeholder-val="{{ false }}">
+                  <div style="position:absolute;left:0;right:0;top:45%;border-top:1.5px dashed rgba(91,80,230,.7)"></div>
+                  <div class="cc-mono" style="position:absolute;left:10px;top:calc(45% - 20px);font-size:9px;color:#fff;background:rgba(91,80,230,.85);padding:2px 6px;border-radius:5px">VISUAL · 45%</div>
+                  <div class="cc-mono" style="position:absolute;left:10px;top:calc(45% + 8px);font-size:9px;color:#fff;background:rgba(20,18,40,.6);padding:2px 6px;border-radius:5px">CREATOR · 55%</div>
+                </sc-if>
+                <div class="cc-mono" style="position:absolute;top:13px;left:13px;font-size:11px;font-weight:600;color:#fff;background:rgba(20,18,40,.55);padding:4px 9px;border-radius:7px">{{ CC.curTime }}</div>
+                <div class="cc-mono" style="position:absolute;top:13px;right:13px;font-size:10px;font-weight:700;color:#fff;padding:4px 9px;border-radius:7px;background:{{ CC.curFrame.intColor }}">Stufe {{ CC.curFrame.intensity }}</div>
+                <sc-if value="{{ CC.curFrame.spoken }}" hint-placeholder-val="{{ false }}">
+                  <div style="position:absolute;bottom:24px;left:18px;right:18px;text-align:center"><span style="font-weight:800;font-size:15px;line-height:1.3;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.6)">{{ CC.curFrame.spoken }}</span></div>
+                </sc-if>
               </div>
             </div>
-          </div>
-        </sc-if>
-
-        <sc-if value="{{ CC.showVisuals }}" hint-placeholder-val="{{ false }}">
-          <p style="margin:0 0 14px;font-size:13px;color:var(--text-2)">Per‑frame visual descriptions — paste any into Claude design to generate your own visuals.</p>
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <sc-for list="{{ CC.visuals }}" as="v" hint-placeholder-count="6">
-              <div style="display:flex;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 14px">
-                <span style="flex:none;font-size:11.5px;color:var(--text-3);font-weight:650;min-width:38px">{{ v.t }}</span>
-                <span style="font-size:13px;color:var(--text-2);line-height:1.5">{{ v.prompt }}</span>
+            <div style="flex:1;min-width:280px;display:flex;flex-direction:column;gap:18px">
+              <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:var(--shadow)">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+                  <div class="cc-mono" style="font-size:12px;color:var(--text-3)">FRAME {{ CC.counter }}</div>
+                  <div style="width:1px;height:13px;background:var(--line)"></div>
+                  <div style="font-size:12px;font-weight:600;color:{{ CC.curFrame.intColor }}">{{ CC.curFrame.intLabel }}</div>
+                </div>
+                <div style="font-size:15px;line-height:1.55;color:var(--text-2);margin-bottom:16px">{{ CC.curFrame.d }}</div>
+                <sc-if value="{{ CC.curFrame.motion }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px;color:var(--text-3);margin-bottom:16px">🎞 {{ CC.curFrame.motion }}</div></sc-if>
+                <sc-if value="{{ CC.curFrame.spoken }}" hint-placeholder-val="{{ false }}">
+                <div style="border-left:2.5px solid var(--cc);padding:2px 0 2px 14px;margin-bottom:12px">
+                  <div class="cc-mono" style="font-size:10px;color:var(--text-3);letter-spacing:.1em;margin-bottom:5px">GESPROCHEN</div>
+                  <div style="font-size:14px;line-height:1.5;color:var(--text);font-weight:500">{{ CC.curFrame.spoken }}</div>
+                </div>
+                </sc-if>
+                <sc-if value="{{ CC.curFrame.written }}" hint-placeholder-val="{{ false }}">
+                <div style="border-left:2.5px solid var(--line);padding:2px 0 2px 14px">
+                  <div class="cc-mono" style="font-size:10px;color:var(--text-3);letter-spacing:.1em;margin-bottom:5px">ON-SCREEN TEXT</div>
+                  <div style="font-size:13px;line-height:1.5;color:var(--text-2)">{{ CC.curFrame.written }}</div>
+                </div>
+                </sc-if>
               </div>
-            </sc-for>
+              <div>
+                <div class="cc-mono" style="font-size:11px;color:var(--text-3);letter-spacing:.1em;margin-bottom:11px">UP NEXT →</div>
+                <div style="display:flex;gap:12px">
+                  <sc-for list="{{ CC.upNext }}" as="u" hint-placeholder-count="3">
+                    <button onClick="{{ u.go }}" style="flex:none;border:none;background:transparent;cursor:pointer;padding:0">
+                      <div style="position:relative;width:92px;height:163px;border-radius:13px;overflow:hidden;box-shadow:0 10px 22px -12px rgba(34,30,68,.4)">
+                        <img src="{{ u.src }}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"/>
+                        <div class="cc-mono" style="position:absolute;top:7px;left:7px;font-size:9px;font-weight:600;color:#fff;background:rgba(20,18,40,.5);padding:2px 6px;border-radius:5px">{{ u.timeStr }}</div>
+                        <div style="position:absolute;bottom:0;left:0;right:0;height:5px;background:{{ u.intColor }}"></div>
+                      </div>
+                    </button>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
           </div>
-        </sc-if>
 
-        <sc-if value="{{ CC.showInsights }}" hint-placeholder-val="{{ false }}">
-          <div style="background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:16px;font-size:14px;line-height:1.55;color:var(--text-2)">{{ CC.summary }}</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
-            <div>
-              <div style="font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--text-3);font-weight:650;margin-bottom:8px">Hook &amp; drop‑off</div>
-              <p style="margin:0 0 10px;font-size:13px;color:var(--text-2);line-height:1.5">{{ CC.hook }}</p>
-              <sc-for list="{{ CC.dropoff }}" as="d" hint-placeholder-count="3">
-                <div style="display:flex;gap:9px;margin-bottom:8px"><span style="flex:none;font-size:12px;font-weight:700;color:#dc2626;min-width:34px">{{ d.t }}</span><span style="font-size:13px;color:var(--text-2);line-height:1.5">{{ d.why }}</span></div>
+          <div style="margin-top:28px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px 22px;box-shadow:var(--shadow)">
+            <div style="position:relative;height:34px;display:flex;align-items:center">
+              <div style="position:absolute;left:0;right:0;height:6px;border-radius:99px;background:var(--fill)"></div>
+              <div style="position:absolute;left:0;height:6px;border-radius:99px;background:linear-gradient(90deg,var(--cc-2),var(--cc));width:{{ CC.pct }}"></div>
+              <div style="position:absolute;left:{{ CC.pct }};top:50%;width:18px;height:18px;margin-left:-9px;border-radius:50%;background:var(--surface);border:3px solid var(--cc);box-shadow:0 2px 8px rgba(91,80,230,.45);transform:translateY(-50%)"></div>
+              <input type="range" min="0" max="{{ CC.maxIdx }}" value="{{ CC.cur }}" onInput="{{ CC.onScrub }}" style="position:absolute;left:0;width:100%;height:34px;margin:0;opacity:0;cursor:pointer"/>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;margin-bottom:14px">
+              <span class="cc-mono" style="font-size:11px;color:var(--text-3)">0s</span>
+              <span class="cc-mono" style="font-size:11px;color:var(--cc);font-weight:600">{{ CC.curTime }}</span>
+              <span class="cc-mono" style="font-size:11px;color:var(--text-3)">{{ CC.totalTime }}</span>
+            </div>
+            <div class="cc-mono" style="font-size:10px;color:var(--text-3);letter-spacing:.1em;margin-bottom:8px">VISUAL-RHYTHMUS · geschätzt</div>
+            <div style="display:flex;align-items:flex-end;gap:3px;height:58px">
+              <sc-for list="{{ CC.frames2 }}" as="f" hint-placeholder-count="20">
+                <button onClick="{{ f.go }}" title="{{ f.timeStr }}" style="flex:1;border:none;padding:0;cursor:pointer;background:transparent;display:flex;align-items:flex-end;height:100%">
+                  <div style="width:100%;border-radius:3px 3px 0 0;height:{{ f.barH }};background:{{ f.intColor }};opacity:{{ f.barOpacity }};transition:.18s"></div>
+                </button>
               </sc-for>
             </div>
-            <div>
-              <div style="font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--text-3);font-weight:650;margin-bottom:8px">Suggestions</div>
-              <sc-for list="{{ CC.suggestions }}" as="s" hint-placeholder-count="3">
-                <div style="display:flex;gap:9px;margin-bottom:8px"><span style="width:6px;height:6px;border-radius:50%;background:#16a34a;margin-top:6px;flex:none"></span><span style="font-size:13px;color:var(--text-2);line-height:1.5">{{ s }}</span></div>
+          </div>
+
+          <div style="margin-top:18px">
+            <div class="cc-mono" style="font-size:10px;color:var(--text-3);letter-spacing:.1em;margin-bottom:10px">FILMSTRIP</div>
+            <div class="sg-scroll" style="display:flex;gap:9px;overflow-x:auto;padding:4px 2px 12px">
+              <sc-for list="{{ CC.frames2 }}" as="f" hint-placeholder-count="20">
+                <button onClick="{{ f.go }}" style="flex:none;border:none;padding:0;cursor:pointer;background:transparent">
+                  <div style="position:relative;width:60px;height:106px;border-radius:9px;overflow:hidden;{{ f.thumbRing }};transition:.15s">
+                    <img src="{{ f.src }}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"/>
+                    <div class="cc-mono" style="position:absolute;top:4px;left:4px;font-size:8px;font-weight:600;color:#fff;background:rgba(20,18,40,.5);padding:1px 5px;border-radius:4px">{{ f.timeStr }}</div>
+                    <div style="position:absolute;bottom:0;left:0;right:0;height:5px;background:{{ f.intColor }}"></div>
+                  </div>
+                </button>
               </sc-for>
             </div>
           </div>
+        </div>
+        </sc-if>
+
+        <sc-if value="{{ CC.isGrid }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+          <button onClick="{{ CC.selectAll }}" style="{{ CC.miniBtnStyle }}">Select all</button>
+          <button onClick="{{ CC.clearSel }}" style="{{ CC.miniBtnStyle }}">Clear</button>
+          <span style="font-size:12px;color:var(--text-3)">{{ CC.selCount }} selected · click to toggle, then Download</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(186px,1fr));gap:18px">
+          <sc-for list="{{ CC.frames2 }}" as="f" hint-placeholder-count="10">
+            <div onClick="{{ f.toggle }}" style="{{ f.cardStyle }}">
+              <div style="position:relative;background:var(--fill)">
+                <img src="{{ f.src }}" style="width:100%;aspect-ratio:9/16;object-fit:cover;display:block"/>
+                <div class="cc-mono" style="position:absolute;top:9px;left:9px;font-size:10px;font-weight:600;color:#fff;background:rgba(20,18,40,.55);padding:3px 8px;border-radius:6px">{{ f.timeStr }}</div>
+                <span style="{{ f.checkStyle }}">{{ f.check }}</span>
+                <div style="position:absolute;bottom:0;left:0;right:0;height:5px;background:{{ f.intColor }}"></div>
+              </div>
+              <div style="padding:12px 13px">
+                <div style="font-size:12.5px;line-height:1.5;color:var(--text-2)">{{ f.d }}</div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
         </sc-if>
       </div>
+      </sc-if>
+
+      <!-- SCRIPT -->
+      <sc-if value="{{ CC.isScript }}" hint-placeholder-val="{{ false }}">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start">
+        <div>
+          <div class="cc-mono" style="font-size:11px;color:var(--text-3);letter-spacing:.1em;margin-bottom:12px">ORIGINAL SCRIPT · SPOKEN</div>
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:var(--shadow);font-size:14.5px;line-height:1.7;color:var(--text-2);white-space:pre-wrap">{{ CC.transcript }}</div>
+          <button onClick="{{ CC.copyOriginal }}" style="margin-top:12px;border:1px solid var(--line);background:var(--surface);color:var(--text);font-family:inherit;font-weight:600;font-size:13px;padding:9px 16px;border-radius:10px;cursor:pointer">Copy original</button>
+        </div>
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <div class="cc-mono" style="font-size:11px;color:var(--text-3);letter-spacing:.1em">NEW SCRIPT · AI</div>
+            <button onClick="{{ CC.generate }}" style="border:none;background:var(--cc);color:var(--cc-on);font-family:inherit;font-weight:600;font-size:13px;padding:8px 16px;border-radius:10px;cursor:pointer">{{ CC.genLabel }}</button>
+          </div>
+          <input value="{{ CC.brief }}" onInput="{{ CC.onBrief }}" placeholder="optional brief: topic / angle / length…" style="width:100%;border:1px solid var(--line);background:var(--surface);border-radius:11px;padding:13px 15px;font-size:13px;font-family:inherit;outline:none;margin-bottom:12px;color:var(--text)"/>
+          <div style="background:var(--surface-2);border:1px solid var(--line);border-radius:16px;padding:22px;font-size:14px;line-height:1.7;color:var(--text-2);white-space:pre-wrap;min-height:200px">{{ CC.gscript }}</div>
+          <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;align-items:center">
+            <button onClick="{{ CC.copyAi }}" style="border:1px solid var(--line);background:var(--surface);color:var(--text);font-family:inherit;font-weight:600;font-size:13px;padding:9px 16px;border-radius:10px;cursor:pointer">Copy new script</button>
+            <button onClick="{{ CC.useInPrompt }}" style="border:none;background:var(--cc-soft);color:var(--cc);font-family:inherit;font-weight:600;font-size:13px;padding:9px 16px;border-radius:10px;cursor:pointer">Use in design prompt →</button>
+            <button onClick="{{ CC.saveScript }}" style="{{ CC.saveBtnStyle }}">⤓ {{ CC.saveLabel }}</button>
+            <span style="font-size:12.5px;color:var(--text-3)">{{ CC.saved }}</span>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- VISUALS & PROMPT -->
+      <sc-if value="{{ CC.isPrompt }}" hint-placeholder-val="{{ false }}">
+      <div style="display:grid;grid-template-columns:0.85fr 1.15fr;gap:24px;align-items:start">
+        <div>
+          <div class="cc-mono" style="font-size:11px;color:var(--text-3);letter-spacing:.1em;margin-bottom:5px">PER-FRAME VISUALS</div>
+          <p style="margin:0 0 14px;font-size:13px;color:var(--text-2)">Scene‑by‑scene descriptions from the footage. These feed the prompt on the right.</p>
+          <div class="sg-scroll" style="display:flex;flex-direction:column;gap:8px;max-height:680px;overflow-y:auto;padding-right:4px">
+            <sc-for list="{{ CC.visuals }}" as="f" hint-placeholder-count="8">
+              <div style="display:flex;gap:13px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 14px;align-items:flex-start">
+                <div class="cc-mono" style="flex:none;font-size:11px;font-weight:600;color:var(--cc);background:var(--cc-soft);padding:3px 7px;border-radius:6px;margin-top:1px">{{ f.timeStr }}</div>
+                <div style="flex:1;font-size:13px;line-height:1.55;color:var(--text-2)">{{ f.d }}</div>
+                <button onClick="{{ f.copyDesc }}" style="flex:none;border:1px solid var(--line);background:var(--surface);color:var(--text-2);font-family:inherit;font-size:11px;font-weight:600;padding:5px 9px;border-radius:7px;cursor:pointer">Copy</button>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div>
+          <div style="display:flex;align-items:center;gap:9px;margin-bottom:14px">
+            <div style="color:#d97757;font-size:18px">✳</div>
+            <div style="font-weight:800;font-size:18px;letter-spacing:-.02em">Claude Design Prompt</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow);margin-bottom:16px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:12px">
+              <div>
+                <div class="cc-mono" style="font-size:10px;color:var(--text-3);letter-spacing:.1em;margin-bottom:7px">SCRIPT-QUELLE</div>
+                <div style="display:inline-flex;background:var(--fill);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px">
+                  <button onClick="{{ CC.srcOriginal }}" style="{{ CC.segSrcOrig }}">Original</button>
+                  <button onClick="{{ CC.srcAi }}" style="{{ CC.segSrcAi }}">AI-Skript</button>
+                </div>
+              </div>
+              <button onClick="{{ CC.toggleVisuals }}" style="{{ CC.visualsBtn }}">{{ CC.visualsBtnLabel }}</button>
+            </div>
+            <div class="sg-scroll cc-mono" style="background:#15131f;border-radius:12px;padding:18px;max-height:430px;overflow-y:auto;font-size:12px;line-height:1.65;color:#cfcce0;white-space:pre-wrap">{{ CC.assembledPrompt }}</div>
+          </div>
+          <div style="display:flex;gap:10px">
+            <button onClick="{{ CC.copyPrompt }}" style="flex:1;border:none;background:var(--cc);color:var(--cc-on);font-family:inherit;font-weight:700;font-size:14px;padding:13px;border-radius:12px;cursor:pointer">Copy prompt</button>
+            <button onClick="{{ CC.goScript }}" style="border:1px solid var(--line);background:var(--surface);color:var(--text);font-family:inherit;font-weight:600;font-size:14px;padding:13px 18px;border-radius:12px;cursor:pointer">Edit script</button>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- INSIGHTS -->
+      <sc-if value="{{ CC.isInsights }}" hint-placeholder-val="{{ false }}">
+      <div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px">
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px"><div style="font-size:26px;font-weight:800;letter-spacing:-.02em">{{ CC.frameCount }}</div><div style="font-size:12px;color:var(--text-2);margin-top:3px">Frames · {{ CC.totalTime }}</div></div>
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px"><div style="font-size:26px;font-weight:800;letter-spacing:-.02em">{{ CC.talkCount }}</div><div style="font-size:12px;color:var(--text-2);margin-top:3px">Talking head</div></div>
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px"><div style="font-size:26px;font-weight:800;letter-spacing:-.02em;color:var(--cc)">{{ CC.uiCount }}</div><div style="font-size:12px;color:var(--text-2);margin-top:3px">UI / B-Roll</div></div>
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px"><div style="font-size:26px;font-weight:800;letter-spacing:-.02em">{{ CC.avgInt }}</div><div style="font-size:12px;color:var(--text-2);margin-top:3px">Ø Visual-Intensität</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:22px;align-items:start">
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px">
+            <div style="font-weight:700;font-size:15px;margin-bottom:4px">Visual-Intensität über die Zeit</div>
+            <p style="margin:0 0 18px;font-size:12.5px;color:var(--text-2)">Geschätzte Stufe 0–4 pro Szene (aus Bewegung + On-Screen-Text). Klick öffnet den Frame.</p>
+            <div style="display:flex;align-items:flex-end;gap:4px;height:130px">
+              <sc-for list="{{ CC.frames2 }}" as="f" hint-placeholder-count="20">
+                <button onClick="{{ f.goTab }}" title="{{ f.timeStr }}" style="flex:1;border:none;padding:0;background:transparent;cursor:pointer;display:flex;align-items:flex-end;height:100%">
+                  <div style="width:100%;border-radius:3px 3px 0 0;height:{{ f.barHIns }};background:{{ f.intColor }}"></div>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <sc-if value="{{ CC.summary }}" hint-placeholder-val="{{ false }}"><div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;font-size:13px;line-height:1.55;color:var(--text-2)">{{ CC.summary }}</div></sc-if>
+            <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px">
+              <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px"><div style="font-size:13px;font-weight:700;color:#16a34a">▲</div><div style="font-weight:700;font-size:14px">Hook</div></div>
+              <p style="margin:0;font-size:13px;line-height:1.55;color:var(--text-2)">{{ CC.hook }}</p>
+            </div>
+            <sc-for list="{{ CC.dropoff }}" as="d" hint-placeholder-count="2">
+              <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px"><div style="display:flex;gap:9px"><span class="cc-mono" style="flex:none;font-size:12px;font-weight:700;color:#dc2626;min-width:34px">{{ d.t }}</span><span style="font-size:13px;color:var(--text-2);line-height:1.5">{{ d.why }}</span></div></div>
+            </sc-for>
+          </div>
+        </div>
+        <sc-if value="{{ CC.suggestions }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-top:18px">
+          <div class="cc-mono" style="font-size:11px;color:var(--text-3);letter-spacing:.1em;margin-bottom:10px">SUGGESTIONS</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <sc-for list="{{ CC.suggestions }}" as="g" hint-placeholder-count="3">
+              <div style="display:flex;gap:9px"><span style="width:6px;height:6px;border-radius:50%;background:#16a34a;margin-top:7px;flex:none"></span><span style="font-size:13px;color:var(--text-2);line-height:1.55">{{ g }}</span></div>
+            </sc-for>
+          </div>
+        </div>
+        </sc-if>
+      </div>
+      </sc-if>
+
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ CC.toast }}" hint-placeholder-val="{{ false }}">
+      <div style="position:fixed;bottom:26px;left:50%;transform:translateX(-50%);z-index:60;background:var(--text);color:var(--bg);font-size:13px;font-weight:600;padding:11px 20px;border-radius:11px;box-shadow:0 12px 30px -10px rgba(0,0,0,.5);animation:sgToast .2s ease both">{{ CC.toast }}</div>
     </sc-if>
   </main>
   </sc-if>
@@ -628,6 +830,7 @@ class Component extends DCLogic {
     this.state = { view:'overview', sel:null, range:'30D', sort:'reach', loading:true, syncing:false, loadError:null, analysis:null, analysisFor:null, analysisLoading:false,
       ccUrl:'', ccLoading:false, ccResult:null, ccError:'', ccTab:'frames', ccScript:'', ccScriptLoading:false, ccBrief:'', ccProgress:0, ccStep:'',
       ccSel:{}, ccExporting:false, ccSaving:false, ccSaved:'',
+      ccCur:0, ccCView:'scrubber', ccPlaying:false, ccZones:false, ccPromptSrc:'original', ccIncVis:false, ccToast:'',
       pipeItems:null, pipeLoading:false, pipeError:'', pipeLoaded:false,
       theme:this.initialTheme() };
     // Restore Content Creation results so an extracted reel + generated script
@@ -916,7 +1119,8 @@ class Component extends DCLogic {
   extract(){
     const url=(this.state.ccUrl||'').trim();
     if(!url){ this.setState({ ccError:'Paste an Instagram reel link first.' }); return; }
-    this.setState({ ccLoading:true, ccError:'', ccResult:null, ccScript:'', ccSel:{}, ccSaved:'', ccProgress:2, ccStep:'Starting…' });
+    if(this._ccTimer){ clearInterval(this._ccTimer); this._ccTimer=null; }
+    this.setState({ ccLoading:true, ccError:'', ccResult:null, ccScript:'', ccSel:{}, ccSaved:'', ccCur:0, ccCView:'scrubber', ccPlaying:false, ccProgress:2, ccStep:'Starting…' });
     fetch('/api/extract',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ url }) })
       .then(async (res)=>{
         if(!res.body){ const j=await res.json().catch(()=>({error:'no response'})); this.setState({ ccLoading:false, ccError:j.error||'failed' }); return; }
@@ -929,7 +1133,7 @@ class Component extends DCLogic {
             let o; try{ o=JSON.parse(line); }catch{ continue; }
             if(o.step) this.setState({ ccStep:this.stepLabel(o.step), ccProgress:this.progressFor(o.step) });
             else if(o.error) this.setState({ ccLoading:false, ccError:o.error, ccProgress:0 });
-            else if(o.done) this.setState({ ccLoading:false, ccResult:o.result, ccTab:'frames', ccProgress:100 });
+            else if(o.done) this.setState({ ccLoading:false, ccResult:o.result, ccTab:'frames', ccCur:0, ccProgress:100 });
           }
         }
         if(this.state.ccLoading) this.setState({ ccLoading:false });
@@ -1024,47 +1228,157 @@ class Component extends DCLogic {
     }catch(e){ this.setState({ ccError:'Export failed: '+String((e&&e.message)||e) }); }
     this.setState({ ccExporting:false });
   }
+  // ── Content Creation: frame scrubber + Claude-design-prompt assembler ──────
+  // Maps the real extracted frames into the scrubber's model: spoken line (from
+  // the Whisper transcript at that timestamp), a heuristic visual-intensity 0–4,
+  // and a talk/ui type — all derived, labelled as estimates in the UI.
+  ccFrames(){
+    const r=this.state.ccResult; if(!r) return [];
+    const segs=(r.transcript&&r.transcript.segments)||[];
+    const spokenAt=(t)=>{ const x=segs.find(o=>t>=Math.floor(o.start)&&t<=Math.ceil(o.end)); return x?String(x.text).trim():''; };
+    const INT=['#d9d8e6','#c4c0f3','#9d96ee','#7165e9','#5b50e6'];
+    return (r.frames||[]).map((f,i)=>{
+      const text=Array.isArray(f.text)?f.text:[];
+      const written=text.map(x=>x.content).filter(Boolean).join(' · ');
+      const sub=(text.find(x=>/subtitle|caption|untertitel/i.test(x.role||''))||{}).content||'';
+      const roles=text.map(x=>(x.role||'').toLowerCase()).join(' ');
+      const isUI=/ui|diagram|screenshot|app|interface|screen|settings|chart|tweet|browser/.test(((f.visual||'')+' '+roles).toLowerCase()) || text.length>=3;
+      const intensity=Math.max(0,Math.min(4,(f.motion?1:0)+Math.min(2,text.length)+(isUI?1:0)));
+      const statEl=text.find(x=>/^\s*\d{1,3}\s*%?\s*$/.test(x.content||''));
+      return { i, t:f.t, timeStr:Math.round(f.t)+'s', src:'/analysis/'+f.img,
+        d:f.visual||'', motion:f.motion||'', written, spoken:spokenAt(f.t)||sub,
+        intensity, intColor:INT[intensity], type:isUI?'ui':'talk', stat:statEl?String(statEl.content).trim():'' };
+    });
+  }
+  ccGo(i){ const m=this.ccFrames().length; if(!m) return; i=((i%m)+m)%m; this.setState({ ccCur:i }); }
+  ccPrev(){ this.ccGo((this.state.ccCur||0)-1); }
+  ccNext(){ this.ccGo((this.state.ccCur||0)+1); }
+  ccTogglePlay(){
+    if(this.state.ccPlaying){ this.ccStop(); return; }
+    const m=this.ccFrames().length; if(!m) return;
+    this._ccTimer=setInterval(()=>this.setState(s=>({ ccCur:((s.ccCur||0)+1)%m })), 1300);
+    this.setState({ ccPlaying:true });
+  }
+  ccStop(){ if(this._ccTimer){ clearInterval(this._ccTimer); this._ccTimer=null; } if(this.state.ccPlaying) this.setState({ ccPlaying:false }); }
+  componentWillUnmount(){ if(this._ccTimer) clearInterval(this._ccTimer); clearTimeout(this._ccToast); }
+  ccFlash(msg){ this.setState({ ccToast:msg }); clearTimeout(this._ccToast); this._ccToast=setTimeout(()=>this.setState({ ccToast:'' }),1500); }
+  ccCopy(text,msg){ try{ navigator.clipboard.writeText(text||''); }catch(e){} this.ccFlash(msg||'Copied'); }
+  ccSeg(active){ return active
+    ? { padding:'7px 16px',borderRadius:'8px',border:'none',fontFamily:'inherit',fontSize:'13px',fontWeight:'600',cursor:'pointer',background:'var(--surface)',color:'var(--text)',boxShadow:'0 1px 2px rgba(20,18,40,.12)' }
+    : { padding:'7px 16px',borderRadius:'8px',border:'none',fontFamily:'inherit',fontSize:'13px',fontWeight:'600',cursor:'pointer',background:'transparent',color:'var(--text-3)' }; }
+  ccChip(active){ return active
+    ? { border:'none',background:'var(--cc-soft)',color:'var(--cc)',fontFamily:'inherit',fontWeight:'600',fontSize:'12px',padding:'8px 13px',borderRadius:'9px',cursor:'pointer' }
+    : { border:'1px solid var(--line)',background:'var(--surface)',color:'var(--text-2)',fontFamily:'inherit',fontWeight:'600',fontSize:'12px',padding:'8px 13px',borderRadius:'9px',cursor:'pointer' }; }
+  ccPromptTemplate(){ return `Du bist ein Weltklasse Creative Director für virale Kurzvideos auf TikTok, Reels, Shorts und X.
+Ich bin ein Content Creator, der über KI, Automatisierung, Zukunftstechnologien, Startups, Produktivität und digitale Innovation spricht.
+Deine Aufgabe ist es, mein Skript Satz für Satz zu analysieren und zu entscheiden, welche visuellen Elemente tatsächlich notwendig sind, um die Zuschauerbindung zu maximieren.
+Du denkst nicht wie ein Designer, sondern wie ein Elite Creative Director, dessen einzige Aufgabe darin besteht, Watchtime, Retention und Zuschauerzufriedenheit zu erhöhen.
+
+Die wichtigste Regel lautet:
+Nicht jede Szene benötigt ein Visual.
+Nicht jeder Satz benötigt Bewegung.
+Nicht jeder Gedanke benötigt eine Animation.
+Oft ist die stärkste kreative Entscheidung, überhaupt nichts einzublenden.
+
+Mein Videoformat ist 9:16. Ich befinde mich im unteren Bereich des Bildes und bin ungefähr zu 55 % sichtbar. Der obere Bereich des Screens bietet ungefähr 45 % Platz für Visuals. Visuals dürfen oberhalb von mir erscheinen, teilweise über mich gelegt werden oder den gesamten Bildschirm einnehmen, wenn dies die Wirkung deutlich erhöht.
+
+Für jede Szene ordnest du eine Intensitätsstufe zu.
+Stufe 0 = kein Visual.
+Stufe 1 = minimale Unterstützung (Icon, Zahl, einfaches UI-Element).
+Stufe 2 = unterstützende Visuals (Interfaces, Screenshots, B-Roll, einfache Animationen).
+Stufe 3 = hochwertiges Hero-Visual.
+Stufe 4 = außergewöhnlicher Scroll-Stopper-Moment.
+Verwende Stufe 3 und 4 nur, wenn sie wirklich verdient sind. Wähle im Zweifel besseres Timing statt mehr Visuals.
+
+Liefere deine Antwort in folgendem Format:
+Szene: [gesprochener Satz]
+Visual-Intensität: [0 bis 4]
+Visual: [Detaillierte Beschreibung des Visuals]
+Platzierung: [Oberhalb des Creators / Teilweise über dem Creator / Full Screen]
+Animation: [Keine / Beschreibung der Bewegung]
+Warum dieses Visual funktioniert: [Kurze psychologische Begründung]
+
+Hier ist das Skript:
+[SKRIPT EINFÜGEN]`; }
+  ccBuildPrompt(){
+    const r=this.state.ccResult; if(!r) return '';
+    const src=this.state.ccPromptSrc==='ai' ? (this.state.ccScript||'') : ((r.transcript&&r.transcript.text)||'');
+    let p=this.ccPromptTemplate().replace('[SKRIPT EINFÜGEN]', src||'(kein Skript)');
+    if(this.state.ccIncVis){
+      p += '\n\n———\nVisuelle Referenzen pro Szene (aus dem Original-Reel):\n' + this.ccFrames().map(f=>Math.round(f.t)+'s · Stufe '+f.intensity+' — '+f.d).join('\n');
+    }
+    return p;
+  }
   contentVals(){
     const s=this.state, r=s.ccResult, tab=s.ccTab||'frames';
     const cc={
       url:s.ccUrl||'', onUrl:(e)=>this.setState({ ccUrl: e&&e.target?e.target.value:'' }),
       extract:()=>this.extract(), extracting:!!s.ccLoading, extractLabel: s.ccLoading?'Extracting…':'Extract',
       step:s.ccStep||'', progressPct:(s.ccProgress||0)+'%',
-      barStyle:{ height:'100%', width:(s.ccProgress||0)+'%', background:'#6366f1', borderRadius:'999px', transition:'width .3s ease' },
-      error:s.ccError||'', hasResult:!!r,
-      tabFrames:()=>this.setState({ccTab:'frames'}), tabScript:()=>this.setState({ccTab:'script'}), tabVisuals:()=>this.setState({ccTab:'visuals'}), tabInsights:()=>this.setState({ccTab:'insights'}),
-      tabFramesStyle:this.ccTabStyle(tab==='frames'), tabScriptStyle:this.ccTabStyle(tab==='script'), tabVisualsStyle:this.ccTabStyle(tab==='visuals'), tabInsightsStyle:this.ccTabStyle(tab==='insights'),
-      showFrames:tab==='frames', showScript:tab==='script', showVisuals:tab==='visuals', showInsights:tab==='insights',
-      title:'', account:'', frames:[], transcript:'', visuals:[], summary:'', hook:'', dropoff:[], suggestions:[],
-      gscript:s.ccScript||'', genScript:()=>this.generateScript(), genLabel: s.ccScriptLoading?'Generating…':'Generate script',
+      barStyle:{ height:'100%', width:(s.ccProgress||0)+'%', background:'var(--cc)', borderRadius:'999px', transition:'width .3s ease' },
+      error:s.ccError||'', hasResult:!!r, toast:s.ccToast||'',
+      isFrames:tab==='frames', isScript:tab==='script', isPrompt:tab==='prompt', isInsights:tab==='insights',
+      goFrames:()=>this.setState({ccTab:'frames'}), goScript:()=>this.setState({ccTab:'script'}), goPrompt:()=>this.setState({ccTab:'prompt'}), goInsights:()=>this.setState({ccTab:'insights'}),
+      tFrames:tab==='frames'?'var(--text)':'var(--text-3)', tScript:tab==='script'?'var(--text)':'var(--text-3)', tPrompt:tab==='prompt'?'var(--text)':'var(--text-3)', tInsights:tab==='insights'?'var(--text)':'var(--text-3)',
+      genLabel: s.ccScriptLoading?'Generating…':(s.ccScript?'Regenerate':'Generate script'), generate:()=>this.generateScript(),
       brief:s.ccBrief||'', onBrief:(e)=>this.setState({ ccBrief: e&&e.target?e.target.value:'' }),
+      copyOriginal:()=>this.ccCopy((r&&r.transcript&&r.transcript.text)||'','Original copied'),
+      copyAi:()=>this.ccCopy(s.ccScript||'','New script copied'),
+      useInPrompt:()=>{ this.setState({ ccPromptSrc:'ai', ccTab:'prompt' }); this.ccFlash('AI script in prompt'); },
       saveScript:()=>this.saveCurrentScript(), saveLabel: s.ccSaving?'Saving…':'Save to pipeline', saved:s.ccSaved||'',
-      saveBtnStyle:{ display:'inline-flex',alignItems:'center',gap:'7px',padding:'8px 15px',borderRadius:'9px',border:'1px solid var(--line)',background:'var(--surface)',color:'var(--text)',fontSize:'12.5px',fontWeight:'650',cursor:'pointer',fontFamily:'inherit' }
+      saveBtnStyle:{ display:'inline-flex',alignItems:'center',gap:'7px',padding:'9px 16px',borderRadius:'10px',border:'1px solid var(--line)',background:'var(--surface)',color:'var(--text)',fontSize:'13px',fontWeight:'600',cursor:'pointer',fontFamily:'inherit' },
+      incVis:!!s.ccIncVis, toggleVisuals:()=>this.setState(st=>({ccIncVis:!st.ccIncVis})), visualsBtn:this.ccChip(!!s.ccIncVis),
+      visualsBtnLabel: s.ccIncVis?'✓ Visuals angehängt':'+ Per-Frame Visuals anhängen',
+      srcOriginal:()=>this.setState({ccPromptSrc:'original'}), srcAi:()=>this.setState({ccPromptSrc:'ai'}),
+      segSrcOrig:this.ccSeg(s.ccPromptSrc!=='ai'), segSrcAi:this.ccSeg(s.ccPromptSrc==='ai'),
+      assembledPrompt:this.ccBuildPrompt(), copyPrompt:()=>this.ccCopy(this.ccBuildPrompt(),'Prompt copied'),
+      isScrubber:s.ccCView!=='grid', isGrid:s.ccCView==='grid',
+      viewScrub:()=>this.setState({ccCView:'scrubber'}), viewGrid:()=>{ this.ccStop(); this.setState({ccCView:'grid'}); },
+      segScrub:this.ccSeg(s.ccCView!=='grid'), segGrid:this.ccSeg(s.ccCView==='grid'),
+      playIcon:s.ccPlaying?'❚❚':'▶', togglePlay:()=>this.ccTogglePlay(), prev:()=>this.ccPrev(), next:()=>this.ccNext(),
+      showZones:!!s.ccZones, toggleZones:()=>this.setState(st=>({ccZones:!st.ccZones})), zonesBtn:this.ccChip(!!s.ccZones),
+      onScrub:(e)=>this.ccGo(parseInt((e&&e.target?e.target.value:0),10)||0),
+      selectAll:()=>this.selectAllFrames(), clearSel:()=>this.clearFrames(), doExport:()=>this.exportFrames(),
+      exportBtnStyle:{ display:'inline-flex',alignItems:'center',gap:'7px',padding:'8px 16px',borderRadius:'9px',border:'none',background:'var(--cc)',color:'var(--cc-on)',fontSize:'13px',fontWeight:'650',cursor:'pointer',fontFamily:'inherit' },
+      miniBtnStyle:{ padding:'7px 12px',borderRadius:'8px',border:'1px solid var(--line)',background:'var(--surface)',color:'var(--text-2)',fontSize:'12.5px',fontWeight:'600',cursor:'pointer',fontFamily:'inherit' },
+      title:'', creator:'', account:'', lang:'', hasLang:false, frames2:[], visuals:[], upNext:[], curFrame:{},
+      transcript:'', gscript:s.ccScript||'', summary:'', hook:'', dropoff:[], suggestions:[],
+      frameCount:0, totalTime:'0s', counter:'00 / 0', cur:0, maxIdx:0, curTime:'0s', pct:'0%', selCount:0, exportLabel:'⬇ all',
+      talkCount:0, uiCount:0, avgInt:'0.0'
     };
     if(!r) return cc;
     const a=r.analysis||{};
     cc.title=(r.metrics&&(r.metrics.cap||r.metrics.caption))||r.id;
-    cc.account=r.ig_account?('@'+r.ig_account):'';
-    cc.frameCount=(r.frames||[]).length+' frames';
-    cc.lang=((r.transcript&&r.transcript.lang)||'').toUpperCase();
-    cc.hasLang=!!(r.transcript&&r.transcript.lang);
-    const sel=s.ccSel||{};
-    cc.frames=(r.frames||[]).map(f=>{
-      const on=!!sel[f.t];
-      return { src:'/analysis/'+f.img, t:this.fmtT(f.t), visual:f.visual||'', motion:f.motion||'',
-        written:Array.isArray(f.text)?f.text.map(x=>x.content).filter(Boolean).join(' · '):'',
-        toggle:()=>this.toggleFrame(f.t), check:on?'✓':'',
-        cardStyle:{ background:'var(--surface)', border:'2px solid '+(on?'var(--accent)':'var(--line)'), borderRadius:'14px', overflow:'hidden', boxShadow:'var(--shadow)', cursor:'pointer' },
-        checkStyle:{ position:'absolute', top:'8px', right:'8px', width:'22px', height:'22px', borderRadius:'50%', border:'2px solid #fff', background:on?'var(--accent)':'rgba(0,0,0,.35)', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'12px', fontWeight:'700' } };
-    });
-    const selCount=Object.keys(sel).length;
-    cc.selCount=selCount;
-    cc.exportLabel=s.ccExporting?'Exporting…':('⬇ Download '+(selCount?(selCount+' selected'):'all'));
-    cc.selectAll=()=>this.selectAllFrames(); cc.clearSel=()=>this.clearFrames(); cc.doExport=()=>this.exportFrames();
-    cc.exportBtnStyle={ display:'inline-flex',alignItems:'center',gap:'7px',padding:'8px 16px',borderRadius:'9px',border:'none',background:'var(--accent)',color:'#fff',fontSize:'13px',fontWeight:'650',cursor:'pointer',fontFamily:'inherit' };
-    cc.miniBtnStyle={ padding:'7px 12px',borderRadius:'8px',border:'1px solid var(--line)',background:'var(--surface)',color:'var(--text-2)',fontSize:'12.5px',fontWeight:'600',cursor:'pointer',fontFamily:'inherit' };
+    cc.creator=r.ig_account||'this reel'; cc.account=r.ig_account?('@'+r.ig_account):'';
+    cc.lang=((r.transcript&&r.transcript.lang)||'').toUpperCase(); cc.hasLang=!!cc.lang;
     cc.transcript=(r.transcript&&r.transcript.text)||'(no transcript)';
-    cc.visuals=(r.frames||[]).filter(f=>f.visual).map(f=>({ t:this.fmtT(f.t), prompt:f.visual+(f.motion?' ('+f.motion+')':'') }));
+
+    const base=this.ccFrames();
+    const n=base.length, maxIdx=Math.max(0,n-1), cur=Math.min(s.ccCur||0, maxIdx);
+    const sel=s.ccSel||{};
+    const frames2=base.map((f)=>({
+      ...f, selected:!!sel[f.t], check:sel[f.t]?'✓':'',
+      barH:(8+f.intensity*11)+'px', barHIns:Math.round((8+f.intensity*11)/56*130)+'px',
+      barOpacity:f.i===cur?'1':'0.5',
+      thumbRing:f.i===cur?'box-shadow:0 0 0 2.5px var(--cc),0 6px 14px -6px rgba(91,80,230,.5);transform:translateY(-2px)':'box-shadow:0 0 0 1px var(--line)',
+      cardStyle:{ background:'var(--surface)', border:'2px solid '+(sel[f.t]?'var(--cc)':'var(--line)'), borderRadius:'14px', overflow:'hidden', boxShadow:'var(--shadow)', cursor:'pointer' },
+      checkStyle:{ position:'absolute', top:'8px', right:'8px', width:'22px', height:'22px', borderRadius:'50%', border:'2px solid #fff', background:sel[f.t]?'var(--cc)':'rgba(0,0,0,.35)', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'12px', fontWeight:'700' },
+      go:()=>this.ccGo(f.i), goTab:()=>this.setState({ ccTab:'frames', ccCView:'scrubber', ccCur:f.i }),
+      copyDesc:()=>this.ccCopy(f.d,'Visual copied'), toggle:()=>this.toggleFrame(f.t)
+    }));
+    cc.frames2=frames2; cc.visuals=frames2;
+    cc.frameCount=n; cc.totalTime=(n?Math.round(base[maxIdx].t):0)+'s';
+    cc.counter=String(cur+1).padStart(2,'0')+' / '+n;
+    cc.cur=cur; cc.maxIdx=maxIdx; cc.curTime=(n?Math.round(base[cur].t):0)+'s';
+    cc.pct=(maxIdx?(cur/maxIdx*100):0)+'%';
+    const cf=base[cur]||{};
+    cc.curFrame={ ...cf, hasStat:!!cf.stat, intLabel:cf.type==='ui'?'UI-Overlay / B-Roll':'Talking head' };
+    cc.upNext=[1,2,3].map(k=>{ const idx=n?((cur+k)%n):0; const f=base[idx]||{}; return { timeStr:f.timeStr||'', intColor:f.intColor||'var(--line)', src:f.src||'', short:String(f.spoken||f.d||'').slice(0,46), go:()=>this.ccGo(idx) }; });
+    const selCount=Object.keys(sel).length; cc.selCount=selCount;
+    cc.exportLabel=s.ccExporting?'Exporting…':('⬇ '+(selCount?(selCount+' selected'):'all'));
+    cc.gscript=s.ccScript||'';
+    cc.talkCount=base.filter(f=>f.type==='talk').length; cc.uiCount=n-cc.talkCount;
+    cc.avgInt=n?(base.reduce((x,f)=>x+f.intensity,0)/n).toFixed(1):'0.0';
     cc.summary=a.summary||''; cc.hook=a.hook||'';
     cc.dropoff=(a.dropoff||[]).map(d=>({ t:this.fmtT(d.t), why:d.why }));
     cc.suggestions=a.suggestions||[];
