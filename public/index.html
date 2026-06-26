@@ -62,6 +62,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
           <button style="{{ navContentStyle }}" onClick="{{ navContent }}">Content Creation</button>
           <button style="{{ navPipelineStyle }}" onClick="{{ navPipeline }}">Reels Pipeline</button>
           <button style="{{ navDiscoveryStyle }}" onClick="{{ navDiscovery }}">Discovery</button>
+          <button style="{{ navStudioStyle }}" onClick="{{ navStudio }}">Studio</button>
         </div>
         <sc-if value="{{ showOverview }}" hint-placeholder-val="{{ true }}">
           <div style="display:flex;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:3px">
@@ -928,6 +929,112 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
   </main>
   </sc-if>
 
+  <sc-if value="{{ showStudio }}" hint-placeholder-val="{{ false }}">
+  <main class="cc-font" style="max-width:1180px;margin:0 auto;padding:30px 28px 90px">
+    <h1 style="margin:0 0 4px;font-size:24px;font-weight:800;letter-spacing:-.03em">Studio</h1>
+    <p style="margin:0 0 22px;font-size:13.5px;color:var(--text-2);max-width:660px">Give a topic. The advisor learns the patterns that actually drove engagement on your reels, writes a script grounded in your winners, and you refine it in the chat. It cites the real reels it learned from.</p>
+
+    <div style="display:grid;grid-template-columns:360px 1fr;gap:22px;align-items:start">
+
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow)">
+          <div class="cc-mono" style="font-size:10px;letter-spacing:.1em;color:var(--text-3);margin-bottom:8px">REEL BRIEF</div>
+          <textarea value="{{ STU.brief }}" onInput="{{ STU.onBrief }}" placeholder="e.g. Wie man mit n8n seinen ersten KI-Agenten baut" style="width:100%;min-height:76px;resize:vertical;background:var(--surface-2);border:1px solid var(--line);border-radius:11px;padding:11px 13px;font-size:13.5px;line-height:1.5;color:var(--text);font-family:inherit"></textarea>
+          <div class="cc-mono" style="font-size:10px;letter-spacing:.1em;color:var(--text-3);margin:14px 0 8px">OPTIMIZE FOR</div>
+          <div style="display:flex;gap:7px;flex-wrap:wrap">
+            <sc-for list="{{ STU.goals }}" as="g" hint-placeholder-count="3"><button onClick="{{ g.click }}" style="{{ g.style }}">{{ g.label }}</button></sc-for>
+          </div>
+          <button onClick="{{ STU.generate }}" style="margin-top:16px;width:100%;padding:11px;border:none;border-radius:11px;background:var(--cc);color:var(--cc-on);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">{{ STU.genLabel }}</button>
+          <sc-if value="{{ STU.error }}" hint-placeholder-val="{{ false }}"><div style="margin-top:10px;font-size:12.5px;color:#dc2626">{{ STU.error }}</div></sc-if>
+        </div>
+
+        <sc-if value="{{ STU.hasResult }}" hint-placeholder-val="{{ false }}">
+        <div class="sg-panel" style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow)">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><span style="color:var(--cc);font-size:14px">◆</span><div style="font-weight:700;font-size:14px">Your winning formula</div></div>
+          <div style="display:flex;flex-direction:column;gap:9px">
+            <sc-for list="{{ STU.formula }}" as="f" hint-placeholder-count="4"><div style="display:flex;gap:8px;font-size:12.5px;line-height:1.5;color:var(--text-2)"><span style="color:var(--cc);flex:none">›</span><span>{{ f }}</span></div></sc-for>
+          </div>
+        </div>
+        <div class="sg-panel" style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow)">
+          <div class="cc-mono" style="font-size:10px;letter-spacing:.1em;color:var(--text-3);margin-bottom:12px">LEARNED FROM</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <sc-for list="{{ STU.references }}" as="ref" hint-placeholder-count="3">
+              <a href="{{ ref.link }}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;border:1px solid var(--line);border-radius:11px;padding:11px 13px;display:block">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+                  <span class="cc-mono" style="font-size:11px;color:var(--cc);font-weight:600">{{ ref.shortcode }}</span>
+                  <span style="font-size:11.5px;color:var(--text-2)">{{ ref.likes }}♥ · {{ ref.comments }}💬</span>
+                </div>
+                <div style="font-size:12px;line-height:1.45;color:var(--text-2)">{{ ref.why }}</div>
+              </a>
+            </sc-for>
+          </div>
+        </div>
+        </sc-if>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <sc-if value="{{ !STU.hasThread }}" hint-placeholder-val="{{ false }}">
+          <div style="background:var(--surface);border:1px dashed var(--line);border-radius:16px;padding:46px 24px;text-align:center;color:var(--text-2)">
+            <div style="font-size:30px;margin-bottom:12px">◆</div>
+            <div style="font-size:14px;line-height:1.6">Enter a topic on the left and hit <strong>Generate</strong>.<br/>The advisor pulls the patterns from your reels and writes a grounded script — then refine it here in chat.</div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ STU.hasThread }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:9px">
+            <sc-for list="{{ STU.chat }}" as="m" hint-placeholder-count="2"><div style="{{ m.bubbleStyle }}">{{ m.text }}</div></sc-for>
+            <sc-if value="{{ STU.busy }}" hint-placeholder-val="{{ true }}"><div style="align-self:flex-start;font-size:12.5px;color:var(--text-3);padding:4px 6px">Thinking…</div></sc-if>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ STU.script }}" hint-placeholder-val="{{ false }}">
+        <div class="sg-panel" style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+            <div class="cc-mono" style="font-size:10px;letter-spacing:.1em;color:var(--text-3)">GENERATED SCRIPT</div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <span style="font-size:12px;color:#16a34a">{{ STU.saved }}</span>
+              <button onClick="{{ STU.copy }}" style="padding:7px 13px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--text);font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit">Copy</button>
+              <button onClick="{{ STU.save }}" style="padding:7px 13px;border:none;border-radius:9px;background:var(--cc);color:var(--cc-on);font-size:12.5px;font-weight:650;cursor:pointer;font-family:inherit">{{ STU.saveLabel }}</button>
+            </div>
+          </div>
+          <div style="font-size:14px;line-height:1.7;color:var(--text);white-space:pre-wrap">{{ STU.script }}</div>
+
+          <sc-if value="{{ STU.hooks }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:18px;border-top:1px solid var(--line);padding-top:16px">
+            <div class="cc-mono" style="font-size:10px;letter-spacing:.1em;color:var(--text-3);margin-bottom:9px">HOOK VARIANTS</div>
+            <div style="display:flex;flex-direction:column;gap:7px">
+              <sc-for list="{{ STU.hooks }}" as="h" hint-placeholder-count="3"><div style="font-size:13px;line-height:1.5;color:var(--text-2);background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:8px 11px">{{ h }}</div></sc-for>
+            </div>
+          </div>
+          </sc-if>
+
+          <sc-if value="{{ STU.visualPlan }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:18px;border-top:1px solid var(--line);padding-top:16px">
+            <div class="cc-mono" style="font-size:10px;letter-spacing:.1em;color:var(--text-3);margin-bottom:12px">VISUAL-INTENSITY PLAN</div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <sc-for list="{{ STU.visualPlan }}" as="v" hint-placeholder-count="5">
+                <div style="display:flex;align-items:center;gap:12px">
+                  <div style="width:6px;border-radius:3px;flex:none;height:{{ v.barH }};background:{{ v.intColor }}"></div>
+                  <div style="min-width:0"><div style="font-size:12.5px;font-weight:600;color:var(--text)">{{ v.scene }}</div><div style="font-size:11.5px;color:var(--text-2);line-height:1.4">{{ v.note }}</div></div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          </sc-if>
+        </div>
+        </sc-if>
+
+        <sc-if value="{{ STU.hasThread }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;gap:8px">
+            <input value="{{ STU.refine }}" onInput="{{ STU.onRefine }}" placeholder="refine: punchier hook · make it 20s · stronger CTA…" style="flex:1;min-width:0;padding:11px 14px;border:1px solid var(--line);border-radius:11px;font-size:13.5px;font-family:inherit;background:var(--surface);color:var(--text)"/>
+            <button onClick="{{ STU.sendRefine }}" style="padding:11px 18px;border:none;border-radius:11px;background:var(--text);color:var(--bg);font-size:13.5px;font-weight:650;cursor:pointer;font-family:inherit">Send</button>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </main>
+  </sc-if>
+
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script>
@@ -942,6 +1049,7 @@ class Component extends DCLogic {
       pipeItems:null, pipeLoading:false, pipeError:'', pipeLoaded:false,
       discItems:null, discCats:[], discLoading:false, discLoaded:false, discError:'', discMsg:'', discBusy:false,
       discHashtag:'', discType:'top', discCategory:'', discLinks:'', discFilter:'',
+      stuBrief:'', stuGoal:'likes', stuChat:[], stuApiHistory:[], stuResult:null, stuBusy:false, stuRefine:'', stuError:'', stuSaving:false, stuSaved:'',
       theme:this.initialTheme() };
     // Restore Content Creation results so an extracted reel + generated script
     // survive view switches and full page reloads — cleared only on a new extract.
@@ -1207,10 +1315,12 @@ class Component extends DCLogic {
       navContent: ()=>this.setView('content'),
       navPipeline: ()=>{ this.setView('pipeline'); this.loadScripts(false); },
       navDiscovery: ()=>{ this.setView('discovery'); this.loadDiscovery(false); },
-      navOverviewStyle: this.tabStyle(this.state.view!=='content'&&this.state.view!=='pipeline'&&this.state.view!=='discovery'),
+      navStudio: ()=>this.setView('studio'),
+      navOverviewStyle: this.tabStyle(this.state.view!=='content'&&this.state.view!=='pipeline'&&this.state.view!=='discovery'&&this.state.view!=='studio'),
       navContentStyle: this.tabStyle(this.state.view==='content'),
       navPipelineStyle: this.tabStyle(this.state.view==='pipeline'),
-      navDiscoveryStyle: this.tabStyle(this.state.view==='discovery')
+      navDiscoveryStyle: this.tabStyle(this.state.view==='discovery'),
+      navStudioStyle: this.tabStyle(this.state.view==='studio')
     };
   }
 
@@ -1351,6 +1461,43 @@ class Component extends DCLogic {
   }
   discToCC(permalink){ if(!permalink) return; this.setState({ view:'content', ccUrl:permalink }); if(typeof window!=='undefined') window.scrollTo(0,0); }
   discChip(on){ return { padding:'6px 13px',borderRadius:'999px',border:'1px solid '+(on?'var(--cc)':'var(--line)'),background:on?'var(--cc-soft)':'var(--surface)',color:on?'var(--cc)':'var(--text-2)',fontSize:'12.5px',fontWeight:'600',cursor:'pointer',fontFamily:'inherit' }; }
+  // ── Studio: RAG "what works" advisor ──────────────────────────────────────
+  studioRun(history){
+    this.setState({ stuBusy:true, stuError:'' });
+    fetch('/api/studio',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ brief:this.state.stuBrief, goal:this.state.stuGoal||'likes', history }) })
+      .then(r=>r.json())
+      .then(j=>{
+        if(j.error){ this.setState({ stuBusy:false, stuError:j.error }); return; }
+        const apiHist = history.concat([{ role:'assistant', content: j.script||'' }]);
+        const chat = (this.state.stuChat||[]).concat([{ role:'assistant', text: j.reply || 'Done.' }]);
+        this.setState({ stuBusy:false, stuApiHistory:apiHist, stuChat:chat, stuResult:j, stuSaved:'' });
+      })
+      .catch(e=>this.setState({ stuBusy:false, stuError:String(e) }));
+  }
+  studioGenerate(){
+    const b=(this.state.stuBrief||'').trim(); if(!b){ this.setState({ stuError:'Enter a topic or brief first.' }); return; }
+    const history=[{ role:'user', content:'New reel brief: '+b }];
+    this.setState({ stuChat:[{ role:'user', text:b }], stuApiHistory:history, stuResult:null, stuSaved:'' });
+    this.studioRun(history);
+  }
+  studioRefine(){
+    const m=(this.state.stuRefine||'').trim(); if(!m) return;
+    if(!(this.state.stuApiHistory||[]).length){ this.studioGenerate(); return; }
+    const history=(this.state.stuApiHistory||[]).concat([{ role:'user', content:m }]);
+    const chat=(this.state.stuChat||[]).concat([{ role:'user', text:m }]);
+    this.setState({ stuApiHistory:history, stuChat:chat, stuRefine:'' });
+    this.studioRun(history);
+  }
+  studioSave(){
+    const r=this.state.stuResult; if(!r||!r.script) return;
+    this.setState({ stuSaving:true, stuSaved:'' });
+    const visuals=(r.visualPlan||[]).map((v,i)=>({ t:i, prompt:(v.scene||('Scene '+(i+1)))+' — '+(v.note||'')+' (Stufe '+(v.intensity||0)+')' }));
+    fetch('/api/scripts',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ title:'Studio · '+((this.state.stuBrief||'idea').slice(0,60)), brief:this.state.stuBrief, script:r.script, visuals, tags:['studio'] }) })
+      .then(r=>r.json())
+      .then(j=>this.setState({ stuSaving:false, stuSaved: j.error?('Error: '+j.error):'Saved to pipeline ✓', pipeLoaded:false }))
+      .catch(e=>this.setState({ stuSaving:false, stuSaved:'Error: '+String(e) }));
+  }
+  studioCopy(){ this.ccCopy((this.state.stuResult&&this.state.stuResult.script)||'','Script copied'); }
   toggleFrame(t){ const sel=Object.assign({}, this.state.ccSel); if(sel[t]) delete sel[t]; else sel[t]=true; this.setState({ ccSel:sel }); }
   selectAllFrames(){ const r=this.state.ccResult; if(!r) return; const sel={}; (r.frames||[]).forEach(f=>{ sel[f.t]=true; }); this.setState({ ccSel:sel }); }
   clearFrames(){ this.setState({ ccSel:{} }); }
@@ -1617,8 +1764,35 @@ Hier ist das Skript:
     };
   }
 
+  studioVals(){
+    const s=this.state, r=s.stuResult||{}, goal=s.stuGoal||'likes';
+    const INT=['#d9d8e6','#c4c0f3','#9d96ee','#7165e9','#5b50e6'];
+    const goals=['likes','comments','saves'].map(g=>({ label:g.charAt(0).toUpperCase()+g.slice(1), style:this.discChip(goal===g), click:(()=>{ const gg=g; return ()=>this.setState({ stuGoal:gg }); })() }));
+    const chat=(s.stuChat||[]).map(m=>{
+      const user=m.role==='user';
+      return { text:m.text||'', bubbleStyle:{ alignSelf:user?'flex-end':'flex-start', maxWidth:'88%', padding:'9px 13px', borderRadius:'13px', fontSize:'13px', lineHeight:'1.5', whiteSpace:'pre-wrap', background:user?'var(--cc)':'var(--surface-2)', color:user?'var(--cc-on)':'var(--text)', border:user?'none':'1px solid var(--line)' } };
+    });
+    return {
+      brief:s.stuBrief||'', onBrief:(e)=>this.setState({ stuBrief:e&&e.target?e.target.value:'' }),
+      goals, generate:()=>this.studioGenerate(), genLabel: s.stuBusy?'Thinking…':'Generate', busy:!!s.stuBusy, error:s.stuError||'',
+      reelCount:r.reelCount||0, hasResult:!!s.stuResult, hasThread:(s.stuChat||[]).length>0,
+      formula:r.formula||[],
+      references:(r.references||[]).map(x=>({ shortcode:x.shortcode, likes:this.fmtK(x.likes), comments:this.fmtK(x.comments), why:x.why, link:'https://www.instagram.com/reel/'+x.shortcode+'/' })),
+      chat,
+      script:r.script||'', hooks:r.hooks||[],
+      visualPlan:(r.visualPlan||[]).map(v=>({ scene:v.scene||'', note:v.note||'', barH:(10+Math.max(0,Math.min(4,v.intensity||0))*9)+'px', intColor:INT[Math.max(0,Math.min(4,v.intensity||0))] })),
+      refine:s.stuRefine||'', onRefine:(e)=>this.setState({ stuRefine:e&&e.target?e.target.value:'' }), sendRefine:()=>this.studioRefine(),
+      copy:()=>this.studioCopy(), save:()=>this.studioSave(), saveLabel: s.stuSaving?'Saving…':'⤓ Save to pipeline', saved:s.stuSaved||''
+    };
+  }
+
   renderVals(){
     const head = this.headerVals();
+
+    // Studio — RAG "what works" advisor.
+    if(this.state.view==='studio'){
+      return Object.assign({ showOverview:false, hasDetail:false, showContent:false, showPipeline:false, showDiscovery:false, showStudio:true, loading:false, showBanner:false }, head, { STU:this.studioVals() });
+    }
 
     // Reels Discovery tab — inspiration library from Supabase.
     if(this.state.view==='discovery'){

@@ -158,6 +158,20 @@ const server = http.createServer(async (req, res) => {
       }
     }
 
+    // Studio: RAG "what works" advisor (generate / refine, grounded in the reels).
+    if (u.pathname === "/api/studio" && req.method === "POST") {
+      const body = await readJson(req);
+      try {
+        const studio = await import("./lib/studio.mjs");
+        if (!studio.isConfigured())
+          return send(res, 200, ".json", JSON.stringify({ error: "Supabase not configured", configured: false }));
+        const out = await studio.studioGenerate({ brief: body.brief || "", goal: body.goal || "likes", history: body.history || [] });
+        return send(res, 200, ".json", JSON.stringify(out));
+      } catch (e) {
+        return send(res, e && e.code === "NO_DATA" ? 200 : 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e), code: e && e.code }));
+      }
+    }
+
     // Per-reel AI breakdown (precomputed by `npm run analyze`).
     const ar = u.pathname.match(/^\/api\/reel\/([^/]+)\/analyze$/);
     if (ar) {
