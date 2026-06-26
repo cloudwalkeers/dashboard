@@ -158,6 +158,29 @@ const server = http.createServer(async (req, res) => {
       }
     }
 
+    // Lab: causal ledger (de-confounded hypotheses) + the next experiment.
+    if (u.pathname === "/api/causal" && req.method === "GET") {
+      const causal = await import("./lib/causal.mjs");
+      if (!causal.isConfigured()) return send(res, 200, ".json", JSON.stringify({ configured: false, hypotheses: [], n: 0 }));
+      try {
+        return send(res, 200, ".json", JSON.stringify(await causal.insights({ outcome: u.searchParams.get("outcome") || "rate" })));
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
+    if (u.pathname === "/api/causal/rebuild" && req.method === "POST") {
+      const body = await readJson(req);
+      const causal = await import("./lib/causal.mjs");
+      if (!causal.isConfigured()) return send(res, 200, ".json", JSON.stringify({ configured: false }));
+      try {
+        const features = await causal.buildFeatures({ force: !!body.force });
+        const out = await causal.insights({ outcome: body.outcome || "rate" });
+        return send(res, 200, ".json", JSON.stringify({ ...out, features }));
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
+
     // Studio: RAG "what works" advisor (generate / refine, grounded in the reels).
     if (u.pathname === "/api/studio" && req.method === "POST") {
       const body = await readJson(req);
