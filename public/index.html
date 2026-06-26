@@ -61,9 +61,10 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
         <div style="display:flex;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:3px">
           <button style="{{ navOverviewStyle }}" onClick="{{ navOverview }}">Overview</button>
           <button style="{{ navContentStyle }}" onClick="{{ navContent }}">Content Creation</button>
-          <button style="{{ navPipelineStyle }}" onClick="{{ navPipeline }}">Reels Pipeline</button>
+          <button style="{{ navPipelineStyle }}" onClick="{{ navPipeline }}">Pipeline</button>
           <button style="{{ navDiscoveryStyle }}" onClick="{{ navDiscovery }}">Discovery</button>
           <button style="{{ navStudioStyle }}" onClick="{{ navStudio }}">Studio</button>
+          <button style="{{ navLabStyle }}" onClick="{{ navLab }}">Lab</button>
         </div>
         <button onClick="{{ refresh }}" title="Refresh from Meta" style="display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--text-2);background:none;border:none;cursor:pointer;font-family:inherit;padding:6px 4px">
           <span style="{{ syncDotStyle }}"></span>
@@ -1091,6 +1092,67 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
   </main>
   </sc-if>
 
+  <sc-if value="{{ showLab }}" hint-placeholder-val="{{ false }}">
+  <main class="cc-font" style="max-width:1060px;margin:0 auto;padding:30px 28px 90px">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:6px">
+      <div>
+        <h1 style="margin:0;font-size:24px;font-weight:800;letter-spacing:-.03em">Lab</h1>
+        <p style="margin:6px 0 0;font-size:13.5px;color:var(--text-2);max-width:660px">What actually moves the needle — found by contrasting your winners <strong>and</strong> losers, with honest confidence. Most patterns stay “inconclusive” until there's more data; that's the point, not a bug. The only way to prove a cause is to run the experiment.</p>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+        <div style="display:inline-flex;background:var(--fill);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px">
+          <button onClick="{{ LAB.setRate }}" style="{{ LAB.segRate }}">Rate</button>
+          <button onClick="{{ LAB.setLikes }}" style="{{ LAB.segLikes }}">Likes</button>
+        </div>
+        <button onClick="{{ LAB.rebuild }}" style="{{ refreshBtnStyle }}">↻ Rebuild</button>
+      </div>
+    </div>
+
+    <div class="cc-mono" style="font-size:11.5px;color:var(--text-3);margin:14px 0 22px">{{ LAB.n }} reels · {{ LAB.withViews }} with views · outcome: {{ LAB.outcome }} {{ LAB.outcomeNote }}</div>
+
+    <sc-if value="{{ LAB.error }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:#dc2626;margin-bottom:16px">{{ LAB.error }}</div></sc-if>
+    <sc-if value="{{ LAB.loading }}" hint-placeholder-val="{{ true }}"><div style="font-size:13.5px;color:var(--text-3);margin-bottom:16px">Crunching the contrast…</div></sc-if>
+
+    <sc-if value="{{ LAB.hasExp }}" hint-placeholder-val="{{ false }}">
+    <div class="sg-panel" style="position:relative;overflow:hidden;background:var(--surface);border:1px solid var(--cc);border-radius:16px;padding:22px 22px 22px 26px;box-shadow:var(--shadow);margin-bottom:26px">
+      <div style="position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--cc)"></div>
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px;flex-wrap:wrap">
+        <span style="font-size:16px">🧪</span><div style="font-weight:700;font-size:15px">Run this next</div>
+        <span class="cc-mono" style="font-size:9.5px;color:var(--cc);background:var(--cc-soft);padding:3px 8px;border-radius:99px;letter-spacing:.05em">THE ONLY WAY TO PROVE CAUSE</span>
+      </div>
+      <div style="font-size:13.5px;line-height:1.55;color:var(--text-2);margin-bottom:14px">{{ LAB.expClaim }}</div>
+      <div style="background:var(--surface-2);border:1px solid var(--line);border-radius:11px;padding:14px 16px;font-size:13.5px;line-height:1.6;color:var(--text)">{{ LAB.expDo }}</div>
+      <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+        <div style="flex:1;min-width:170px;background:var(--cc-soft);border:1px solid var(--line);border-radius:9px;padding:10px 13px"><div class="cc-mono" style="font-size:9.5px;color:var(--cc);margin-bottom:4px;letter-spacing:.06em">TEST ARM</div><div style="font-size:12.5px;color:var(--text)">{{ LAB.expTest }}</div></div>
+        <div style="flex:1;min-width:170px;background:var(--fill);border:1px solid var(--line);border-radius:9px;padding:10px 13px"><div class="cc-mono" style="font-size:9.5px;color:var(--text-3);margin-bottom:4px;letter-spacing:.06em">CONTROL ARM</div><div style="font-size:12.5px;color:var(--text)">{{ LAB.expControl }}</div></div>
+      </div>
+    </div>
+    </sc-if>
+
+    <div class="cc-mono" style="font-size:10.5px;letter-spacing:.1em;color:var(--text-3);margin-bottom:12px">HYPOTHESIS LEDGER · contrasted on {{ LAB.outcome }}</div>
+    <sc-if value="{{ LAB.hasHyps }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <sc-for list="{{ LAB.hyps }}" as="hy" hint-placeholder-count="6">
+        <div style="display:grid;grid-template-columns:1fr 64px 132px 104px;gap:14px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 16px;opacity:{{ hy.rowOpacity }}">
+          <div style="min-width:0">
+            <div style="font-size:13.5px;font-weight:600;color:var(--text)">{{ hy.label }}</div>
+            <sc-if value="{{ hy.shared }}" hint-placeholder-val="{{ false }}"><div style="font-size:11px;color:#e0a458;margin-top:2px">⚠ also common in your flops — probably not a real edge</div></sc-if>
+          </div>
+          <div style="text-align:right;font-size:13px;font-weight:700;color:var(--text-2)">{{ hy.effect }}</div>
+          <div><div style="height:6px;background:var(--fill);border-radius:999px;overflow:hidden"><div style="{{ hy.confBarStyle }}"></div></div><div class="cc-mono" style="font-size:10px;color:var(--text-3);margin-top:4px">{{ hy.conf }}% conf · n {{ hy.n }}</div></div>
+          <div style="text-align:right"><span style="{{ hy.statusStyle }}">{{ hy.status }}</span></div>
+        </div>
+      </sc-for>
+    </div>
+    </sc-if>
+    <sc-if value="{{ LAB.empty }}" hint-placeholder-val="{{ false }}">
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:36px 24px;text-align:center;font-size:14px;color:var(--text-2)">No hypotheses yet — extract reels + add views, then hit Rebuild.</div>
+    </sc-if>
+
+    <p style="margin:22px 0 0;font-size:11.5px;color:var(--text-3);line-height:1.55">Effect = rank‑biserial (−1…+1); sign = direction. Confidence is deliberately humble about sample size — a low % means “interesting but unproven,” even when the raw p‑value looks significant. “Supported” needs a real effect the bottom‑tier reels <strong>don't</strong> share. This is still correlation; the experiment above is what turns it into cause.</p>
+  </main>
+  </sc-if>
+
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script>
@@ -1107,6 +1169,7 @@ class Component extends DCLogic {
       discItems:null, discCats:[], discLoading:false, discLoaded:false, discError:'', discMsg:'', discBusy:false,
       discHashtag:'', discType:'top', discCategory:'', discLinks:'', discFilter:'',
       stuBrief:'', stuGoal:'likes', stuChat:[], stuApiHistory:[], stuResult:null, stuBusy:false, stuRefine:'', stuError:'', stuSaving:false, stuSaved:'',
+      labData:null, labLoading:false, labLoaded:false, labError:'', labOutcome:'rate', labRebuilding:false,
       theme:this.initialTheme() };
     // Restore Content Creation results so an extracted reel + generated script
     // survive view switches and full page reloads — cleared only on a new extract.
@@ -1374,11 +1437,13 @@ class Component extends DCLogic {
       navPipeline: ()=>{ this.setView('pipeline'); this.loadScripts(false); },
       navDiscovery: ()=>{ this.setView('discovery'); this.loadDiscovery(false); },
       navStudio: ()=>this.setView('studio'),
-      navOverviewStyle: this.tabStyle(this.state.view!=='content'&&this.state.view!=='pipeline'&&this.state.view!=='discovery'&&this.state.view!=='studio'),
+      navLab: ()=>{ this.setView('lab'); this.loadLab(false); },
+      navOverviewStyle: this.tabStyle(this.state.view!=='content'&&this.state.view!=='pipeline'&&this.state.view!=='discovery'&&this.state.view!=='studio'&&this.state.view!=='lab'),
       navContentStyle: this.tabStyle(this.state.view==='content'),
       navPipelineStyle: this.tabStyle(this.state.view==='pipeline'),
       navDiscoveryStyle: this.tabStyle(this.state.view==='discovery'),
-      navStudioStyle: this.tabStyle(this.state.view==='studio')
+      navStudioStyle: this.tabStyle(this.state.view==='studio'),
+      navLabStyle: this.tabStyle(this.state.view==='lab')
     };
   }
 
@@ -1574,6 +1639,50 @@ class Component extends DCLogic {
       .catch(e=>this.setState({ stuSaving:false, stuSaved:'Error: '+String(e) }));
   }
   studioCopy(){ this.ccCopy((this.state.stuResult&&this.state.stuResult.script)||'','Script copied'); }
+  // ── Lab: causal ledger + next experiment ──────────────────────────────────
+  labFetch(outcome){
+    this.setState({ labLoading:true, labError:'', labOutcome:outcome });
+    fetch('/api/causal?outcome='+outcome)
+      .then(r=>r.json())
+      .then(j=>this.setState({ labLoading:false, labLoaded:true, labData:j, labConfigured:j.configured!==false, labError:j.error||'' }))
+      .catch(e=>this.setState({ labLoading:false, labLoaded:true, labError:String(e) }));
+  }
+  loadLab(force){ if(this.state.labLoading) return; if(this.state.labLoaded && !force) return; this.labFetch(this.state.labOutcome||'rate'); }
+  labRebuild(){
+    this.setState({ labRebuilding:true, labError:'' });
+    fetch('/api/causal/rebuild',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ outcome:this.state.labOutcome||'rate' }) })
+      .then(r=>r.json())
+      .then(j=>this.setState({ labRebuilding:false, labLoaded:true, labData: j.error?this.state.labData:j, labError:j.error||'' }))
+      .catch(e=>this.setState({ labRebuilding:false, labError:String(e) }));
+  }
+  labVals(){
+    const s=this.state, d=s.labData||{}, outcome=d.outcome||s.labOutcome||'rate';
+    const STAT={ supported:'#16a34a', weak:'#e0a458', inconclusive:'var(--text-3)', refuted:'#dc2626' };
+    const exp=d.experiment;
+    const hyps=(d.hypotheses||[]).map(h=>({
+      label:h.label||(h.feature+'='+h.value),
+      effect:(h.effect>0?'+':'')+h.effect,
+      n:h.n_with+' / '+h.n_without,
+      conf:Math.round((h.confidence||0)*100),
+      confBarStyle:{ height:'100%', width:Math.max(2,Math.round((h.confidence||0)*100))+'%', background:(h.effect>0?'var(--cc)':'#dc2626'), borderRadius:'999px' },
+      status:h.status,
+      statusStyle:{ fontSize:'10.5px', fontWeight:'700', padding:'2px 9px', borderRadius:'999px', color:'#fff', background:(STAT[h.status]||'var(--text-3)'), textTransform:'uppercase', letterSpacing:'.03em' },
+      shared:!!h.shared_by_losers,
+      rowOpacity: h.status==='inconclusive'?'0.6':'1'
+    }));
+    return {
+      configured: s.labConfigured!==false,
+      loading: !!s.labLoading, rebuilding: !!s.labRebuilding, error: s.labError||'',
+      n: d.n||0, withViews: d.withViews||0, outcome,
+      outcomeNote: outcome==='rate' ? '· likes ÷ views (reach-controlled)' : '· raw likes (confounded by reach)',
+      segRate:this.ccSeg(outcome!=='likes'), segLikes:this.ccSeg(outcome==='likes'),
+      setRate:()=>this.labFetch('rate'), setLikes:()=>this.labFetch('likes'), rebuild:()=>this.labRebuild(),
+      hasExp: !!exp, expClaim: exp&&exp.claim, expDo: exp&&exp.instruction,
+      expTest: exp&&exp.arms&&exp.arms.test, expControl: exp&&exp.arms&&exp.arms.control,
+      hyps, hasHyps: hyps.length>0,
+      empty: s.labLoaded && !s.labLoading && !hyps.length && s.labConfigured!==false
+    };
+  }
   toggleFrame(t){ const sel=Object.assign({}, this.state.ccSel); if(sel[t]) delete sel[t]; else sel[t]=true; this.setState({ ccSel:sel }); }
   selectAllFrames(){ const r=this.state.ccResult; if(!r) return; const sel={}; (r.frames||[]).forEach(f=>{ sel[f.t]=true; }); this.setState({ ccSel:sel }); }
   clearFrames(){ this.setState({ ccSel:{} }); }
@@ -1905,6 +2014,11 @@ Hier ist das Skript:
     // Studio — RAG "what works" advisor.
     if(this.state.view==='studio'){
       return Object.assign({ showOverview:false, hasDetail:false, showContent:false, showPipeline:false, showDiscovery:false, showStudio:true, loading:false, showBanner:false }, head, { STU:this.studioVals() });
+    }
+
+    // Lab — causal ledger + next experiment.
+    if(this.state.view==='lab'){
+      return Object.assign({ showOverview:false, hasDetail:false, showContent:false, showPipeline:false, showDiscovery:false, showStudio:false, showLab:true, loading:false, showBanner:false }, head, { LAB:this.labVals() });
     }
 
     // Reels Discovery tab — inspiration library from Supabase.
