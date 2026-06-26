@@ -252,9 +252,14 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
       <sc-for list="{{ reels }}" as="r" hint-placeholder-count="8">
         <div onClick="{{ r.open }}" style="display:grid;grid-template-columns:minmax(180px,1.4fr) 72px 72px 82px 110px 64px 58px 58px 58px 66px 70px;gap:10px;padding:13px 20px;border-bottom:1px solid var(--line-2);align-items:center;cursor:pointer;transition:background .12s;min-width:1000px" style-hover="background:var(--surface-2)">
           <div style="display:flex;align-items:center;gap:12px;min-width:0">
-            <div style="width:38px;height:50px;border-radius:7px;flex:none;background:repeating-linear-gradient(135deg,#eef0f4 0 7px,#e6e9ef 7px 14px);display:flex;align-items:center;justify-content:center">
-              <span style="width:0;height:0;border-left:8px solid #b9bec8;border-top:5px solid transparent;border-bottom:5px solid transparent;margin-left:2px"></span>
-            </div>
+            <sc-if value="{{ r.hasThumb }}" hint-placeholder-val="{{ false }}">
+              <img src="{{ r.thumb }}" style="width:38px;height:50px;border-radius:7px;flex:none;object-fit:cover;background:var(--fill)"/>
+            </sc-if>
+            <sc-if value="{{ !r.hasThumb }}" hint-placeholder-val="{{ true }}">
+              <div style="width:38px;height:50px;border-radius:7px;flex:none;background:repeating-linear-gradient(135deg,#eef0f4 0 7px,#e6e9ef 7px 14px);display:flex;align-items:center;justify-content:center">
+                <span style="width:0;height:0;border-left:8px solid #b9bec8;border-top:5px solid transparent;border-bottom:5px solid transparent;margin-left:2px"></span>
+              </div>
+            </sc-if>
             <div style="min-width:0">
               <div style="font-size:13.5px;font-weight:570;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.cap }}</div>
               <div style="font-size:12px;color:var(--text-3);margin-top:2px">{{ r.date }} · {{ r.lenFmt }}</div>
@@ -293,10 +298,15 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
     </div>
 
     <section style="display:flex;gap:26px;margin-bottom:22px">
-      <div style="width:188px;height:334px;border-radius:16px;flex:none;background:repeating-linear-gradient(135deg,#eef0f4 0 9px,#e6e9ef 9px 18px);position:relative;display:flex;align-items:center;justify-content:center;border:1px solid var(--line)">
-        <span style="width:0;height:0;border-left:18px solid #c2c7d0;border-top:12px solid transparent;border-bottom:12px solid transparent;margin-left:4px"></span>
-        <span style="position:absolute;bottom:12px;left:12px;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;color:var(--text-3);background:rgba(255,255,255,.7);padding:2px 6px;border-radius:5px">1080×1920</span>
-      </div>
+      <sc-if value="{{ R.hasThumb }}" hint-placeholder-val="{{ false }}">
+        <div style="width:188px;height:334px;border-radius:16px;flex:none;overflow:hidden;border:1px solid var(--line)"><img src="{{ R.thumb }}" style="width:100%;height:100%;object-fit:cover;display:block"/></div>
+      </sc-if>
+      <sc-if value="{{ !R.hasThumb }}" hint-placeholder-val="{{ true }}">
+        <div style="width:188px;height:334px;border-radius:16px;flex:none;background:repeating-linear-gradient(135deg,#eef0f4 0 9px,#e6e9ef 9px 18px);position:relative;display:flex;align-items:center;justify-content:center;border:1px solid var(--line)">
+          <span style="width:0;height:0;border-left:18px solid #c2c7d0;border-top:12px solid transparent;border-bottom:12px solid transparent;margin-left:4px"></span>
+          <span style="position:absolute;bottom:12px;left:12px;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;color:var(--text-3);background:rgba(255,255,255,.7);padding:2px 6px;border-radius:5px">1080×1920</span>
+        </div>
+      </sc-if>
       <div style="flex:1;min-width:0;display:flex;flex-direction:column">
         <span style="font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--text-3);font-weight:650">Instagram Reel</span>
         <h1 style="margin:8px 0 10px;font-size:25px;font-weight:680;letter-spacing:-.02em;line-height:1.2">{{ R.cap }}</h1>
@@ -1296,7 +1306,8 @@ class Component extends DCLogic {
         looping:!!d.looping, ret, eng, engRate: d.reach? eng/d.reach*100 : 0,
         completion, avgWatch, hook, mid, dIdx, dropPct:dMax, dropAt, spark:sp.line,
         rates: d.rates || null,
-        likeRate: d.rates?d.rates.like:null, saveRate: d.rates?d.rates.save:null, shareRate: d.rates?d.rates.share:null, commentRate: d.rates?d.rates.comment:null
+        likeRate: d.rates?d.rates.like:null, saveRate: d.rates?d.rates.save:null, shareRate: d.rates?d.rates.share:null, commentRate: d.rates?d.rates.comment:null,
+        thumb: d.thumb||null
       };
     });
     const trend = payload.trend || {};
@@ -1393,7 +1404,14 @@ class Component extends DCLogic {
       { icon:'♥', label:'Like rate', v:rt.like }, { icon:'🔖', label:'Save rate', v:rt.save },
       { icon:'⟳', label:'Repost rate', v:rt.repost }, { icon:'💬', label:'Comment rate', v:rt.comment }
     ].map(x=>({ icon:x.icon, label:x.label, value:fmtRate(x.v), valStyle:{ fontSize:'15px', fontWeight:'660', color: x.v==null?'var(--text-faint)':'var(--text)' } }));
-    const summary='This reel reached '+this.fmtK(r.reach)+' accounts and held '+this.pct(r.hook)+' of viewers past the 3-second hook. '+(r.completion>=a.avgCompletion?('Strong finish — '+this.pct(r.completion)+' watched to the end, above your '+this.pct(a.avgCompletion)+' average.'):('The steepest drop comes around '+this.fmtT(r.dropAt)+', pulling completion to '+this.pct(r.completion)+'.'));
+    const dataSrc=(this.db&&this.db.meta&&this.db.meta.source)||'';
+    let summary;
+    if(dataSrc==='supabase'){
+      const lr=(r.rates&&r.rates.like!=null)?this.pct1(r.rates.like):'—';
+      summary='This reel got '+this.fmtK(r.plays||r.reach)+' views, '+this.fmtK(r.likes)+' likes and '+this.fmtK(r.comments)+' comments — a '+lr+' like rate. Reach, saves and per‑second retention need the Graph API; the curve below is estimated from length + avg watch.';
+    } else {
+      summary='This reel reached '+this.fmtK(r.reach)+' accounts and held '+this.pct(r.hook)+' of viewers past the 3-second hook. '+(r.completion>=a.avgCompletion?('Strong finish — '+this.pct(r.completion)+' watched to the end, above your '+this.pct(a.avgCompletion)+' average.'):('The steepest drop comes around '+this.fmtT(r.dropAt)+', pulling completion to '+this.pct(r.completion)+'.'));
+    }
     const dropNote='Most viewers leave around '+this.fmtT(r.dropAt)+' — a '+Math.round(r.dropPct)+'-point drop in a single beat. '+(r.dropAt<r.len*0.3?'That early in the video usually means the payoff takes too long to arrive; tighten the intro or front-load the hook.':'Re-cut or add a pattern-break right before this moment to carry attention through to the end.');
     const linkReal = r.permalink && r.permalink!=='#';
     return {
@@ -1406,6 +1424,7 @@ class Component extends DCLogic {
       heatSegs, keyMoments, dropNote,
       engRateFmt:this.pct1(r.engRate), engRows, rates:ratesList,
       refresh:()=>this.refreshReel(r.id), refreshLabel: (this.state.syncing||this.state.analysisLoading)?'Refreshing…':'Refresh',
+      thumb:r.thumb||'', hasThumb:!!r.thumb,
       ai:this.aiVals()
     };
   }
@@ -2147,6 +2166,7 @@ Hier ist das Skript:
       completionFmt:this.pct(r.completion), engFmt:this.pct1(r.engRate), spark:r.spark,
       likeRateFmt:rateFmt(r.likeRate), saveRateFmt:rateFmt(r.saveRate), shareRateFmt:rateFmt(r.shareRate), commentRateFmt:rateFmt(r.commentRate),
       watchBarStyle:{ height:'100%', width:Math.max(4,Math.min(100,r.completion))+'%', background:'var(--accent)', borderRadius:'999px' },
+      thumb:r.thumb||'', hasThumb:!!r.thumb,
       open:()=>this.openReel(r.id)
     }));
 
