@@ -64,13 +64,6 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
           <button style="{{ navDiscoveryStyle }}" onClick="{{ navDiscovery }}">Discovery</button>
           <button style="{{ navStudioStyle }}" onClick="{{ navStudio }}">Studio</button>
         </div>
-        <sc-if value="{{ showOverview }}" hint-placeholder-val="{{ true }}">
-          <div style="display:flex;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:3px">
-            <sc-for list="{{ ranges }}" as="rg" hint-placeholder-count="3">
-              <button style="{{ rg.style }}" onClick="{{ rg.onClick }}">{{ rg.r }}</button>
-            </sc-for>
-          </div>
-        </sc-if>
         <button onClick="{{ refresh }}" title="Refresh from Meta" style="display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--text-2);background:none;border:none;cursor:pointer;font-family:inherit;padding:6px 4px">
           <span style="{{ syncDotStyle }}"></span>
           {{ syncText }}
@@ -95,10 +88,15 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
   <sc-if value="{{ showOverview }}" hint-placeholder-val="{{ true }}">
   <main style="max-width:1240px;margin:0 auto;padding:28px 28px 72px">
 
-    <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:18px;gap:16px">
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:18px;gap:16px;flex-wrap:wrap">
       <div>
         <h1 style="margin:0;font-size:23px;font-weight:680;letter-spacing:-.02em">Performance overview</h1>
-        <p style="margin:5px 0 0;font-size:13.5px;color:var(--text-2)">{{ rangeLabel }} · {{ reelCount }} reels published · consolidated from Meta Insights</p>
+        <p style="margin:5px 0 0;font-size:13.5px;color:var(--text-2)">{{ rangeLabel }} · {{ reelCount }} reels published · {{ sourceLabel }}</p>
+      </div>
+      <div style="display:flex;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:3px">
+        <sc-for list="{{ ranges }}" as="rg" hint-placeholder-count="3">
+          <button style="{{ rg.style }}" onClick="{{ rg.onClick }}">{{ rg.r }}</button>
+        </sc-for>
       </div>
     </div>
 
@@ -1298,6 +1296,7 @@ class Component extends DCLogic {
     if(this.state.syncing){ syncText='Syncing…'; dot='#d97706'; }
     else if(this.state.loadError){ syncText='Sync failed'; dot='#dc2626'; }
     else if(m.source==='demo'){ syncText='Demo data · not connected'; dot='#d97706'; }
+    else if(m.source==='supabase'){ syncText='Your reels · from Supabase (no live token)'; dot='#6366f1'; }
     else if(m.source==='live'){ syncText='Synced from Meta · '+this.relTime(m.fetchedAt); dot='#16a34a'; }
     else { syncText='Loading…'; dot='#9ca3af'; }
     return {
@@ -1844,6 +1843,7 @@ Hier ist das Skript:
     out.range = this.state.range;
     out.rangeLabel = ({'7D':'Last 7 days','30D':'Last 30 days','90D':'Last 90 days'})[this.state.range];
     out.reelCount = cur.length;
+    out.sourceLabel = ({ live:'consolidated from Meta Insights', supabase:'from your stored reels', demo:'demo data' })[(this.db&&this.db.meta&&this.db.meta.source)||'demo'] || 'stored data';
 
     // KPI sparklines + deltas. Reach/Plays deltas come from the daily trend
     // series (real history); the rest compare current vs previous reel windows.

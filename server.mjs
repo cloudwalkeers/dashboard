@@ -240,27 +240,36 @@ server.listen(PORT, () => {
 });
 
 async function getData(force, demo) {
-  if (demo || !isConfigured()) return demoPayload();
-  if (cache && !force && Date.now() - cache.t < CACHE_MS) return cache.payload;
-  try {
-    const raw = await collectReels({ max: Number(process.env.MAX_REELS || 40) });
-    const payload = toPayload(raw, { source: "live" });
-    cache = { t: Date.now(), payload };
-    // Persist the live performance metrics (one snapshot/reel/day) for later
-    // analysis — best-effort and non-blocking, so it never delays the response.
-    import("./lib/store/metrics.mjs")
-      .then((m) => (m.isConfigured() ? m.storeMetrics(payload) : null))
-      .then((r) => r && r.stored && console.log("  metrics → supabase:", r.stored, "reel(s),", r.failed, "failed"))
-      .catch((e) => console.log("  metrics store skipped:", e && e.message ? e.message : e));
-    return payload;
-  } catch (e) {
-    // Surface the error to the dashboard rather than silently faking data.
-    return {
-      defs: [],
-      trend: { reachS: [], playsS: [] },
-      meta: { source: "live", error: e && e.message ? e.message : String(e) },
-    };
+  // 1) Live Graph API when credentials are configured.
+  if (!demo && isConfigured()) {
+    if (cache && !force && Date.now() - cache.t < CACHE_MS) return cache.payload;
+    try {
+      const raw = await collectReels({ max: Number(process.env.MAX_REELS || 40) });
+      const payload = toPayload(raw, { source: "live" });
+      cache = { t: Date.now(), payload };
+      // Persist the live metrics (one snapshot/reel/day) — best-effort, non-blocking.
+      import("./lib/store/metrics.mjs")
+        .then((m) => (m.isConfigured() ? m.storeMetrics(payload) : null))
+        .then((r) => r && r.stored && console.log("  metrics → supabase:", r.stored, "reel(s),", r.failed, "failed"))
+        .catch((e) => console.log("  metrics store skipped:", e && e.message ? e.message : e));
+      return payload;
+    } catch (e) {
+      return { defs: [], trend: { reachS: [], playsS: [] }, meta: { source: "live", error: e && e.message ? e.message : String(e) } };
+    }
   }
+  if (demo) return demoPayload();
+  // 2) No live creds → show the REAL reels stored in Supabase (not demo).
+  try {
+    const stored = await import("./lib/store/stored.mjs");
+    if (stored.isConfigured()) {
+      const payload = await stored.storedPayload();
+      if (payload && payload.defs && payload.defs.length) return payload;
+    }
+  } catch (e) {
+    console.log("  stored payload skipped:", e && e.message ? e.message : e);
+  }
+  // 3) Nothing stored → demo so the dashboard still works out of the box.
+  return demoPayload();
 }
 
 function readJson(req) {
