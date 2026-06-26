@@ -38,6 +38,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
 .sg-scroll::-webkit-scrollbar{height:8px;width:8px}
 .sg-scroll::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px;border:none}
 @keyframes sgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes spin{to{transform:rotate(360deg)}}
 @keyframes sgToast{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
 .sg-panel{animation:sgIn .28s ease both}
 .cc-font{font-family:'Plus Jakarta Sans',-apple-system,system-ui,sans-serif}
@@ -793,50 +794,107 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
   </sc-if>
 
   <sc-if value="{{ showPipeline }}" hint-placeholder-val="{{ false }}">
-  <main style="max-width:980px;margin:0 auto;padding:28px 28px 72px">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:4px">
-      <div>
-        <h1 style="margin:0;font-size:22px;font-weight:680;letter-spacing:-.02em">Reels Pipeline <span style="color:var(--text-faint);font-weight:500;font-size:16px">· {{ PIPE.count }}</span></h1>
-        <p style="margin:6px 0 0;font-size:13.5px;color:var(--text-2)">Saved scripts &amp; visual prompts from Content Creation. Edit the text or tags, then save — stored in Supabase.</p>
+  <main class="cc-font" style="height:calc(100vh - 60px);display:flex;flex-direction:column;overflow:hidden">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding:20px 28px 16px;border-bottom:1px solid var(--line)">
+      <div style="min-width:0">
+        <div style="display:flex;align-items:center;gap:10px">
+          <h1 style="margin:0;font-size:19px;font-weight:700;letter-spacing:-.01em">Reels Pipeline</h1>
+          <span style="display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:21px;padding:0 7px;background:var(--cc-soft);color:var(--cc);font-size:12px;font-weight:600;border-radius:7px">{{ PIPE.totalCount }}</span>
+        </div>
+        <p style="margin:6px 0 0;font-size:13px;color:var(--text-2);max-width:560px">Saved scripts &amp; visual prompts from Content Creation and Studio. Edit, tag, then save — synced to Supabase.</p>
       </div>
-      <button onClick="{{ PIPE.refresh }}" style="{{ refreshBtnStyle }}">↻ Refresh</button>
+      <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+        <button onClick="{{ PIPE.onRefresh }}" style="display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 13px;background:var(--surface);border:1px solid var(--line);border-radius:9px;color:var(--text-2);font-size:13px;font-weight:500;font-family:inherit;cursor:pointer"><span style="{{ PIPE.refreshIconStyle }}">↻</span> Refresh</button>
+        <button onClick="{{ PIPE.onNew }}" style="display:inline-flex;align-items:center;gap:5px;height:34px;padding:0 14px;background:var(--cc);color:var(--cc-on);font-size:13px;font-weight:600;font-family:inherit;border:none;border-radius:9px;cursor:pointer">+ New script</button>
+      </div>
     </div>
 
     <sc-if value="{{ PIPE.notConfigured }}" hint-placeholder-val="{{ false }}">
-      <div style="margin-top:20px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:24px;text-align:center;font-size:13.5px;color:var(--text-2)">Supabase isn't configured on this server — add SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY to .env to save and retrieve scripts.</div>
-    </sc-if>
-    <sc-if value="{{ PIPE.loading }}" hint-placeholder-val="{{ true }}">
-      <div style="margin-top:20px;font-size:13.5px;color:var(--text-3)">Loading saved scripts…</div>
-    </sc-if>
-    <sc-if value="{{ PIPE.empty }}" hint-placeholder-val="{{ false }}">
-      <div style="margin-top:20px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:36px 24px;text-align:center">
-        <div style="font-size:14px;color:var(--text-2);margin-bottom:14px">No saved scripts yet — generate a script in Content Creation and hit “Save to pipeline”.</div>
-        <button onClick="{{ PIPE.goCreate }}" style="padding:9px 16px;border:none;border-radius:9px;background:var(--accent);color:#fff;font-size:13px;font-weight:650;cursor:pointer;font-family:inherit">Go to Content Creation</button>
-      </div>
-    </sc-if>
-    <sc-if value="{{ PIPE.error }}" hint-placeholder-val="{{ false }}">
-      <div style="margin-top:16px;font-size:13px;color:#dc2626">{{ PIPE.error }}</div>
+      <div style="margin:20px 28px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:24px;text-align:center;font-size:13.5px;color:var(--text-2)">Supabase isn't configured — add SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY to .env.</div>
     </sc-if>
 
-    <div style="display:flex;flex-direction:column;gap:16px;margin-top:20px">
-      <sc-for list="{{ PIPE.items }}" as="it" hint-placeholder-count="3">
-        <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px;box-shadow:var(--shadow)">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-            <input value="{{ it.title }}" onInput="{{ it.onTitle }}" style="flex:1;min-width:0;font-size:15.5px;font-weight:650;border:none;background:none;color:var(--text);font-family:inherit;padding:2px 0"/>
-            <span style="font-size:12px;color:var(--text-3);flex:none">{{ it.account }}</span>
+    <div style="display:flex;align-items:center;gap:14px;padding:13px 28px;border-bottom:1px solid var(--line);flex-wrap:wrap">
+      <div style="position:relative;flex:0 0 300px;max-width:300px">
+        <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-3);font-size:14px;pointer-events:none">⌕</span>
+        <input value="{{ PIPE.query }}" onInput="{{ PIPE.onSearch }}" placeholder="Search scripts, tags, sources…" style="width:100%;height:36px;padding:0 12px 0 32px;background:var(--surface-2);border:1px solid var(--line);border-radius:9px;color:var(--text);font-size:13px;font-family:inherit"/>
+      </div>
+      <div style="width:1px;height:22px;background:var(--line)"></div>
+      <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
+        <sc-for list="{{ PIPE.filterChips }}" as="chip" hint-placeholder-count="5">
+          <button onClick="{{ chip.onToggle }}" style="{{ chip.chipStyle }}">{{ chip.label }}</button>
+        </sc-for>
+      </div>
+      <div class="cc-mono" style="margin-left:auto;font-size:11px;color:var(--text-3)">{{ PIPE.resultLabel }}</div>
+    </div>
+
+    <div style="flex:1;display:grid;grid-template-columns:404px 1fr;min-height:0">
+      <aside class="sg-scroll" style="border-right:1px solid var(--line);overflow-y:auto;padding:14px">
+        <sc-if value="{{ PIPE.hasResults }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;gap:9px">
+            <sc-for list="{{ PIPE.listItems }}" as="row" hint-placeholder-count="5">
+              <div onClick="{{ row.onSelect }}" style="{{ row.cardStyle }}">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+                  <div style="font-size:14.5px;font-weight:600;color:var(--text);line-height:1.3;min-width:0">{{ row.title }}</div>
+                  <span style="{{ row.dotStyle }}"></span>
+                </div>
+                <div class="cc-mono" style="font-size:11px;color:var(--text-3);margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ row.metaLine }}</div>
+                <div style="font-size:12.5px;line-height:1.5;color:var(--text-2);margin-top:9px;max-height:38px;overflow:hidden">{{ row.snippet }}</div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">
+                  <sc-for list="{{ row.tags }}" as="t" hint-placeholder-count="2">
+                    <span class="cc-mono" style="font-size:10.5px;color:var(--text-2);background:var(--fill);border:1px solid var(--line);padding:2px 7px;border-radius:6px">{{ t }}</span>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
           </div>
-          <div style="display:flex;flex-wrap:wrap;gap:14px;font-size:11.5px;color:var(--text-3);margin-bottom:12px">
-            <span>{{ it.source }}</span><span>{{ it.visualCount }}</span><span>{{ it.updated }}</span>
+        </sc-if>
+        <sc-if value="{{ PIPE.noResults }}" hint-placeholder-val="{{ false }}">
+          <div style="text-align:center;padding:60px 20px;color:var(--text-3)">
+            <div style="font-size:26px;margin-bottom:10px">⌕</div>
+            <div style="font-size:13px;line-height:1.5">No scripts here yet — generate one in Content Creation or Studio (Save to pipeline), or hit + New script.</div>
           </div>
-          <textarea value="{{ it.script }}" onInput="{{ it.onScript }}" style="width:100%;min-height:150px;resize:vertical;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:13.5px;line-height:1.6;color:var(--text);font-family:inherit"></textarea>
-          <div style="display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap">
-            <input value="{{ it.tagsText }}" onInput="{{ it.onTags }}" placeholder="tags, comma separated — ai, finance…" style="flex:1;min-width:160px;padding:8px 12px;border:1px solid var(--line);border-radius:9px;font-size:12.5px;font-family:inherit;background:var(--surface);color:var(--text)"/>
-            <span style="{{ it.statusStyle }}">{{ it.status }}</span>
-            <button onClick="{{ it.save }}" style="padding:8px 16px;border:none;border-radius:9px;background:var(--accent);color:#fff;font-size:12.5px;font-weight:650;cursor:pointer;font-family:inherit">{{ it.saveLabel }}</button>
-            <button onClick="{{ it.del }}" style="padding:8px 14px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:#dc2626;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit">Delete</button>
+        </sc-if>
+      </aside>
+
+      <section class="sg-scroll" style="overflow-y:auto">
+        <sc-if value="{{ PIPE.hasSelection }}" hint-placeholder-val="{{ true }}">
+          <div style="max-width:880px;padding:26px 36px 44px">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:18px">
+              <div style="flex:1;min-width:0">
+                <input value="{{ PIPE.selTitle }}" onInput="{{ PIPE.onTitleChange }}" style="width:100%;background:transparent;border:none;color:var(--text);font-size:23px;font-weight:700;font-family:inherit;letter-spacing:-.01em;padding:2px 0"/>
+                <div class="cc-mono" style="font-size:11.5px;color:var(--text-3);margin-top:4px">{{ PIPE.selMeta }}</div>
+              </div>
+              <button onClick="{{ PIPE.onDeleteClick }}" style="{{ PIPE.deleteBtnStyle }}">{{ PIPE.deleteLabel }}</button>
+            </div>
+
+            <div style="margin-top:26px">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px">
+                <label class="cc-mono" style="font-size:11px;letter-spacing:.08em;color:var(--text-2);text-transform:uppercase">Script</label>
+                <span class="cc-mono" style="font-size:11px;color:var(--text-3)">{{ PIPE.countLabel }}</span>
+              </div>
+              <textarea value="{{ PIPE.selScript }}" onInput="{{ PIPE.onScriptChange }}" placeholder="Write the reel script…" style="{{ PIPE.textareaStyle }}"></textarea>
+            </div>
+
+            <div style="margin-top:24px">
+              <label class="cc-mono" style="font-size:11px;letter-spacing:.08em;color:var(--text-2);text-transform:uppercase">Tags</label>
+              <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:10px">
+                <sc-for list="{{ PIPE.selTags }}" as="tg" hint-placeholder-count="2">
+                  <span style="{{ tg.style }}">{{ tg.label }}<button onClick="{{ tg.onRemove }}" style="background:none;border:none;color:inherit;cursor:pointer;padding:0;margin-left:3px;font-size:14px;line-height:1;opacity:.6">×</button></span>
+                </sc-for>
+                <input value="{{ PIPE.tagDraft }}" onInput="{{ PIPE.onTagDraft }}" onKeyDown="{{ PIPE.onTagKey }}" placeholder="add tag…" class="cc-mono" style="height:27px;width:118px;background:var(--surface-2);border:1px solid var(--line);border-radius:7px;color:var(--text);font-size:12px;padding:0 9px"/>
+              </div>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:14px;margin-top:30px;padding-top:20px;border-top:1px solid var(--line)">
+              <span style="{{ PIPE.statusStyle }}">{{ PIPE.statusText }}</span>
+              <div style="margin-left:auto"><button onClick="{{ PIPE.onSave }}" style="{{ PIPE.saveBtnStyle }}">{{ PIPE.saveLabel }}</button></div>
+            </div>
           </div>
-        </div>
-      </sc-for>
+        </sc-if>
+        <sc-if value="{{ PIPE.noSelection }}" hint-placeholder-val="{{ false }}">
+          <div style="height:100%;display:flex;align-items:center;justify-content:center;color:var(--text-3);font-size:14px">Select a script to edit, or hit + New script</div>
+        </sc-if>
+      </section>
     </div>
   </main>
   </sc-if>
@@ -1045,6 +1103,7 @@ class Component extends DCLogic {
       ccSel:{}, ccExporting:false, ccSaving:false, ccSaved:'',
       ccCur:0, ccCView:'scrubber', ccPlaying:false, ccZones:false, ccPromptSrc:'original', ccIncVis:false, ccToast:'',
       pipeItems:null, pipeLoading:false, pipeError:'', pipeLoaded:false,
+      pipeSel:null, pipeQuery:'', pipeActiveTags:[], pipeTagDraft:'', pipeSaveStatus:'idle', pipeDeleteArmed:false, pipeRefreshing:false,
       discItems:null, discCats:[], discLoading:false, discLoaded:false, discError:'', discMsg:'', discBusy:false,
       discHashtag:'', discType:'top', discCategory:'', discLinks:'', discFilter:'',
       stuBrief:'', stuGoal:'likes', stuChat:[], stuApiHistory:[], stuResult:null, stuBusy:false, stuRefine:'', stuError:'', stuSaving:false, stuSaved:'',
@@ -1395,30 +1454,48 @@ class Component extends DCLogic {
     this.setState({ pipeLoading:true, pipeError:'' });
     fetch('/api/scripts')
       .then(r=>r.json())
-      .then(j=>this.setState({ pipeLoading:false, pipeLoaded:true, pipeItems:j.items||[], pipeConfigured:j.configured!==false, pipeError: j.error||'' }))
+      .then(j=>{
+        const items=(j.items||[]).map(it=>Object.assign({}, it, { tags: Array.isArray(it.tags)?it.tags:[] }));
+        this.pipePristine={}; items.forEach(it=>{ this.pipePristine[it.id]=this.pipeSnap(it); });
+        const sel = (this.state.pipeSel && items.some(x=>x.id===this.state.pipeSel)) ? this.state.pipeSel : ((items[0]&&items[0].id)||null);
+        this.setState({ pipeLoading:false, pipeLoaded:true, pipeItems:items, pipeConfigured:j.configured!==false, pipeError:j.error||'', pipeSel:sel, pipeSaveStatus:'idle' });
+      })
       .catch(e=>this.setState({ pipeLoading:false, pipeLoaded:true, pipeError:String(e) }));
   }
-  pipeEdit(id, field, value){
-    const items=(this.state.pipeItems||[]).map(it=> it.id===id ? Object.assign({}, it, { [field]:value, _dirty:true }) : it);
-    this.setState({ pipeItems:items });
-  }
-  pipeSave(id){
-    const it=(this.state.pipeItems||[]).find(x=>x.id===id); if(!it) return;
-    const tags=typeof it.tags==='string' ? it.tags.split(',').map(t=>t.trim()).filter(Boolean) : (it.tags||[]);
-    const body={ title:it.title, script:it.script, brief:it.brief, tags, visuals:it.visuals, account:it.account, sourceShortcode:it.source_shortcode };
-    const items=(this.state.pipeItems||[]).map(x=> x.id===id ? Object.assign({}, x, { _saving:true }) : x);
-    this.setState({ pipeItems:items });
-    fetch('/api/scripts/'+encodeURIComponent(id),{ method:'PUT', headers:{'content-type':'application/json'}, body:JSON.stringify(body) })
+  pipeSnap(it){ return JSON.stringify({ title:it.title||'', script:it.script||'', tags:(it.tags||[]).slice().sort() }); }
+  pipeDirty(it){ return this.pipePristine ? this.pipePristine[it.id]!==this.pipeSnap(it) : false; }
+  pipeCurId(){ return this.state.pipeSel || (this.state.pipeItems&&this.state.pipeItems[0]&&this.state.pipeItems[0].id) || null; }
+  pipeSelect(id){ this.setState({ pipeSel:id, pipeDeleteArmed:false, pipeSaveStatus:'idle' }); }
+  pipeToggleFilter(tag){ const a=this.state.pipeActiveTags||[]; this.setState({ pipeActiveTags: a.includes(tag)?a.filter(t=>t!==tag):a.concat([tag]) }); }
+  pipeEditField(field, value){ const id=this.pipeCurId(); this.setState({ pipeItems:(this.state.pipeItems||[]).map(it=> it.id===id?Object.assign({}, it, {[field]:value}):it), pipeSaveStatus:'idle' }); }
+  pipeAddTag(){ const t=(this.state.pipeTagDraft||'').trim().toLowerCase().replace(/,/g,''); if(!t) return; const id=this.pipeCurId(); this.setState({ pipeItems:(this.state.pipeItems||[]).map(it=> it.id===id&&!(it.tags||[]).includes(t)?Object.assign({}, it, {tags:(it.tags||[]).concat([t])}):it), pipeTagDraft:'', pipeSaveStatus:'idle' }); }
+  pipeTagKey(e){ if(e&&(e.key==='Enter'||e.key===',')){ if(e.preventDefault)e.preventDefault(); this.pipeAddTag(); } }
+  pipeRemoveTag(tag){ const id=this.pipeCurId(); this.setState({ pipeItems:(this.state.pipeItems||[]).map(it=> it.id===id?Object.assign({}, it, {tags:(it.tags||[]).filter(t=>t!==tag)}):it), pipeSaveStatus:'idle' }); }
+  pipeNew(){ const id='new'+Date.now(); const item={ id, title:'Untitled script', script:'', tags:[], _isNew:true, updated_at:new Date().toISOString() }; if(this.pipePristine) this.pipePristine[id]=this.pipeSnap(item); this.setState({ pipeItems:[item].concat(this.state.pipeItems||[]), pipeSel:id, pipeQuery:'', pipeActiveTags:[], pipeSaveStatus:'idle' }); }
+  pipeRefresh(){ this.setState({ pipeRefreshing:true }); this.loadScripts(true); clearTimeout(this._pipeRt); this._pipeRt=setTimeout(()=>this.setState({ pipeRefreshing:false }),700); }
+  pipeSave(){
+    const id=this.pipeCurId(); const it=(this.state.pipeItems||[]).find(x=>x.id===id); if(!it) return;
+    const body={ title:it.title||'Untitled script', script:it.script||'', tags:it.tags||[], brief:it.brief, visuals:it.visuals, account:it.account, sourceShortcode:it.source_shortcode };
+    const isNew=!!it._isNew;
+    this.setState({ pipeSaveStatus:'saving' });
+    fetch(isNew?'/api/scripts':('/api/scripts/'+encodeURIComponent(id)),{ method:isNew?'POST':'PUT', headers:{'content-type':'application/json'}, body:JSON.stringify(body) })
       .then(r=>r.json())
-      .then(j=>{ const next=(this.state.pipeItems||[]).map(x=> x.id===id ? Object.assign({}, j.item||x, { _saving:false, _dirty:false, _saved:!j.error, _err:j.error||'' }) : x); this.setState({ pipeItems:next }); })
-      .catch(e=>{ const next=(this.state.pipeItems||[]).map(x=> x.id===id ? Object.assign({}, x, { _saving:false, _err:String(e) }) : x); this.setState({ pipeItems:next }); });
+      .then(j=>{
+        if(j.error){ this.setState({ pipeSaveStatus:'idle', pipeError:j.error }); return; }
+        const saved=Object.assign({}, j.item||it, { tags: Array.isArray((j.item||it).tags)?(j.item||it).tags:[] });
+        const next=(this.state.pipeItems||[]).map(x=> x.id===id?saved:x);
+        if(this.pipePristine){ if(isNew) delete this.pipePristine[id]; this.pipePristine[saved.id]=this.pipeSnap(saved); }
+        this.setState({ pipeItems:next, pipeSel:saved.id, pipeSaveStatus:'saved' });
+        clearTimeout(this._pipeSt); this._pipeSt=setTimeout(()=>this.setState(s=> s.pipeSaveStatus==='saved'?{pipeSaveStatus:'idle'}:{}),1700);
+      })
+      .catch(e=>this.setState({ pipeSaveStatus:'idle', pipeError:String(e) }));
   }
-  pipeDelete(id){
-    if(typeof window!=='undefined' && window.confirm && !window.confirm('Delete this saved script?')) return;
-    fetch('/api/scripts/'+encodeURIComponent(id),{ method:'DELETE' })
-      .then(r=>r.json())
-      .then(()=>this.setState({ pipeItems:(this.state.pipeItems||[]).filter(x=>x.id!==id) }))
-      .catch(()=>{});
+  pipeDelete(){
+    if(!this.state.pipeDeleteArmed){ this.setState({ pipeDeleteArmed:true }); clearTimeout(this._pipeDt); this._pipeDt=setTimeout(()=>this.setState({ pipeDeleteArmed:false }),3200); return; }
+    const id=this.pipeCurId(); const it=(this.state.pipeItems||[]).find(x=>x.id===id);
+    const finish=()=>{ const items=(this.state.pipeItems||[]).filter(x=>x.id!==id); if(this.pipePristine) delete this.pipePristine[id]; this.setState({ pipeItems:items, pipeSel: items.length?items[0].id:null, pipeDeleteArmed:false, pipeSaveStatus:'idle' }); };
+    if(it&&it._isNew){ finish(); return; }
+    fetch('/api/scripts/'+encodeURIComponent(id),{ method:'DELETE' }).then(()=>finish()).catch(()=>finish());
   }
   // ── Reels Discovery ───────────────────────────────────────────────────────
   loadDiscovery(force){
@@ -1696,35 +1773,72 @@ Hier ist das Skript:
   }
 
   pipelineVals(){
-    const s=this.state;
-    const items=(s.pipeItems||[]).map(it=>{
-      const tagsText = Array.isArray(it.tags) ? it.tags.join(', ') : (it.tags||'');
-      const vis = Array.isArray(it.visuals) ? it.visuals : [];
+    const s=this.state, all=(s.pipeItems||[]);
+    const active=s.pipeActiveTags||[];
+    let list=all;
+    if(active.length) list=list.filter(it=>(it.tags||[]).some(t=>active.includes(t)));
+    const q=(s.pipeQuery||'').trim().toLowerCase();
+    if(q) list=list.filter(it=>((it.title||'')+' '+(it.script||'')+' '+((it.tags||[]).join(' '))+' '+(it.source_shortcode||'')).toLowerCase().includes(q));
+    const selId=this.pipeCurId();
+
+    const listItems=list.map(it=>{
+      const dirty=this.pipeDirty(it), on=it.id===selId, vis=Array.isArray(it.visuals)?it.visuals.length:0;
       return {
-        id:it.id,
-        title:it.title||'', source:it.source_shortcode?('from '+it.source_shortcode):'', account:it.account?('@'+it.account):'',
-        script:it.script||'', brief:it.brief||'', tagsText,
-        visualCount: vis.length?(vis.length+' visual prompt'+(vis.length>1?'s':'')):'no visual prompts',
-        updated: it.updated_at?('Updated '+this.relTime(Date.parse(it.updated_at))):'',
-        onTitle:(e)=>this.pipeEdit(it.id,'title', e&&e.target?e.target.value:''),
-        onScript:(e)=>this.pipeEdit(it.id,'script', e&&e.target?e.target.value:''),
-        onTags:(e)=>this.pipeEdit(it.id,'tags', e&&e.target?e.target.value:''),
-        save:()=>this.pipeSave(it.id), del:()=>this.pipeDelete(it.id),
-        saveLabel: it._saving?'Saving…':(it._dirty?'Save changes':(it._saved?'Saved ✓':'Save')),
-        statusStyle:{ fontSize:'12px', color: it._err?'#dc2626':'var(--text-3)' },
-        status: it._err? ('Error: '+it._err) : ''
+        title: it.title||'Untitled', tags: it.tags||[],
+        metaLine: [ it.source_shortcode?('from '+it.source_shortcode):null, it._isNew?'new':null, vis?(vis+' prompts'):null, it.updated_at&&!it._isNew?this.relTime(Date.parse(it.updated_at)):null ].filter(Boolean).join('  ·  '),
+        snippet: ((it.script||'').replace(/\s+/g,' ').trim().slice(0,120))||'No script yet — start writing…',
+        onSelect:(()=>{ const id=it.id; return ()=>this.pipeSelect(id); })(),
+        cardStyle:{ position:'relative', padding:'14px 15px', background:'var(--surface)', border:'1px solid '+(on?'var(--cc)':'var(--line)'), borderRadius:'12px', cursor:'pointer', boxShadow: on?'inset 2px 0 0 var(--cc)':'none' },
+        dotStyle: dirty?{ width:'7px', height:'7px', borderRadius:'50%', background:'#e0a458', flexShrink:'0', marginTop:'6px' }:{ display:'none' }
       };
     });
-    return {
-      items,
-      count: items.length,
-      loading: !!s.pipeLoading,
-      empty: s.pipeLoaded && !s.pipeLoading && !items.length && s.pipeConfigured!==false,
-      notConfigured: s.pipeConfigured===false,
-      error: s.pipeError||'',
-      refresh:()=>this.loadScripts(true),
-      goCreate:()=>this.setView('content')
-    };
+
+    const universe=[...new Set(all.flatMap(it=>it.tags||[]))].sort();
+    const filterChips=universe.map(tag=>({ label:tag, onToggle:(()=>{ const t=tag; return ()=>this.pipeToggleFilter(t); })(), chipStyle:this.discChip(active.includes(tag)) }));
+
+    const sel=all.find(it=>it.id===selId)||null;
+    const dirty=sel?this.pipeDirty(sel):false;
+    let selVals={ hasSelection:false, noSelection: s.pipeLoaded && all.length>0 };
+    if(sel){
+      const chars=(sel.script||'').length, words=(sel.script||'').trim()?(sel.script||'').trim().split(/\s+/).length:0;
+      const tagPill={ display:'inline-flex', alignItems:'center', gap:'3px', fontFamily:"'JetBrains Mono',ui-monospace,monospace", fontSize:'11px', color:'var(--cc)', background:'var(--cc-soft)', border:'1px solid var(--line)', padding:'3px 6px 3px 9px', borderRadius:'7px' };
+      selVals={
+        hasSelection:true, noSelection:false,
+        selTitle: sel.title||'',
+        selMeta: [ sel.source_shortcode?('from '+sel.source_shortcode):null, (Array.isArray(sel.visuals)?sel.visuals.length:0)+' visual prompts', sel.updated_at&&!sel._isNew?('updated '+this.relTime(Date.parse(sel.updated_at))):'new' ].filter(Boolean).join('   ·   '),
+        selScript: sel.script||'', countLabel: chars+' chars · '+words+' words',
+        selTags: (sel.tags||[]).map(t=>({ label:t, style:tagPill, onRemove:(()=>{ const tag=t; return ()=>this.pipeRemoveTag(tag); })() })),
+        onTitleChange:(e)=>this.pipeEditField('title', e&&e.target?e.target.value:''),
+        onScriptChange:(e)=>this.pipeEditField('script', e&&e.target?e.target.value:''),
+        deleteLabel: s.pipeDeleteArmed?'Click to confirm':'Delete',
+        deleteBtnStyle: s.pipeDeleteArmed
+          ? { height:'32px', padding:'0 14px', borderRadius:'8px', fontSize:'13px', fontFamily:'inherit', cursor:'pointer', flexShrink:'0', background:'#f76d7a', border:'1px solid #f76d7a', color:'#fff', fontWeight:'600' }
+          : { height:'32px', padding:'0 14px', borderRadius:'8px', fontSize:'13px', fontFamily:'inherit', cursor:'pointer', flexShrink:'0', background:'transparent', border:'1px solid var(--line)', color:'#f76d7a', fontWeight:'500' },
+        textareaStyle:{ width:'100%', minHeight:'300px', resize:'vertical', background:'var(--surface-2)', border:'1px solid var(--line)', borderRadius:'11px', color:'var(--text)', fontSize:'13.5px', lineHeight:'1.65', padding:'16px 18px', fontFamily:'inherit' }
+      };
+    }
+
+    const st=s.pipeSaveStatus;
+    let statusText, statusColor, saveLabel, saveBg, saveColor;
+    if(st==='saving'){ statusText='Saving…'; statusColor='var(--text-2)'; saveLabel='Saving…'; saveBg='var(--cc)'; saveColor='var(--cc-on)'; }
+    else if(st==='saved'){ statusText='✓ All changes saved'; statusColor='#16a34a'; saveLabel='Saved ✓'; saveBg='#16a34a'; saveColor='#fff'; }
+    else if(dirty){ statusText='● Unsaved changes'; statusColor='#e0a458'; saveLabel='Save'; saveBg='var(--cc)'; saveColor='var(--cc-on)'; }
+    else { statusText='All changes saved'; statusColor='var(--text-3)'; saveLabel='Save'; saveBg='var(--fill)'; saveColor='var(--text-3)'; }
+
+    return Object.assign({
+      totalCount: all.length,
+      query: s.pipeQuery||'', onSearch:(e)=>this.setState({ pipeQuery: e&&e.target?e.target.value:'' }),
+      onRefresh:()=>this.pipeRefresh(), refreshIconStyle:{ display:'inline-block', fontSize:'14px', transformOrigin:'center', animation: s.pipeRefreshing?'spin .7s linear infinite':'none' },
+      onNew:()=>this.pipeNew(),
+      filterChips, resultLabel: list.length+' of '+all.length,
+      hasResults: list.length>0, noResults: s.pipeLoaded && !s.pipeLoading && list.length===0,
+      loading: !!s.pipeLoading, notConfigured: s.pipeConfigured===false, error: s.pipeError||'',
+      listItems,
+      tagDraft: s.pipeTagDraft||'', onTagDraft:(e)=>this.setState({ pipeTagDraft: e&&e.target?e.target.value:'' }), onTagKey:(e)=>this.pipeTagKey(e),
+      onSave:()=>this.pipeSave(), onDeleteClick:()=>this.pipeDelete(),
+      statusText, statusStyle:{ fontSize:'12.5px', fontWeight:'500', color:statusColor },
+      saveLabel, saveBtnStyle:{ height:'36px', padding:'0 22px', border:'none', borderRadius:'9px', fontSize:'13px', fontWeight:'600', fontFamily:'inherit', cursor:'pointer', background:saveBg, color:saveColor }
+    }, selVals);
   }
 
   discoveryVals(){
