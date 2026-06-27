@@ -65,6 +65,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
           <button style="{{ navDiscoveryStyle }}" onClick="{{ navDiscovery }}">Discovery</button>
           <button style="{{ navStudioStyle }}" onClick="{{ navStudio }}">Studio</button>
           <button style="{{ navLabStyle }}" onClick="{{ navLab }}">Lab</button>
+          <button style="{{ navClippersStyle }}" onClick="{{ navClippers }}">Clippers</button>
         </div>
         <button onClick="{{ refresh }}" title="Refresh from Meta" style="display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--text-2);background:none;border:none;cursor:pointer;font-family:inherit;padding:6px 4px">
           <span style="{{ syncDotStyle }}"></span>
@@ -1163,6 +1164,105 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
   </main>
   </sc-if>
 
+  <sc-if value="{{ showClippers }}" hint-placeholder-val="{{ false }}">
+  <main class="cc-font" style="height:calc(100vh - 60px);display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 26px;border-bottom:1px solid var(--line);flex-wrap:wrap">
+      <div>
+        <h1 style="margin:0;font-size:20px;font-weight:800;letter-spacing:-.02em">Clippers</h1>
+        <p style="margin:4px 0 0;font-size:12.5px;color:var(--text-3)">Assign reels to each clipper account → platform, and track the views they generate.</p>
+      </div>
+      <div style="display:flex;align-items:center;gap:20px">
+        <div style="text-align:right"><div style="font-size:17px;font-weight:800;color:var(--cc)">{{ CLIP.totViewsFmt }}</div><div style="font-size:9.5px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em">views generated</div></div>
+        <div style="text-align:right"><div style="font-size:17px;font-weight:800">{{ CLIP.totPosted }}</div><div style="font-size:9.5px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em">posted</div></div>
+        <div style="text-align:right"><div style="font-size:17px;font-weight:800">{{ CLIP.totAssign }}</div><div style="font-size:9.5px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em">assigned</div></div>
+      </div>
+    </div>
+    <sc-if value="{{ CLIP.error }}" hint-placeholder-val="{{ false }}"><div style="padding:8px 26px;font-size:12.5px;color:#dc2626">{{ CLIP.error }}</div></sc-if>
+    <div style="flex:1;display:grid;grid-template-columns:320px 1fr;min-height:0">
+      <div class="sg-scroll" style="border-right:1px solid var(--line);overflow-y:auto;padding:16px">
+        <button onClick="{{ CLIP.addClipper }}" style="width:100%;padding:9px;margin-bottom:12px;border-radius:10px;border:1px dashed var(--line);background:none;color:var(--text-2);font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit">+ Add clipper account</button>
+        <sc-for list="{{ CLIP.roster }}" as="c" hint-placeholder-count="5">
+          <div onClick="{{ c.select }}" style="{{ c.cardStyle }}">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+              <div style="font-size:13.5px;font-weight:680">{{ c.name }}</div>
+              <div style="font-size:11px;color:var(--cc);font-weight:700">{{ c.viewsFmt }}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:7px">
+              <div><sc-for list="{{ c.platforms }}" as="p" hint-placeholder-count="2"><span style="{{ p.dotStyle }}">{{ p.short }}</span></sc-for></div>
+              <div style="font-size:11px;color:var(--text-3);margin-left:auto">{{ c.posted }}/{{ c.assigns }} posted</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <sc-if value="{{ CLIP.hasSel }}" hint-placeholder-val="{{ true }}">
+      <div class="sg-scroll" style="overflow-y:auto;padding:22px 26px">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:16px">
+          <input value="{{ CLIP.nameVal }}" onInput="{{ CLIP.nameInput }}" onChange="{{ CLIP.nameCommit }}" style="font-size:20px;font-weight:800;letter-spacing:-.02em;border:none;background:none;color:var(--text);font-family:inherit;padding:0;min-width:160px;outline:none"/>
+          <button onClick="{{ CLIP.del }}" style="font-size:11.5px;color:#dc2626;background:none;border:1px solid var(--line);border-radius:8px;padding:5px 11px;cursor:pointer;font-family:inherit">{{ CLIP.delLabel }}</button>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:16px">
+          <div class="cc-mono" style="font-size:10px;letter-spacing:.08em;color:var(--text-3);margin-bottom:10px">PLATFORMS &amp; ACCOUNTS</div>
+          <sc-for list="{{ CLIP.platforms }}" as="p" hint-placeholder-count="3">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:9px">
+              <button onClick="{{ p.toggle }}" style="{{ p.chipStyle }}">{{ p.label }}</button>
+              <sc-if value="{{ p.on }}" hint-placeholder-val="{{ true }}">
+                <input value="{{ p.acctVal }}" onInput="{{ p.acctInput }}" onChange="{{ p.acctCommit }}" placeholder="account handle / URL on this platform" style="flex:1;font-size:12.5px;padding:7px 11px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);color:var(--text);font-family:inherit;outline:none"/>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex;gap:10px;margin-bottom:20px">
+          <div style="flex:1;background:var(--cc-soft);border:1px solid var(--line);border-radius:11px;padding:12px 14px"><div style="font-size:19px;font-weight:800;color:var(--cc)">{{ CLIP.selViewsFmt }}</div><div style="font-size:10.5px;color:var(--text-3)">views generated</div></div>
+          <div style="flex:1;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:12px 14px"><div style="font-size:19px;font-weight:800">{{ CLIP.selPosted }}</div><div style="font-size:10.5px;color:var(--text-3)">posted</div></div>
+          <div style="flex:1;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:12px 14px"><div style="font-size:19px;font-weight:800">{{ CLIP.selAssigns }}</div><div style="font-size:10.5px;color:var(--text-3)">assigned</div></div>
+        </div>
+        <div class="cc-mono" style="font-size:10.5px;letter-spacing:.08em;color:var(--text-3);margin-bottom:10px">QUEUE</div>
+        <sc-if value="{{ CLIP.hasAssigns }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:24px">
+          <sc-for list="{{ CLIP.assigns }}" as="a" hint-placeholder-count="3">
+            <div style="display:flex;align-items:center;gap:11px;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:10px 12px">
+              <sc-if value="{{ a.hasThumb }}" hint-placeholder-val="{{ false }}"><img src="{{ a.thumb }}" style="width:34px;height:46px;border-radius:6px;object-fit:cover;flex:none"/></sc-if>
+              <div style="min-width:0;flex:1">
+                <div style="font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ a.cap }}</div>
+                <div style="display:flex;align-items:center;gap:7px;margin-top:4px"><span style="{{ a.platStyle }}">{{ a.platLabel }}</span>
+                  <input value="{{ a.urlVal }}" onInput="{{ a.urlInput }}" onChange="{{ a.urlCommit }}" placeholder="posted URL" style="font-size:11px;padding:3px 7px;border:1px solid var(--line);border-radius:6px;background:var(--surface-2);color:var(--text-2);font-family:inherit;outline:none;width:150px"/>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;flex:none">
+                <div><input value="{{ a.viewsVal }}" onInput="{{ a.viewsInput }}" onChange="{{ a.viewsCommit }}" placeholder="0" style="width:62px;font-size:13px;font-weight:700;text-align:right;padding:4px 7px;border:1px solid var(--line);border-radius:7px;background:var(--surface-2);color:var(--text);font-family:inherit;outline:none"/><div style="font-size:9px;color:var(--text-3);text-align:right;margin-top:1px">views</div></div>
+                <button onClick="{{ a.toggleStatus }}" style="{{ a.statusStyle }}">{{ a.statusLabel }}</button>
+                <button onClick="{{ a.del }}" title="Remove" style="background:none;border:none;color:var(--text-faint);cursor:pointer;font-size:16px;font-family:inherit">×</button>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+        </sc-if>
+        <sc-if value="{{ !CLIP.hasAssigns }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:var(--text-3);padding:4px 0 22px">No reels assigned yet — pick some below.</div></sc-if>
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px">
+          <div class="cc-mono" style="font-size:10.5px;letter-spacing:.08em;color:var(--text-3);margin-bottom:10px">ASSIGN REELS</div>
+          <sc-if value="{{ CLIP.hasAssignPlats }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;align-items:center;gap:7px;margin-bottom:12px;flex-wrap:wrap"><span style="font-size:11.5px;color:var(--text-3)">to:</span><sc-for list="{{ CLIP.assignPlats }}" as="p" hint-placeholder-count="2"><button onClick="{{ p.toggle }}" style="{{ p.chipStyle }}">{{ p.label }}</button></sc-for><span style="font-size:11px;color:var(--text-faint)">none = all this clipper’s platforms</span></div>
+          </sc-if>
+          <div class="sg-scroll" style="max-height:280px;overflow-y:auto;display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px">
+            <sc-for list="{{ CLIP.picker }}" as="r" hint-placeholder-count="6">
+              <div onClick="{{ r.toggle }}" style="{{ r.tileStyle }}">
+                <div style="{{ r.checkStyle }}"></div>
+                <sc-if value="{{ r.hasThumb }}" hint-placeholder-val="{{ false }}"><img src="{{ r.thumb }}" style="width:28px;height:38px;border-radius:5px;object-fit:cover;flex:none"/></sc-if>
+                <div style="min-width:0;flex:1"><div style="font-size:11.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.cap }}</div><div style="font-size:10px;color:var(--text-3)">{{ r.viewsFmt }} views</div></div>
+              </div>
+            </sc-for>
+          </div>
+          <button onClick="{{ CLIP.doAssign }}" style="{{ CLIP.assignBtnStyle }}">{{ CLIP.assignBtnLabel }}</button>
+        </div>
+      </div>
+      </sc-if>
+      <sc-if value="{{ !CLIP.hasSel }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;align-items:center;justify-content:center;color:var(--text-3);font-size:14px">Add a clipper account to get started.</div>
+      </sc-if>
+    </div>
+  </main>
+  </sc-if>
+
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script>
@@ -1180,6 +1280,7 @@ class Component extends DCLogic {
       discHashtag:'', discType:'top', discCategory:'', discLinks:'', discFilter:'',
       stuBrief:'', stuGoal:'likes', stuChat:[], stuApiHistory:[], stuResult:null, stuBusy:false, stuRefine:'', stuError:'', stuSaving:false, stuSaved:'',
       labData:null, labLoading:false, labLoaded:false, labError:'', labOutcome:'rate', labRebuilding:false,
+      clippersData:null, clippersLoading:false, clippersLoaded:false, clippersError:'', clipperSel:null, clipperAssignSel:{}, clipperAssignPlatforms:{}, clipperEdits:{}, clipperBusy:false,
       theme:this.initialTheme() };
     // Restore Content Creation results so an extracted reel + generated script
     // survive view switches and full page reloads — cleared only on a new extract.
@@ -1457,12 +1558,14 @@ class Component extends DCLogic {
       navDiscovery: ()=>{ this.setView('discovery'); this.loadDiscovery(false); },
       navStudio: ()=>this.setView('studio'),
       navLab: ()=>{ this.setView('lab'); this.loadLab(false); },
-      navOverviewStyle: this.tabStyle(this.state.view!=='content'&&this.state.view!=='pipeline'&&this.state.view!=='discovery'&&this.state.view!=='studio'&&this.state.view!=='lab'),
+      navClippers: ()=>{ this.setView('clippers'); this.loadClippers(false); },
+      navOverviewStyle: this.tabStyle(this.state.view!=='content'&&this.state.view!=='pipeline'&&this.state.view!=='discovery'&&this.state.view!=='studio'&&this.state.view!=='lab'&&this.state.view!=='clippers'),
       navContentStyle: this.tabStyle(this.state.view==='content'),
       navPipelineStyle: this.tabStyle(this.state.view==='pipeline'),
       navDiscoveryStyle: this.tabStyle(this.state.view==='discovery'),
       navStudioStyle: this.tabStyle(this.state.view==='studio'),
-      navLabStyle: this.tabStyle(this.state.view==='lab')
+      navLabStyle: this.tabStyle(this.state.view==='lab'),
+      navClippersStyle: this.tabStyle(this.state.view==='clippers')
     };
   }
 
@@ -1701,6 +1804,104 @@ class Component extends DCLogic {
       hyps, hasHyps: hyps.length>0,
       empty: s.labLoaded && !s.labLoading && !hyps.length && s.labConfigured!==false
     };
+  }
+  // ── Clippers: command center (roster + assignments + per-platform views) ───
+  clipperFetch(){
+    this.setState({ clippersLoading:true, clippersError:'' });
+    return fetch('/api/clippers').then(r=>r.json())
+      .then(j=>{ const cs=j.clippers||[]; this.setState({ clippersLoading:false, clippersLoaded:true, clippersData:j, clippersConfigured:j.configured!==false, clippersError:j.error||'', clipperSel:this.state.clipperSel||(cs[0]&&cs[0].id)||null }); })
+      .catch(e=>this.setState({ clippersLoading:false, clippersLoaded:true, clippersError:String(e) }));
+  }
+  loadClippers(force){ if(this.state.clippersLoading) return; if(this.state.clippersLoaded && !force) return; this.clipperFetch(); }
+  clipperSelect(id){ this.setState({ clipperSel:id, clipperAssignSel:{}, clipperAssignPlatforms:{}, clipperDelArm:null }); }
+  clipperAdd(){
+    const n=((this.state.clippersData&&this.state.clippersData.clippers)||[]).length+1;
+    this.setState({ clipperBusy:true, clippersError:'' });
+    fetch('/api/clippers',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ name:'Clipper '+n, platforms:['tiktok','youtube'] }) })
+      .then(r=>r.json()).then(j=>{ this.setState({ clipperBusy:false, clipperSel:(j.item&&j.item.id)||this.state.clipperSel }); this.clipperFetch(); })
+      .catch(e=>this.setState({ clipperBusy:false, clippersError:String(e) }));
+  }
+  clipperPut(id, patch){ fetch('/api/clippers/'+id,{ method:'PUT', headers:{'content-type':'application/json'}, body:JSON.stringify(patch) }).then(r=>r.json()).then(()=>this.clipperFetch()).catch(e=>this.setState({ clippersError:String(e) })); }
+  clipperTogglePlatform(id, plat){ const c=((this.state.clippersData&&this.state.clippersData.clippers)||[]).find(x=>x.id===id); if(!c) return; const set=new Set(c.platforms||[]); set.has(plat)?set.delete(plat):set.add(plat); this.clipperPut(id,{ platforms:[...set] }); }
+  clipperDelete(id){ if(this.state.clipperDelArm!==id){ this.setState({ clipperDelArm:id }); return; } this.setState({ clipperDelArm:null }); fetch('/api/clippers/'+id,{ method:'DELETE' }).then(r=>r.json()).then(()=>{ this.setState({ clipperSel:null }); this.clipperFetch(); }).catch(e=>this.setState({ clippersError:String(e) })); }
+  clipperToggleReel(sc){ const m=Object.assign({}, this.state.clipperAssignSel); m[sc]?delete m[sc]:m[sc]=true; this.setState({ clipperAssignSel:m }); }
+  clipperToggleAssignPlatform(p){ const m=Object.assign({}, this.state.clipperAssignPlatforms); m[p]?delete m[p]:m[p]=true; this.setState({ clipperAssignPlatforms:m }); }
+  clipperAssign(){
+    const sel=this.state.clipperSel; if(!sel) return;
+    const reels=Object.keys(this.state.clipperAssignSel||{}); if(!reels.length){ this.setState({ clippersError:'Pick at least one reel to assign.' }); return; }
+    let plats=Object.keys(this.state.clipperAssignPlatforms||{});
+    const c=((this.state.clippersData&&this.state.clippersData.clippers)||[]).find(x=>x.id===sel);
+    if(!plats.length) plats=(c&&c.platforms&&c.platforms.length)?c.platforms:['tiktok'];
+    this.setState({ clipperBusy:true, clippersError:'' });
+    Promise.all(reels.map(sc=>fetch('/api/assignments',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ clipper_id:sel, reel_shortcode:sc, platforms:plats }) }).then(r=>r.json())))
+      .then(()=>{ this.setState({ clipperBusy:false, clipperAssignSel:{}, clipperAssignPlatforms:{} }); this.clipperFetch(); })
+      .catch(e=>this.setState({ clipperBusy:false, clippersError:String(e) }));
+  }
+  assignPut(id, patch){ fetch('/api/assignments/'+id,{ method:'PUT', headers:{'content-type':'application/json'}, body:JSON.stringify(patch) }).then(r=>r.json()).then(()=>this.clipperFetch()).catch(e=>this.setState({ clippersError:String(e) })); }
+  assignToggleStatus(id, cur){ this.assignPut(id,{ status: cur==='posted'?'todo':'posted' }); }
+  assignDelete(id){ fetch('/api/assignments/'+id,{ method:'DELETE' }).then(r=>r.json()).then(()=>this.clipperFetch()).catch(e=>this.setState({ clippersError:String(e) })); }
+  // inline edits — buffer keyed by string, commit (PUT) on blur(onChange)
+  clipEditVal(key, stored){ const e=this.state.clipperEdits||{}; return (key in e)?e[key]:(stored==null?'':String(stored)); }
+  clipEditInput(key, ev){ const v=(ev&&ev.target&&ev.target.value)!=null?ev.target.value:''; const m=Object.assign({}, this.state.clipperEdits); m[key]=v; this.setState({ clipperEdits:m }); }
+  clipEditClear(key){ const m=Object.assign({}, this.state.clipperEdits); delete m[key]; this.setState({ clipperEdits:m }); }
+  clipNameCommit(id){ const k='name:'+id, e=this.state.clipperEdits||{}; if(!(k in e)) return; const v=e[k]; this.clipEditClear(k); this.clipperPut(id,{ name:v||'Clipper' }); }
+  clipAcctCommit(id, plat){ const k='acct:'+id+':'+plat, e=this.state.clipperEdits||{}; if(!(k in e)) return; const c=((this.state.clippersData&&this.state.clippersData.clippers)||[]).find(x=>x.id===id); const acc=Object.assign({}, (c&&c.accounts)||{}); acc[plat]=e[k]||''; this.clipEditClear(k); this.clipperPut(id,{ accounts:acc }); }
+  assignFieldCommit(id, field, key){ const e=this.state.clipperEdits||{}; if(!(key in e)) return; const raw=e[key]; const patch={}; if(field==='views'){ const num=parseInt(String(raw).replace(/[^0-9]/g,''),10); patch.views=isNaN(num)?null:num; } else patch[field]=raw||null; this.clipEditClear(key); this.assignPut(id, patch); }
+  clippersVals(){
+    const s=this.state, data=s.clippersData||{}, clippers=data.clippers||[];
+    const PLAT={ tiktok:{label:'TikTok',short:'TT',color:'#ff2d55'}, youtube:{label:'YouTube',short:'YT',color:'#ff0000'}, instagram:{label:'Instagram',short:'IG',color:'#c13584'} };
+    const ALLP=['tiktok','youtube','instagram'];
+    const selId = s.clipperSel || (clippers[0]&&clippers[0].id) || null;
+    const sel = clippers.find(c=>c.id===selId) || null;
+    const reels = (this.db&&this.db.reels)||[];
+    const reelByShort={}; reels.forEach(r=>reelByShort[r.id]=r);
+    const totViews=clippers.reduce((a,c)=>a+(c.totals.views||0),0), totPosted=clippers.reduce((a,c)=>a+(c.totals.posted||0),0), totAssign=clippers.reduce((a,c)=>a+(c.totals.assignments||0),0);
+    const roster = clippers.map(c=>({
+      id:c.id, name:c.name, handle:c.handle||'', selected:c.id===selId,
+      platforms:(c.platforms||[]).map(p=>({ short:(PLAT[p]||{}).short||p, dotStyle:{ display:'inline-block', fontSize:'9px', fontWeight:'800', padding:'1px 5px', borderRadius:'5px', background:(PLAT[p]||{}).color||'#888', color:'#fff', marginRight:'3px' } })),
+      viewsFmt:this.fmtK(c.totals.views||0), posted:c.totals.posted||0, assigns:c.totals.assignments||0,
+      cardStyle:{ padding:'12px 13px', borderRadius:'12px', border:'1px solid '+(c.id===selId?'var(--cc)':'var(--line)'), background:c.id===selId?'var(--cc-soft)':'var(--surface)', cursor:'pointer', marginBottom:'8px', boxShadow:c.id===selId?'inset 3px 0 0 var(--cc)':'none' },
+      select:()=>this.clipperSelect(c.id)
+    }));
+    const base={ configured:s.clippersConfigured!==false, loading:!!s.clippersLoading, error:s.clippersError||'', busy:!!s.clipperBusy, roster, hasRoster:roster.length>0, addClipper:()=>this.clipperAdd(), totViewsFmt:this.fmtK(totViews), totPosted, totAssign, refresh:()=>this.clipperFetch() };
+    if(!sel) return Object.assign(base,{ hasSel:false });
+    const platforms = ALLP.map(p=>{ const on=(sel.platforms||[]).includes(p); return { key:p, label:PLAT[p].label, on,
+      chipStyle:{ padding:'5px 11px', borderRadius:'999px', fontSize:'12px', fontWeight:'600', cursor:'pointer', border:'1px solid '+(on?PLAT[p].color:'var(--line)'), background:on?PLAT[p].color:'transparent', color:on?'#fff':'var(--text-3)', fontFamily:'inherit' },
+      toggle:()=>this.clipperTogglePlatform(sel.id,p),
+      acctVal:this.clipEditVal('acct:'+sel.id+':'+p, (sel.accounts&&sel.accounts[p])||''), acctInput:(e)=>this.clipEditInput('acct:'+sel.id+':'+p,e), acctCommit:()=>this.clipAcctCommit(sel.id,p) }; });
+    const STAT={ todo:{label:'To do',bg:'var(--fill)',col:'var(--text-2)'}, posted:{label:'Posted',bg:'#16a34a',col:'#fff'} };
+    const assigns = (sel.assignments||[]).map(a=>{ const r=reelByShort[a.reel_shortcode]||{}; const pl=PLAT[a.platform]||{label:a.platform,color:'#888'}; const st=STAT[a.status]||STAT.todo; return {
+      id:a.id, cap:r.cap||a.reel_shortcode, thumb:r.thumb||'', hasThumb:!!r.thumb,
+      platLabel:pl.label, platStyle:{ fontSize:'10px', fontWeight:'700', padding:'2px 7px', borderRadius:'6px', background:pl.color, color:'#fff', whiteSpace:'nowrap' },
+      status:a.status, statusLabel:st.label, statusStyle:{ fontSize:'11px', fontWeight:'700', padding:'3px 11px', borderRadius:'999px', background:st.bg, color:st.col, cursor:'pointer', border:'none', fontFamily:'inherit', whiteSpace:'nowrap' },
+      toggleStatus:()=>this.assignToggleStatus(a.id,a.status),
+      viewsVal:this.clipEditVal('av:'+a.id, a.views), viewsInput:(e)=>this.clipEditInput('av:'+a.id,e), viewsCommit:()=>this.assignFieldCommit(a.id,'views','av:'+a.id),
+      urlVal:this.clipEditVal('au:'+a.id, a.posted_url), urlInput:(e)=>this.clipEditInput('au:'+a.id,e), urlCommit:()=>this.assignFieldCommit(a.id,'posted_url','au:'+a.id),
+      del:()=>this.assignDelete(a.id)
+    }; });
+    const picker = reels.map(r=>{ const on=!!(s.clipperAssignSel&&s.clipperAssignSel[r.id]); return {
+      sc:r.id, cap:r.cap, thumb:r.thumb||'', hasThumb:!!r.thumb, viewsFmt:this.fmtK(r.plays||r.reach||0), on,
+      tileStyle:{ display:'flex', gap:'9px', alignItems:'center', padding:'7px 9px', borderRadius:'9px', border:'1px solid '+(on?'var(--cc)':'var(--line)'), background:on?'var(--cc-soft)':'var(--surface)', cursor:'pointer' },
+      checkStyle:{ width:'16px', height:'16px', borderRadius:'5px', flex:'none', border:'1px solid '+(on?'var(--cc)':'var(--line)'), background:on?'var(--cc)':'transparent' },
+      toggle:()=>this.clipperToggleReel(r.id) }; });
+    const assignPlats = ALLP.filter(p=>(sel.platforms||[]).includes(p)).map(p=>{ const on=!!(s.clipperAssignPlatforms&&s.clipperAssignPlatforms[p]); return {
+      key:p, label:PLAT[p].label, on,
+      chipStyle:{ padding:'4px 10px', borderRadius:'999px', fontSize:'11.5px', fontWeight:'600', cursor:'pointer', border:'1px solid '+(on?PLAT[p].color:'var(--line)'), background:on?PLAT[p].color:'transparent', color:on?'#fff':'var(--text-3)', fontFamily:'inherit' },
+      toggle:()=>this.clipperToggleAssignPlatform(p) }; });
+    const selReelCount=Object.keys(s.clipperAssignSel||{}).length;
+    return Object.assign(base,{
+      hasSel:true, selId:sel.id,
+      nameVal:this.clipEditVal('name:'+sel.id, sel.name), nameInput:(e)=>this.clipEditInput('name:'+sel.id,e), nameCommit:()=>this.clipNameCommit(sel.id),
+      platforms,
+      assigns, hasAssigns:assigns.length>0,
+      selViewsFmt:this.fmtK(sel.totals.views||0), selPosted:sel.totals.posted||0, selAssigns:sel.totals.assignments||0,
+      picker, hasReels:picker.length>0, assignPlats, hasAssignPlats:assignPlats.length>0,
+      selReelCount, canAssign:selReelCount>0,
+      assignBtnLabel: s.clipperBusy?'Assigning…':(selReelCount>0?('Assign '+selReelCount+' reel'+(selReelCount>1?'s':'')+' to '+sel.name):'Select reels to assign'),
+      assignBtnStyle:{ width:'100%', padding:'11px', borderRadius:'10px', border:'none', fontWeight:'700', fontSize:'13px', cursor:selReelCount>0?'pointer':'not-allowed', background:selReelCount>0?'var(--cc)':'var(--fill)', color:selReelCount>0?'var(--cc-on)':'var(--text-3)', fontFamily:'inherit' },
+      doAssign:()=>this.clipperAssign(),
+      delArmed:s.clipperDelArm===sel.id, delLabel:s.clipperDelArm===sel.id?'Sure? Delete':'Delete', del:()=>this.clipperDelete(sel.id)
+    });
   }
   toggleFrame(t){ const sel=Object.assign({}, this.state.ccSel); if(sel[t]) delete sel[t]; else sel[t]=true; this.setState({ ccSel:sel }); }
   selectAllFrames(){ const r=this.state.ccResult; if(!r) return; const sel={}; (r.frames||[]).forEach(f=>{ sel[f.t]=true; }); this.setState({ ccSel:sel }); }
@@ -2037,7 +2238,12 @@ Hier ist das Skript:
 
     // Lab — causal ledger + next experiment.
     if(this.state.view==='lab'){
-      return Object.assign({ showOverview:false, hasDetail:false, showContent:false, showPipeline:false, showDiscovery:false, showStudio:false, showLab:true, loading:false, showBanner:false }, head, { LAB:this.labVals() });
+      return Object.assign({ showOverview:false, hasDetail:false, showContent:false, showPipeline:false, showDiscovery:false, showStudio:false, showLab:true, showClippers:false, loading:false, showBanner:false }, head, { LAB:this.labVals() });
+    }
+
+    // Clippers — distribution control center.
+    if(this.state.view==='clippers'){
+      return Object.assign({ showOverview:false, hasDetail:false, showContent:false, showPipeline:false, showDiscovery:false, showStudio:false, showLab:false, showClippers:true, loading:false, showBanner:false }, head, { CLIP:this.clippersVals() });
     }
 
     // Reels Discovery tab — inspiration library from Supabase.

@@ -195,6 +195,63 @@ const server = http.createServer(async (req, res) => {
       }
     }
 
+    // Clippers: command center (roster + per-platform reel assignments + perf).
+    if (u.pathname === "/api/clippers") {
+      const mod = await import("./lib/store/clippers.mjs");
+      if (!mod.isConfigured())
+        return send(res, 200, ".json", JSON.stringify({ clippers: [], configured: false }));
+      try {
+        if (req.method === "GET")
+          return send(res, 200, ".json", JSON.stringify({ clippers: await mod.listClippers(), configured: true }));
+        if (req.method === "POST") {
+          const body = await readJson(req);
+          return send(res, 200, ".json", JSON.stringify({ item: await mod.createClipper(body) }));
+        }
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
+    const cm = u.pathname.match(/^\/api\/clippers\/([^/]+)$/);
+    if (cm) {
+      const mod = await import("./lib/store/clippers.mjs");
+      const id = decodeURIComponent(cm[1]);
+      try {
+        if (req.method === "PUT") {
+          const body = await readJson(req);
+          return send(res, 200, ".json", JSON.stringify({ item: await mod.updateClipper(id, body) }));
+        }
+        if (req.method === "DELETE")
+          return send(res, 200, ".json", JSON.stringify(await mod.deleteClipper(id)));
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
+    // Clip assignments: create (reel × platforms) / update perf / delete.
+    if (u.pathname === "/api/assignments" && req.method === "POST") {
+      const mod = await import("./lib/store/clippers.mjs");
+      try {
+        const body = await readJson(req);
+        return send(res, 200, ".json", JSON.stringify({ items: await mod.createAssignments(body) }));
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
+    const am = u.pathname.match(/^\/api\/assignments\/([^/]+)$/);
+    if (am) {
+      const mod = await import("./lib/store/clippers.mjs");
+      const id = decodeURIComponent(am[1]);
+      try {
+        if (req.method === "PUT") {
+          const body = await readJson(req);
+          return send(res, 200, ".json", JSON.stringify({ item: await mod.updateAssignment(id, body) }));
+        }
+        if (req.method === "DELETE")
+          return send(res, 200, ".json", JSON.stringify(await mod.deleteAssignment(id)));
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
+
     // Per-reel AI breakdown (precomputed by `npm run analyze`).
     const ar = u.pathname.match(/^\/api\/reel\/([^/]+)\/analyze$/);
     if (ar) {
