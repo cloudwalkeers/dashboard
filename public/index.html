@@ -273,10 +273,10 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
             <div style="height:6px;background:var(--fill);border-radius:999px;overflow:hidden"><div style="{{ r.watchBarStyle }}"></div></div>
           </div>
           <div style="text-align:right;font-size:13.5px;font-weight:560">{{ r.engFmt }}</div>
-          <div style="text-align:right;font-size:13px;font-weight:540;color:var(--text-2)">{{ r.likeRateFmt }}</div>
+          <div style="text-align:right"><div style="font-size:13px;font-weight:570">{{ r.likesFmt }}</div><div style="font-size:10.5px;color:var(--text-3);margin-top:1px">{{ r.likeRateFmt }}</div></div>
           <div style="text-align:right;font-size:13px;font-weight:540;color:var(--text-2)">{{ r.saveRateFmt }}</div>
           <div style="text-align:right;font-size:13px;font-weight:540;color:var(--text-2)">{{ r.shareRateFmt }}</div>
-          <div style="text-align:right;font-size:13px;font-weight:540;color:var(--text-2)">{{ r.commentRateFmt }}</div>
+          <div style="text-align:right"><div style="font-size:13px;font-weight:570">{{ r.commentsFmt }}</div><div style="font-size:10.5px;color:var(--text-3);margin-top:1px">{{ r.commentRateFmt }}</div></div>
           <div style="display:flex;justify-content:flex-end">
             <svg width="72" height="28" viewBox="0 0 72 28" preserveAspectRatio="none" style="display:block">
               <path d="{{ r.spark }}" fill="none" stroke="#a5b4fc" stroke-width="1.8" stroke-linejoin="round" vector-effect="non-scaling-stroke"></path>
@@ -2165,6 +2165,7 @@ Hier ist das Skript:
       reachFmt:this.fmtK(r.reach), playsFmt:this.fmtK(r.plays), avgWatchFmt:this.fmtT(r.avgWatch),
       completionFmt:this.pct(r.completion), engFmt:this.pct1(r.engRate), spark:r.spark,
       likeRateFmt:rateFmt(r.likeRate), saveRateFmt:rateFmt(r.saveRate), shareRateFmt:rateFmt(r.shareRate), commentRateFmt:rateFmt(r.commentRate),
+      likesFmt:this.fmtK(r.likes), commentsFmt:this.fmtK(r.comments),
       watchBarStyle:{ height:'100%', width:Math.max(4,Math.min(100,r.completion))+'%', background:'var(--accent)', borderRadius:'999px' },
       thumb:r.thumb||'', hasThumb:!!r.thumb,
       open:()=>this.openReel(r.id)
