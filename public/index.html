@@ -2139,21 +2139,27 @@ Hier ist das Skript:
       { icon:'💬', label:'Comment rate', value:fr(rateAvg('comment')) }
     ];
 
-    // insights (derived from real metrics; hook/drop figures are estimated)
+    // insights — REAL signals only (like-rate de-confounds reach; no modeled retention)
     out.insightsGood=[]; out.insightsBad=[];
-    if(cur.length){
-      const bySaves=[...cur].sort((x,y)=>y.saves-x.saves);
-      const avgSaves=this.mean(cur.map(r=>r.saves))||1;
-      if(bySaves[0].saves>0) out.insightsGood.push({ title:'Saves are your strongest signal', text:'"'+bySaves[0].cap+'" earned '+this.fmtK(bySaves[0].saves)+' saves — '+(bySaves[0].saves/avgSaves).toFixed(1)+'× your average. How-to and "show-me-your-setup" formats consistently over-index on saves.' });
-      const shorts=cur.filter(r=>r.lenKnown&&r.len<20), longs=cur.filter(r=>r.lenKnown&&r.len>=20);
-      if(shorts.length&&longs.length) out.insightsGood.push({ title:'Short reels finish stronger', text:'Reels under 20s hold '+this.pct(this.mean(shorts.map(r=>r.completion)))+' to the end vs '+this.pct(this.mean(longs.map(r=>r.completion)))+' for longer ones. Tighter edits keep people watching.' });
-      const byHook=[...cur].sort((x,y)=>y.hook-x.hook);
-      out.insightsGood.push({ title:'Your hooks are landing', text:'"'+byHook[0].cap+'" keeps '+this.pct(byHook[0].hook)+' of viewers past 3s and '+this.pct(byHook[0].completion)+' to the end. Lead with the payoff, not the setup.' });
-      const worstHook=byHook[byHook.length-1];
-      out.insightsBad.push({ title:'Weak opening', text:'"'+worstHook.cap+'" loses most viewers in the first 3s ('+this.pct(worstHook.hook)+' hook retention). Promising a reveal but front-loading filler causes the steepest early drop-offs.' });
-      if(longs.length){ const longTour=[...longs].sort((x,y)=>y.len-x.len)[0]; out.insightsBad.push({ title:'Long videos lose the middle', text:'"'+longTour.cap+'" ('+this.fmtT(longTour.len)+') drops to '+this.pct(longTour.mid)+' by the halfway mark. Cut to the highlights or split into parts.' }); }
-      const byDrop=[...cur].sort((x,y)=>y.dropPct-x.dropPct);
-      out.insightsBad.push({ title:'Sharp mid-video drop-off', text:'"'+byDrop[0].cap+'" loses '+Math.round(byDrop[0].dropPct)+' points in a single beat around '+this.fmtT(byDrop[0].dropAt)+'. Add a pattern-break there.' });
+    const rated=cur.filter(r=>r.likeRate!=null&&r.plays>0);
+    if(rated.length){
+      const byRate=[...rated].sort((a,b)=>b.likeRate-a.likeRate);
+      const top=byRate[0];
+      out.insightsGood.push({ title:'Your best reel on merit', text:'"'+top.cap+'" — '+this.pct1(top.likeRate)+' like-rate ('+this.fmtK(top.likes)+' likes on '+this.fmtK(top.plays)+' views). Like-rate ignores how much reach the algorithm handed it, so this one genuinely connected — mine its hook + topic for the next one.' });
+      const short=rated.filter(r=>r.lenKnown&&r.len<30), long=rated.filter(r=>r.lenKnown&&r.len>=40);
+      if(short.length>=3&&long.length>=3){
+        const sr=this.mean(short.map(r=>r.likeRate)), lr=this.mean(long.map(r=>r.likeRate));
+        if(Math.abs(sr-lr)>=0.2) out.insightsGood.push({ title:'Length that connects: '+(sr>lr?'under 30s':'40s+'), text:'Your '+(sr>lr?'shorter':'longer')+' reels average '+this.pct1(Math.max(sr,lr))+' like-rate vs '+this.pct1(Math.min(sr,lr))+' ('+short.length+' short vs '+long.length+' long). Lean '+(sr>lr?'tighter':'into the deep-dives')+'.' });
+        else out.insightsGood.push({ title:'Length isn’t your lever', text:'Short ('+this.pct1(sr)+') and long ('+this.pct1(lr)+') reels land about the same on like-rate — duration isn’t moving things, so spend the effort on hook + topic. (The Lab shows what actually correlates.)' });
+      }
+      const wide=[...rated].sort((a,b)=>b.plays-a.plays)[0];
+      out.insightsGood.push({ title:'Widest reach', text:'"'+wide.cap+'" reached '+this.fmtK(wide.plays)+' views — your most-pushed. Reach is mostly the algorithm’s pick, so copy the hook that earned the push, not the assumption it was your best work.' });
+      const avgPlays=this.mean(rated.map(r=>r.plays));
+      const flops=byRate.filter(r=>r.plays>=avgPlays&&r.likeRate<1.0);
+      if(flops.length){ const f=flops[flops.length-1]; out.insightsBad.push({ title:'Reach without connection', text:'"'+f.cap+'" pulled '+this.fmtK(f.plays)+' views but only '+this.pct1(f.likeRate)+' liked — the algorithm pushed it, the content didn’t hold. Put its first 3s next to "'+top.cap+'" and find the gap.' }); }
+      const cm=[...rated].filter(r=>r.commentRate!=null).sort((a,b)=>b.commentRate-a.commentRate)[0];
+      if(cm&&cm.commentRate>2&&cm.commentRate>cm.likeRate*2) out.insightsBad.push({ title:'These comments are inflated', text:'"'+cm.cap+'" shows '+this.pct1(cm.commentRate)+' comments-per-view but only '+this.pct1(cm.likeRate)+' likes — the "comment <word>" lead-magnet funnel, not pure love. Great for reach; judge quality by likes.' });
+      out.insightsBad.push({ title:'Retention is still a blind spot', text:'Nothing here guesses where viewers drop off — per-second retention, saves and watch-through need the Instagram Graph API (Creator account). Connect it and this panel gains a real hook + drop-off read. Until then, like-rate is the honest compass.' });
     }
 
     // reels table (windowed + sorted)
