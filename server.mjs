@@ -335,7 +335,21 @@ const server = http.createServer(async (req, res) => {
         const filePath = orig || path.join(ANALYSIS, reel_shortcode, "reel.mp4");
         if (!existsSync(filePath)) return send(res, 200, ".json", JSON.stringify({ error: "No source video on disk for " + reel_shortcode + "." }));
         const access = await yt.accessFromRefresh(refresh);
-        const vid = await yt.uploadShort({ accessToken: access, filePath, title: (body.title || reel_shortcode).slice(0, 95), description: (body.description || "") + "\n\n#Shorts #KI #AI", tags: body.tags || ["KI", "AI", "Tech", "Shorts"], privacy: body.privacy || "public" });
+        const hook = (body.title || reel_shortcode).slice(0, 95);
+        // hashtags relevant to THIS video, generated from its own hook/summary
+        let hashtags = body.hashtags;
+        if (!hashtags) {
+          try {
+            const { getDb } = await import("./lib/store/supabase.mjs");
+            const db = await getDb();
+            const { data: reel } = await db.from("reels").select("hook, summary, transcript_text").eq("shortcode", reel_shortcode).maybeSingle();
+            if (reel) hashtags = await yt.suggestHashtags(reel);
+          } catch { /* fall back below */ }
+        }
+        hashtags = hashtags || "#KI #ChatGPT #Claude #KünstlicheIntelligenz #AI #Automatisierung #Shorts";
+        const description = (body.description || hook) + "\n\n" + hashtags + "\n\n🤖 KI & Tech, einfach erklärt.";
+        const tags = hashtags.split(/\s+/).map((t) => t.replace(/^#/, "")).filter(Boolean).slice(0, 12);
+        const vid = await yt.uploadShort({ accessToken: access, filePath, title: hook, description, tags, privacy: body.privacy || "public" });
         const url = "https://www.youtube.com/shorts/" + vid.id;
         let aid = body.assignment_id;
         if (aid) await clippers.updateAssignment(aid, { status: "posted", posted_url: url, posted_at: new Date().toISOString() });

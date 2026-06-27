@@ -1219,9 +1219,10 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
           <button onClick="{{ CLIP.ytConnect }}" style="margin-left:auto;font-size:12px;font-weight:600;color:var(--cc);background:var(--cc-soft);border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer;font-family:inherit;white-space:nowrap">{{ CLIP.ytConnectLabel }}</button>
         </div>
         <div style="display:flex;gap:10px;margin-bottom:20px">
-          <div style="flex:1;background:var(--cc-soft);border:1px solid var(--line);border-radius:11px;padding:12px 14px"><div style="font-size:19px;font-weight:800;color:var(--cc)">{{ CLIP.selViewsFmt }}</div><div style="font-size:10.5px;color:var(--text-3)">views generated</div></div>
+          <div style="flex:1;background:var(--cc-soft);border:1px solid var(--line);border-radius:11px;padding:12px 14px"><div style="font-size:19px;font-weight:800;color:var(--cc)">{{ CLIP.selViewsFmt }}</div><div style="font-size:10.5px;color:var(--text-3)">views</div></div>
+          <div style="flex:1;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:12px 14px"><div style="font-size:19px;font-weight:800">{{ CLIP.selLikesFmt }}</div><div style="font-size:10.5px;color:var(--text-3)">likes</div></div>
+          <div style="flex:1;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:12px 14px"><div style="font-size:19px;font-weight:800">{{ CLIP.selCommentsFmt }}</div><div style="font-size:10.5px;color:var(--text-3)">comments</div></div>
           <div style="flex:1;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:12px 14px"><div style="font-size:19px;font-weight:800">{{ CLIP.selPosted }}</div><div style="font-size:10.5px;color:var(--text-3)">posted</div></div>
-          <div style="flex:1;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:12px 14px"><div style="font-size:19px;font-weight:800">{{ CLIP.selAssigns }}</div><div style="font-size:10.5px;color:var(--text-3)">assigned</div></div>
         </div>
         <div class="cc-mono" style="font-size:10.5px;letter-spacing:.08em;color:var(--text-3);margin-bottom:10px">QUEUE</div>
         <sc-if value="{{ CLIP.hasAssigns }}" hint-placeholder-val="{{ true }}">
@@ -1236,7 +1237,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
                 </div>
               </div>
               <div style="display:flex;align-items:center;gap:8px;flex:none">
-                <div><input value="{{ a.viewsVal }}" onInput="{{ a.viewsInput }}" onChange="{{ a.viewsCommit }}" placeholder="0" style="width:62px;font-size:13px;font-weight:700;text-align:right;padding:4px 7px;border:1px solid var(--line);border-radius:7px;background:var(--surface-2);color:var(--text);font-family:inherit;outline:none"/><div style="font-size:9px;color:var(--text-3);text-align:right;margin-top:1px">views</div></div>
+                <div><input value="{{ a.viewsVal }}" onInput="{{ a.viewsInput }}" onChange="{{ a.viewsCommit }}" placeholder="0" style="width:62px;font-size:13px;font-weight:700;text-align:right;padding:4px 7px;border:1px solid var(--line);border-radius:7px;background:var(--surface-2);color:var(--text);font-family:inherit;outline:none"/><div style="font-size:9px;color:var(--text-3);text-align:right;margin-top:1px">views</div><sc-if value="{{ a.showEng }}" hint-placeholder-val="{{ false }}"><div style="font-size:9.5px;color:var(--text-3);text-align:right;margin-top:2px;white-space:nowrap">♥ {{ a.likesFmt }} · 💬 {{ a.commentsFmt }}</div></sc-if></div>
                 <button onClick="{{ a.refreshViews }}" title="Fetch public views from the posted URL (YouTube/TikTok)" style="background:none;border:1px solid var(--line);border-radius:7px;color:var(--text-2);cursor:pointer;font-size:13px;padding:5px 8px;font-family:inherit">{{ a.fetchLabel }}</button>
                 <sc-if value="{{ a.canPublish }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.publish }}" title="Upload this reel to the connected YouTube channel" style="font-size:11px;font-weight:700;color:#fff;background:#ff0000;border:none;border-radius:7px;padding:5px 10px;cursor:pointer;font-family:inherit;white-space:nowrap">{{ a.publishLabel }}</button></sc-if>
                 <button onClick="{{ a.toggleStatus }}" style="{{ a.statusStyle }}">{{ a.statusLabel }}</button>
@@ -1920,6 +1921,7 @@ class Component extends DCLogic {
       viewsVal:this.clipEditVal('av:'+a.id, a.views), viewsInput:(e)=>this.clipEditInput('av:'+a.id,e), viewsCommit:()=>this.assignFieldCommit(a.id,'views','av:'+a.id),
       urlVal:this.clipEditVal('au:'+a.id, a.posted_url), urlInput:(e)=>this.clipEditInput('au:'+a.id,e), urlCommit:()=>this.assignFieldCommit(a.id,'posted_url','au:'+a.id),
       refreshViews:()=>this.clipRefreshViews(a.id, a.posted_url), fetchLabel: s.clipBusyId===a.id?'…':'↻',
+      likesFmt:this.fmtK(a.likes||0), commentsFmt:this.fmtK(a.comments||0), showEng: a.status==='posted',
       canPublish: a.platform==='youtube' && !!ytConn && a.status!=='posted',
       publishLabel: s.clipPublishId===a.id?'Uploading…':'▶ Publish',
       publish:()=>this.clipPublish(a.id, sel.id, a.reel_shortcode, (r.cap||a.reel_shortcode)),
@@ -1943,7 +1945,7 @@ class Component extends DCLogic {
       ytConnectLabel: s.ytConfigured?(ytConn?'Reconnect':'Connect YouTube channel'):'Add YouTube keys to .env first',
       ytConnect:()=>{ if(typeof window!=='undefined') window.open('/api/youtube/connect?clipper_id='+sel.id,'_blank'); },
       assigns, hasAssigns:assigns.length>0,
-      selViewsFmt:this.fmtK(sel.totals.views||0), selPosted:sel.totals.posted||0, selAssigns:sel.totals.assignments||0,
+      selViewsFmt:this.fmtK(sel.totals.views||0), selLikesFmt:this.fmtK(sel.totals.likes||0), selCommentsFmt:this.fmtK(sel.totals.comments||0), selPosted:sel.totals.posted||0, selAssigns:sel.totals.assignments||0,
       picker, hasReels:picker.length>0, assignPlats, hasAssignPlats:assignPlats.length>0,
       selReelCount, canAssign:selReelCount>0,
       assignBtnLabel: s.clipperBusy?'Assigning…':(selReelCount>0?('Assign '+selReelCount+' reel'+(selReelCount>1?'s':'')+' to '+sel.name):'Select reels to assign'),
