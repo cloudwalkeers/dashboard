@@ -1175,6 +1175,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
         <div style="text-align:right"><div style="font-size:17px;font-weight:800;color:var(--cc)">{{ CLIP.totViewsFmt }}</div><div style="font-size:9.5px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em">views generated</div></div>
         <div style="text-align:right"><div style="font-size:17px;font-weight:800">{{ CLIP.totPosted }}</div><div style="font-size:9.5px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em">posted</div></div>
         <div style="text-align:right"><div style="font-size:17px;font-weight:800">{{ CLIP.totAssign }}</div><div style="font-size:9.5px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em">assigned</div></div>
+        <button onClick="{{ CLIP.refreshAll }}" title="Fetch every posted clip's public views (YouTube/TikTok)" style="font-size:12px;font-weight:600;color:var(--text-2);background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:8px 13px;cursor:pointer;font-family:inherit;white-space:nowrap">{{ CLIP.refreshAllLabel }}</button>
       </div>
     </div>
     <sc-if value="{{ CLIP.error }}" hint-placeholder-val="{{ false }}"><div style="padding:8px 26px;font-size:12.5px;color:#dc2626">{{ CLIP.error }}</div></sc-if>
@@ -1230,6 +1231,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
               </div>
               <div style="display:flex;align-items:center;gap:8px;flex:none">
                 <div><input value="{{ a.viewsVal }}" onInput="{{ a.viewsInput }}" onChange="{{ a.viewsCommit }}" placeholder="0" style="width:62px;font-size:13px;font-weight:700;text-align:right;padding:4px 7px;border:1px solid var(--line);border-radius:7px;background:var(--surface-2);color:var(--text);font-family:inherit;outline:none"/><div style="font-size:9px;color:var(--text-3);text-align:right;margin-top:1px">views</div></div>
+                <button onClick="{{ a.refreshViews }}" title="Fetch public views from the posted URL (YouTube/TikTok)" style="background:none;border:1px solid var(--line);border-radius:7px;color:var(--text-2);cursor:pointer;font-size:13px;padding:5px 8px;font-family:inherit">{{ a.fetchLabel }}</button>
                 <button onClick="{{ a.toggleStatus }}" style="{{ a.statusStyle }}">{{ a.statusLabel }}</button>
                 <button onClick="{{ a.del }}" title="Remove" style="background:none;border:none;color:var(--text-faint);cursor:pointer;font-size:16px;font-family:inherit">×</button>
               </div>
@@ -1812,7 +1814,18 @@ class Component extends DCLogic {
       .then(j=>{ const cs=j.clippers||[]; this.setState({ clippersLoading:false, clippersLoaded:true, clippersData:j, clippersConfigured:j.configured!==false, clippersError:j.error||'', clipperSel:this.state.clipperSel||(cs[0]&&cs[0].id)||null }); })
       .catch(e=>this.setState({ clippersLoading:false, clippersLoaded:true, clippersError:String(e) }));
   }
-  loadClippers(force){ if(this.state.clippersLoading) return; if(this.state.clippersLoaded && !force) return; this.clipperFetch(); }
+  loadClippers(force){ if(this.state.clippersLoading) return; if(this.state.clippersLoaded && !force){ if(!this.state.clipAutoDone) this.clipRefreshAll(true); return; } this.clipperFetch().then(()=>{ if(!this.state.clipAutoDone) this.clipRefreshAll(true); }); }
+  clipRefreshAll(auto){
+    if(this.state.clipRefreshing) return;
+    const cs=(this.state.clippersData&&this.state.clippersData.clippers)||[];
+    const hasUrls=cs.some(c=>(c.assignments||[]).some(a=>a.posted_url));
+    if(auto && !hasUrls){ this.setState({ clipAutoDone:true }); return; }
+    this.setState({ clipRefreshing:true, clipAutoDone:true, clippersError:'' });
+    fetch('/api/clippers/refresh-views',{ method:'POST' })
+      .then(r=>r.json())
+      .then(()=>{ this.setState({ clipRefreshing:false }); this.clipperFetch(); })
+      .catch(e=>this.setState({ clipRefreshing:false, clippersError:String(e) }));
+  }
   clipperSelect(id){ this.setState({ clipperSel:id, clipperAssignSel:{}, clipperAssignPlatforms:{}, clipperDelArm:null }); }
   clipperAdd(){
     const n=((this.state.clippersData&&this.state.clippersData.clippers)||[]).length+1;
@@ -1840,6 +1853,16 @@ class Component extends DCLogic {
   assignPut(id, patch){ fetch('/api/assignments/'+id,{ method:'PUT', headers:{'content-type':'application/json'}, body:JSON.stringify(patch) }).then(r=>r.json()).then(()=>this.clipperFetch()).catch(e=>this.setState({ clippersError:String(e) })); }
   assignToggleStatus(id, cur){ this.assignPut(id,{ status: cur==='posted'?'todo':'posted' }); }
   assignDelete(id){ fetch('/api/assignments/'+id,{ method:'DELETE' }).then(r=>r.json()).then(()=>this.clipperFetch()).catch(e=>this.setState({ clippersError:String(e) })); }
+  clipRefreshViews(id, storedUrl){
+    const buf=(this.state.clipperEdits||{})['au:'+id];
+    const url=((buf!=null?buf:storedUrl)||'').trim();
+    if(!url){ this.setState({ clippersError:'Add the posted URL first, then fetch views.' }); return; }
+    this.setState({ clipBusyId:id, clippersError:'' });
+    fetch('/api/assignments/'+id+'/refresh',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ url }) })
+      .then(r=>r.json())
+      .then(j=>{ const m=Object.assign({}, this.state.clipperEdits); delete m['au:'+id]; delete m['av:'+id]; this.setState({ clipBusyId:null, clipperEdits:m, clippersError:j.error||'' }); this.clipperFetch(); })
+      .catch(e=>this.setState({ clipBusyId:null, clippersError:String(e) }));
+  }
   // inline edits — buffer keyed by string, commit (PUT) on blur(onChange)
   clipEditVal(key, stored){ const e=this.state.clipperEdits||{}; return (key in e)?e[key]:(stored==null?'':String(stored)); }
   clipEditInput(key, ev){ const v=(ev&&ev.target&&ev.target.value)!=null?ev.target.value:''; const m=Object.assign({}, this.state.clipperEdits); m[key]=v; this.setState({ clipperEdits:m }); }
@@ -1863,7 +1886,7 @@ class Component extends DCLogic {
       cardStyle:{ padding:'12px 13px', borderRadius:'12px', border:'1px solid '+(c.id===selId?'var(--cc)':'var(--line)'), background:c.id===selId?'var(--cc-soft)':'var(--surface)', cursor:'pointer', marginBottom:'8px', boxShadow:c.id===selId?'inset 3px 0 0 var(--cc)':'none' },
       select:()=>this.clipperSelect(c.id)
     }));
-    const base={ configured:s.clippersConfigured!==false, loading:!!s.clippersLoading, error:s.clippersError||'', busy:!!s.clipperBusy, roster, hasRoster:roster.length>0, addClipper:()=>this.clipperAdd(), totViewsFmt:this.fmtK(totViews), totPosted, totAssign, refresh:()=>this.clipperFetch() };
+    const base={ configured:s.clippersConfigured!==false, loading:!!s.clippersLoading, error:s.clippersError||'', busy:!!s.clipperBusy, roster, hasRoster:roster.length>0, addClipper:()=>this.clipperAdd(), totViewsFmt:this.fmtK(totViews), totPosted, totAssign, refresh:()=>this.clipperFetch(), refreshAll:()=>this.clipRefreshAll(false), refreshing:!!s.clipRefreshing, refreshAllLabel: s.clipRefreshing?'Fetching views…':'↻ Refresh views' };
     if(!sel) return Object.assign(base,{ hasSel:false });
     const platforms = ALLP.map(p=>{ const on=(sel.platforms||[]).includes(p); return { key:p, label:PLAT[p].label, on,
       chipStyle:{ padding:'5px 11px', borderRadius:'999px', fontSize:'12px', fontWeight:'600', cursor:'pointer', border:'1px solid '+(on?PLAT[p].color:'var(--line)'), background:on?PLAT[p].color:'transparent', color:on?'#fff':'var(--text-3)', fontFamily:'inherit' },
@@ -1877,6 +1900,7 @@ class Component extends DCLogic {
       toggleStatus:()=>this.assignToggleStatus(a.id,a.status),
       viewsVal:this.clipEditVal('av:'+a.id, a.views), viewsInput:(e)=>this.clipEditInput('av:'+a.id,e), viewsCommit:()=>this.assignFieldCommit(a.id,'views','av:'+a.id),
       urlVal:this.clipEditVal('au:'+a.id, a.posted_url), urlInput:(e)=>this.clipEditInput('au:'+a.id,e), urlCommit:()=>this.assignFieldCommit(a.id,'posted_url','au:'+a.id),
+      refreshViews:()=>this.clipRefreshViews(a.id, a.posted_url), fetchLabel: s.clipBusyId===a.id?'…':'↻',
       del:()=>this.assignDelete(a.id)
     }; });
     const picker = reels.map(r=>{ const on=!!(s.clipperAssignSel&&s.clipperAssignSel[r.id]); return {

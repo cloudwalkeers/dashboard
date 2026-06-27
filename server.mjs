@@ -211,6 +211,17 @@ const server = http.createServer(async (req, res) => {
         return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
       }
     }
+    // Auto-fetch public views/likes for every posted clip (token-free, parallel).
+    if (u.pathname === "/api/clippers/refresh-views" && req.method === "POST") {
+      const mod = await import("./lib/store/clippers.mjs");
+      if (!mod.isConfigured()) return send(res, 200, ".json", JSON.stringify({ configured: false }));
+      try {
+        const out = await mod.refreshAllViews();
+        return send(res, 200, ".json", JSON.stringify(out));
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
     const cm = u.pathname.match(/^\/api\/clippers\/([^/]+)$/);
     if (cm) {
       const mod = await import("./lib/store/clippers.mjs");
@@ -247,6 +258,29 @@ const server = http.createServer(async (req, res) => {
         }
         if (req.method === "DELETE")
           return send(res, 200, ".json", JSON.stringify(await mod.deleteAssignment(id)));
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
+
+    // Fetch a clip's public views/likes from its posted URL (YouTube/TikTok, token-free).
+    const amr = u.pathname.match(/^\/api\/assignments\/([^/]+)\/refresh$/);
+    if (amr && req.method === "POST") {
+      const mod = await import("./lib/store/clippers.mjs");
+      const id = decodeURIComponent(amr[1]);
+      try {
+        const body = await readJson(req);
+        const url = body && body.url;
+        if (!url) return send(res, 400, ".json", JSON.stringify({ error: "no posted URL" }));
+        const { reelStats } = await import("./lib/analysis/download.mjs");
+        const s = await reelStats(url);
+        if (!s || (s.views == null && s.likes == null)) return send(res, 200, ".json", JSON.stringify({ error: "couldn't read that URL's public stats" }));
+        const patch = { posted_url: url, status: "posted" };
+        if (s.views != null) patch.views = s.views;
+        if (s.likes != null) patch.likes = s.likes;
+        if (s.comments != null) patch.comments = s.comments;
+        const item = await mod.updateAssignment(id, patch);
+        return send(res, 200, ".json", JSON.stringify({ item, stats: s }));
       } catch (e) {
         return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
       }
@@ -295,6 +329,19 @@ server.listen(PORT, () => {
   }
   console.log("");
 });
+
+// Background: keep clipper clip views fresh, hands-off (token-free yt-dlp).
+(async () => {
+  try {
+    const mod = await import("./lib/store/clippers.mjs");
+    if (!mod.isConfigured()) return;
+    const run = () => mod.refreshAllViews()
+      .then((r) => { if (r && r.updated) console.log("  [clippers] auto-refreshed " + r.updated + " clip view counts"); })
+      .catch(() => {});
+    setTimeout(run, 25000);                 // shortly after boot
+    setInterval(run, 3 * 60 * 60 * 1000);   // and every 3 hours
+  } catch { /* clippers optional */ }
+})();
 
 async function getData(force, demo) {
   // 1) Live Graph API when credentials are configured.
