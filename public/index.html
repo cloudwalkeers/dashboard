@@ -1238,6 +1238,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
               <div style="display:flex;align-items:center;gap:8px;flex:none">
                 <div><input value="{{ a.viewsVal }}" onInput="{{ a.viewsInput }}" onChange="{{ a.viewsCommit }}" placeholder="0" style="width:62px;font-size:13px;font-weight:700;text-align:right;padding:4px 7px;border:1px solid var(--line);border-radius:7px;background:var(--surface-2);color:var(--text);font-family:inherit;outline:none"/><div style="font-size:9px;color:var(--text-3);text-align:right;margin-top:1px">views</div></div>
                 <button onClick="{{ a.refreshViews }}" title="Fetch public views from the posted URL (YouTube/TikTok)" style="background:none;border:1px solid var(--line);border-radius:7px;color:var(--text-2);cursor:pointer;font-size:13px;padding:5px 8px;font-family:inherit">{{ a.fetchLabel }}</button>
+                <sc-if value="{{ a.canPublish }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.publish }}" title="Upload this reel to the connected YouTube channel" style="font-size:11px;font-weight:700;color:#fff;background:#ff0000;border:none;border-radius:7px;padding:5px 10px;cursor:pointer;font-family:inherit;white-space:nowrap">{{ a.publishLabel }}</button></sc-if>
                 <button onClick="{{ a.toggleStatus }}" style="{{ a.statusStyle }}">{{ a.statusLabel }}</button>
                 <button onClick="{{ a.del }}" title="Remove" style="background:none;border:none;color:var(--text-faint);cursor:pointer;font-size:16px;font-family:inherit">×</button>
               </div>
@@ -1871,6 +1872,15 @@ class Component extends DCLogic {
       .then(j=>{ const m=Object.assign({}, this.state.clipperEdits); delete m['au:'+id]; delete m['av:'+id]; this.setState({ clipBusyId:null, clipperEdits:m, clippersError:j.error||'' }); this.clipperFetch(); })
       .catch(e=>this.setState({ clipBusyId:null, clippersError:String(e) }));
   }
+  clipPublish(assignmentId, clipperId, shortcode, title){
+    if(this.state.clipPublishId) return;
+    if(typeof window!=='undefined' && !window.confirm('Upload this reel to the connected YouTube channel as a Short now?')) return;
+    this.setState({ clipPublishId:assignmentId, clippersError:'' });
+    fetch('/api/youtube/publish',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ assignment_id:assignmentId, clipper_id:clipperId, reel_shortcode:shortcode, title }) })
+      .then(r=>r.json())
+      .then(j=>{ this.setState({ clipPublishId:null, clippersError:j.error||'' }); this.clipperFetch(); })
+      .catch(e=>this.setState({ clipPublishId:null, clippersError:String(e) }));
+  }
   // inline edits — buffer keyed by string, commit (PUT) on blur(onChange)
   clipEditVal(key, stored){ const e=this.state.clipperEdits||{}; return (key in e)?e[key]:(stored==null?'':String(stored)); }
   clipEditInput(key, ev){ const v=(ev&&ev.target&&ev.target.value)!=null?ev.target.value:''; const m=Object.assign({}, this.state.clipperEdits); m[key]=v; this.setState({ clipperEdits:m }); }
@@ -1900,6 +1910,7 @@ class Component extends DCLogic {
       chipStyle:{ padding:'5px 11px', borderRadius:'999px', fontSize:'12px', fontWeight:'600', cursor:'pointer', border:'1px solid '+(on?PLAT[p].color:'var(--line)'), background:on?PLAT[p].color:'transparent', color:on?'#fff':'var(--text-3)', fontFamily:'inherit' },
       toggle:()=>this.clipperTogglePlatform(sel.id,p),
       acctVal:this.clipEditVal('acct:'+sel.id+':'+p, (sel.accounts&&sel.accounts[p])||''), acctInput:(e)=>this.clipEditInput('acct:'+sel.id+':'+p,e), acctCommit:()=>this.clipAcctCommit(sel.id,p) }; });
+    const ytConn=(s.ytConnections||[]).find(x=>x.clipper_id===sel.id);
     const STAT={ todo:{label:'To do',bg:'var(--fill)',col:'var(--text-2)'}, posted:{label:'Posted',bg:'#16a34a',col:'#fff'} };
     const assigns = (sel.assignments||[]).map(a=>{ const r=reelByShort[a.reel_shortcode]||{}; const pl=PLAT[a.platform]||{label:a.platform,color:'#888'}; const st=STAT[a.status]||STAT.todo; return {
       id:a.id, cap:r.cap||a.reel_shortcode, thumb:r.thumb||'', hasThumb:!!r.thumb,
@@ -1909,6 +1920,9 @@ class Component extends DCLogic {
       viewsVal:this.clipEditVal('av:'+a.id, a.views), viewsInput:(e)=>this.clipEditInput('av:'+a.id,e), viewsCommit:()=>this.assignFieldCommit(a.id,'views','av:'+a.id),
       urlVal:this.clipEditVal('au:'+a.id, a.posted_url), urlInput:(e)=>this.clipEditInput('au:'+a.id,e), urlCommit:()=>this.assignFieldCommit(a.id,'posted_url','au:'+a.id),
       refreshViews:()=>this.clipRefreshViews(a.id, a.posted_url), fetchLabel: s.clipBusyId===a.id?'…':'↻',
+      canPublish: a.platform==='youtube' && !!ytConn && a.status!=='posted',
+      publishLabel: s.clipPublishId===a.id?'Uploading…':'▶ Publish',
+      publish:()=>this.clipPublish(a.id, sel.id, a.reel_shortcode, (r.cap||a.reel_shortcode)),
       del:()=>this.assignDelete(a.id)
     }; });
     const picker = reels.map(r=>{ const on=!!(s.clipperAssignSel&&s.clipperAssignSel[r.id]); return {
@@ -1921,7 +1935,6 @@ class Component extends DCLogic {
       chipStyle:{ padding:'4px 10px', borderRadius:'999px', fontSize:'11.5px', fontWeight:'600', cursor:'pointer', border:'1px solid '+(on?PLAT[p].color:'var(--line)'), background:on?PLAT[p].color:'transparent', color:on?'#fff':'var(--text-3)', fontFamily:'inherit' },
       toggle:()=>this.clipperToggleAssignPlatform(p) }; });
     const selReelCount=Object.keys(s.clipperAssignSel||{}).length;
-    const ytConn=(s.ytConnections||[]).find(x=>x.clipper_id===sel.id);
     return Object.assign(base,{
       hasSel:true, selId:sel.id,
       nameVal:this.clipEditVal('name:'+sel.id, sel.name), nameInput:(e)=>this.clipEditInput('name:'+sel.id,e), nameCommit:()=>this.clipNameCommit(sel.id),

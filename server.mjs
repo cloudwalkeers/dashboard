@@ -319,6 +319,29 @@ const server = http.createServer(async (req, res) => {
         return page("<h2>Connection failed</h2><pre>" + String(e && e.message || e) + "</pre>");
       }
     }
+    // YouTube publish: upload a reel's saved mp4 to the clipper's channel as a Short.
+    if (u.pathname === "/api/youtube/publish" && req.method === "POST") {
+      const yt = await import("./lib/youtube.mjs");
+      const clippers = await import("./lib/store/clippers.mjs");
+      try {
+        const body = await readJson(req);
+        const { clipper_id, reel_shortcode } = body;
+        if (!clipper_id || !reel_shortcode) return send(res, 400, ".json", JSON.stringify({ error: "clipper_id and reel_shortcode required" }));
+        const refresh = await yt.getRefreshToken(clipper_id);
+        if (!refresh) return send(res, 200, ".json", JSON.stringify({ error: "No connected YouTube channel for this clipper — click Connect first." }));
+        const filePath = path.join(ANALYSIS, reel_shortcode, "reel.mp4");
+        if (!existsSync(filePath)) return send(res, 200, ".json", JSON.stringify({ error: "No source video on disk for " + reel_shortcode + "." }));
+        const access = await yt.accessFromRefresh(refresh);
+        const vid = await yt.uploadShort({ accessToken: access, filePath, title: (body.title || reel_shortcode).slice(0, 95), description: (body.description || "") + "\n\n#Shorts #KI #AI", tags: body.tags || ["KI", "AI", "Tech", "Shorts"], privacy: body.privacy || "public" });
+        const url = "https://www.youtube.com/shorts/" + vid.id;
+        let aid = body.assignment_id;
+        if (aid) await clippers.updateAssignment(aid, { status: "posted", posted_url: url, posted_at: new Date().toISOString() });
+        else { const made = await clippers.createAssignments({ clipper_id, reel_shortcode, platform: "youtube" }); aid = made && made[0] && made[0].id; if (aid) await clippers.updateAssignment(aid, { status: "posted", posted_url: url, posted_at: new Date().toISOString() }); }
+        return send(res, 200, ".json", JSON.stringify({ ok: true, videoId: vid.id, url, assignment_id: aid }));
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
 
     // Per-reel AI breakdown (precomputed by `npm run analyze`).
     const ar = u.pathname.match(/^\/api\/reel\/([^/]+)\/analyze$/);
