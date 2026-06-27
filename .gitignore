@@ -5,6 +5,7 @@ node_modules/
 *.log
 .DS_Store
 /analysis/
+/originals/
 _*
 remotion/node_modules/
 remotion/out/

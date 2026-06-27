@@ -329,7 +329,10 @@ const server = http.createServer(async (req, res) => {
         if (!clipper_id || !reel_shortcode) return send(res, 400, ".json", JSON.stringify({ error: "clipper_id and reel_shortcode required" }));
         const refresh = await yt.getRefreshToken(clipper_id);
         if (!refresh) return send(res, 200, ".json", JSON.stringify({ error: "No connected YouTube channel for this clipper — click Connect first." }));
-        const filePath = path.join(ANALYSIS, reel_shortcode, "reel.mp4");
+        // Prefer a full-quality original (originals/<shortcode>.mp4) over the
+        // re-compressed Instagram download, to avoid double compression on YouTube.
+        const orig = ["mp4", "mov", "m4v", "webm"].map((e) => path.join(__dirname, "originals", reel_shortcode + "." + e)).find((p) => existsSync(p));
+        const filePath = orig || path.join(ANALYSIS, reel_shortcode, "reel.mp4");
         if (!existsSync(filePath)) return send(res, 200, ".json", JSON.stringify({ error: "No source video on disk for " + reel_shortcode + "." }));
         const access = await yt.accessFromRefresh(refresh);
         const vid = await yt.uploadShort({ accessToken: access, filePath, title: (body.title || reel_shortcode).slice(0, 95), description: (body.description || "") + "\n\n#Shorts #KI #AI", tags: body.tags || ["KI", "AI", "Tech", "Shorts"], privacy: body.privacy || "public" });
