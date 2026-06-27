@@ -1212,6 +1212,12 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
             </div>
           </sc-for>
         </div>
+        <div style="display:flex;align-items:center;gap:11px;margin-bottom:16px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:11px 16px">
+          <span style="font-size:13px;font-weight:700;color:#ff0000">▶ YouTube API</span>
+          <sc-if value="{{ CLIP.ytConnected }}" hint-placeholder-val="{{ false }}"><span style="font-size:12.5px;color:#16a34a;font-weight:600">✓ {{ CLIP.ytChannel }}</span></sc-if>
+          <sc-if value="{{ !CLIP.ytConnected }}" hint-placeholder-val="{{ true }}"><span style="font-size:12px;color:var(--text-3)">post clips automatically from the dashboard</span></sc-if>
+          <button onClick="{{ CLIP.ytConnect }}" style="margin-left:auto;font-size:12px;font-weight:600;color:var(--cc);background:var(--cc-soft);border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer;font-family:inherit;white-space:nowrap">{{ CLIP.ytConnectLabel }}</button>
+        </div>
         <div style="display:flex;gap:10px;margin-bottom:20px">
           <div style="flex:1;background:var(--cc-soft);border:1px solid var(--line);border-radius:11px;padding:12px 14px"><div style="font-size:19px;font-weight:800;color:var(--cc)">{{ CLIP.selViewsFmt }}</div><div style="font-size:10.5px;color:var(--text-3)">views generated</div></div>
           <div style="flex:1;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:12px 14px"><div style="font-size:19px;font-weight:800">{{ CLIP.selPosted }}</div><div style="font-size:10.5px;color:var(--text-3)">posted</div></div>
@@ -1810,8 +1816,10 @@ class Component extends DCLogic {
   // ── Clippers: command center (roster + assignments + per-platform views) ───
   clipperFetch(){
     this.setState({ clippersLoading:true, clippersError:'' });
-    return fetch('/api/clippers').then(r=>r.json())
-      .then(j=>{ const cs=j.clippers||[]; this.setState({ clippersLoading:false, clippersLoaded:true, clippersData:j, clippersConfigured:j.configured!==false, clippersError:j.error||'', clipperSel:this.state.clipperSel||(cs[0]&&cs[0].id)||null }); })
+    return Promise.all([
+      fetch('/api/clippers').then(r=>r.json()),
+      fetch('/api/youtube/status').then(r=>r.json()).catch(()=>({ configured:false, connections:[] }))
+    ]).then(([j,yt])=>{ const cs=j.clippers||[]; this.setState({ clippersLoading:false, clippersLoaded:true, clippersData:j, clippersConfigured:j.configured!==false, clippersError:j.error||'', clipperSel:this.state.clipperSel||(cs[0]&&cs[0].id)||null, ytConfigured:!!yt.configured, ytConnections:yt.connections||[] }); })
       .catch(e=>this.setState({ clippersLoading:false, clippersLoaded:true, clippersError:String(e) }));
   }
   loadClippers(force){ if(this.state.clippersLoading) return; if(this.state.clippersLoaded && !force){ if(!this.state.clipAutoDone) this.clipRefreshAll(true); return; } this.clipperFetch().then(()=>{ if(!this.state.clipAutoDone) this.clipRefreshAll(true); }); }
@@ -1913,10 +1921,14 @@ class Component extends DCLogic {
       chipStyle:{ padding:'4px 10px', borderRadius:'999px', fontSize:'11.5px', fontWeight:'600', cursor:'pointer', border:'1px solid '+(on?PLAT[p].color:'var(--line)'), background:on?PLAT[p].color:'transparent', color:on?'#fff':'var(--text-3)', fontFamily:'inherit' },
       toggle:()=>this.clipperToggleAssignPlatform(p) }; });
     const selReelCount=Object.keys(s.clipperAssignSel||{}).length;
+    const ytConn=(s.ytConnections||[]).find(x=>x.clipper_id===sel.id);
     return Object.assign(base,{
       hasSel:true, selId:sel.id,
       nameVal:this.clipEditVal('name:'+sel.id, sel.name), nameInput:(e)=>this.clipEditInput('name:'+sel.id,e), nameCommit:()=>this.clipNameCommit(sel.id),
       platforms,
+      ytConfigured:!!s.ytConfigured, ytConnected:!!ytConn, ytChannel:(ytConn&&ytConn.channel_title)||'connected',
+      ytConnectLabel: s.ytConfigured?(ytConn?'Reconnect':'Connect YouTube channel'):'Add YouTube keys to .env first',
+      ytConnect:()=>{ if(typeof window!=='undefined') window.open('/api/youtube/connect?clipper_id='+sel.id,'_blank'); },
       assigns, hasAssigns:assigns.length>0,
       selViewsFmt:this.fmtK(sel.totals.views||0), selPosted:sel.totals.posted||0, selAssigns:sel.totals.assignments||0,
       picker, hasReels:picker.length>0, assignPlats, hasAssignPlats:assignPlats.length>0,

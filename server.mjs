@@ -286,6 +286,40 @@ const server = http.createServer(async (req, res) => {
       }
     }
 
+    // YouTube OAuth: connect a clipper's channel + report connection status.
+    if (u.pathname === "/api/youtube/status" && req.method === "GET") {
+      const yt = await import("./lib/youtube.mjs");
+      let connections = [];
+      try { if (yt.isConfigured()) connections = await yt.listConnections(); } catch { /* ignore */ }
+      return send(res, 200, ".json", JSON.stringify({ configured: yt.isConfigured(), connections }));
+    }
+    if (u.pathname === "/api/youtube/connect" && req.method === "GET") {
+      const yt = await import("./lib/youtube.mjs");
+      if (!yt.isConfigured())
+        return send(res, 200, ".html", "<body style='font-family:sans-serif;padding:40px'><h3>YouTube isn't configured yet</h3><p>Add <code>YOUTUBE_CLIENT_ID</code> and <code>YOUTUBE_CLIENT_SECRET</code> to <code>.env</code>, then restart the dashboard.</p></body>");
+      const redirectUri = "http://localhost:" + PORT + "/api/youtube/callback";
+      res.writeHead(302, { Location: yt.authUrl(redirectUri, u.searchParams.get("clipper_id") || "") });
+      return res.end();
+    }
+    if (u.pathname === "/api/youtube/callback" && req.method === "GET") {
+      const yt = await import("./lib/youtube.mjs");
+      const code = u.searchParams.get("code");
+      const clipperId = u.searchParams.get("state") || null;
+      const redirectUri = "http://localhost:" + PORT + "/api/youtube/callback";
+      const page = (body) => send(res, 200, ".html", "<body style='font-family:sans-serif;padding:48px;background:#0b0b14;color:#fff'>" + body + "</body>");
+      if (!code) return page("<h2>No authorization code returned.</h2>");
+      try {
+        const tok = await yt.exchangeCode(code, redirectUri);
+        let ch = null;
+        try { ch = await yt.myChannel(tok.access_token); } catch { /* channel optional */ }
+        if (!tok.refresh_token) return page("<h2>Connected, but Google didn't return a refresh token.</h2><p>Remove the app's access at myaccount.google.com/permissions and connect again (it must prompt for consent).</p>");
+        await yt.saveToken({ clipper_id: clipperId, channel_id: ch && ch.id, channel_title: ch && ch.title, refresh_token: tok.refresh_token, scope: tok.scope });
+        return page("<h2>✅ YouTube connected" + (ch ? " — " + ch.title : "") + "</h2><p>You can close this tab and return to the dashboard.</p><script>setTimeout(function(){location='/'},1600)</script>");
+      } catch (e) {
+        return page("<h2>Connection failed</h2><pre>" + String(e && e.message || e) + "</pre>");
+      }
+    }
+
     // Per-reel AI breakdown (precomputed by `npm run analyze`).
     const ar = u.pathname.match(/^\/api\/reel\/([^/]+)\/analyze$/);
     if (ar) {
