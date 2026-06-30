@@ -2062,7 +2062,7 @@ class Component extends DCLogic {
   ccCopy(text,msg){ try{ navigator.clipboard.writeText(text||''); }catch(e){} this.ccFlash(msg||'Copied'); }
   ccAnimScriptVal(){ const s=this.state; return s.ccAnimScript!=null ? s.ccAnimScript : (s.ccScript||''); }
   ccAnimInput(e){ this.setState({ ccAnimScript:(e&&e.target&&e.target.value)||'' }); }
-  ccAnimPrefill(){ this.setState({ ccAnimScript:this.state.ccScript||'' }); }
+  ccAnimPrefill(){ const r=this.state.ccResult; const src=(this.state.ccScript||'').trim() || ((r&&r.transcript&&r.transcript.text)||'').trim(); if(!src){ this.setState({ ccStoryError:'Nothing to pull in yet — extract a reel (Frames tab) or generate a script first, or just paste a script above.' }); return; } this.setState({ ccAnimScript:src, ccStoryError:'' }); }
   ccAnimate(){
     const script=this.ccAnimScriptVal().trim();
     if(!script){ this.setState({ ccStoryError:'Paste a script (ideally with timestamps) first.' }); return; }
