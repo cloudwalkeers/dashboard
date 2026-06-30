@@ -815,17 +815,23 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
         <div style="display:flex;flex-direction:column;gap:12px">
           <sc-for list="{{ CC.animSections }}" as="sec" hint-placeholder-count="5">
             <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px">
-              <div style="display:flex;align-items:center;gap:10px;margin-bottom:5px;flex-wrap:wrap">
-                <span style="{{ sec.typeStyle }}">{{ sec.typeLabel }}</span>
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:7px;flex-wrap:wrap">
+                <span class="cc-mono" style="font-size:11.5px;color:var(--cc);font-weight:700">{{ sec.time }}</span>
                 <span style="font-weight:700;font-size:14.5px">{{ sec.label }}</span>
-                <span class="cc-mono" style="font-size:11px;color:var(--cc)">{{ sec.time }}</span>
-                <sc-if value="{{ sec.hasMeta }}" hint-placeholder-val="{{ true }}"><span class="cc-mono" style="font-size:10px;color:var(--text-3);margin-left:auto;white-space:nowrap">{{ sec.duration }} · {{ sec.aspect }}</span></sc-if>
               </div>
-              <div style="font-size:12.5px;color:var(--text-2);margin-bottom:9px">{{ sec.subtitle }}</div>
-              <div style="font-size:12.5px;color:var(--text-3);line-height:1.5;margin-bottom:12px">{{ sec.narration }}</div>
+              <div style="font-size:13px;color:var(--text-2);font-style:italic;line-height:1.5;margin-bottom:12px">„{{ sec.narration }}"</div>
+              <sc-if value="{{ sec.hasAnimation }}" hint-placeholder-val="{{ true }}">
+              <div style="margin-bottom:13px">
+                <div class="cc-mono" style="font-size:9.5px;letter-spacing:.06em;color:#d97757;margin-bottom:5px">ANIMATION BRIEF</div>
+                <div style="display:flex;align-items:flex-start;gap:10px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:11px 13px">
+                  <div style="flex:1;font-size:12.5px;line-height:1.6;color:var(--text)">{{ sec.animation }}</div>
+                  <button onClick="{{ sec.copyAnim }}" title="Copy" style="flex:none;background:rgba(217,119,87,.16);color:#d97757;border:1px solid var(--line);border-radius:8px;padding:5px 12px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit">Copy</button>
+                </div>
+              </div>
+              </sc-if>
               <sc-if value="{{ sec.hasFrames }}" hint-placeholder-val="{{ true }}">
-              <div class="cc-mono" style="font-size:9.5px;letter-spacing:.06em;color:var(--cc);margin-bottom:6px">FRAMES · MOCKUP-PROMPTS (Claude Design)</div>
-              <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:11px">
+              <div class="cc-mono" style="font-size:9.5px;letter-spacing:.06em;color:var(--cc);margin-bottom:6px">FRAMES · MOCKUP-SPEC (Claude Design)</div>
+              <div style="display:flex;flex-direction:column;gap:7px">
                 <sc-for list="{{ sec.frames }}" as="fr" hint-placeholder-count="4">
                   <div style="display:flex;gap:11px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:10px 12px">
                     <div style="flex:none;width:22px;height:22px;border-radius:6px;background:var(--cc-soft);color:var(--cc);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center">{{ fr.n }}</div>
@@ -836,15 +842,6 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
                     <button onClick="{{ fr.copy }}" title="Copy frame" style="flex:none;align-self:flex-start;background:var(--cc-soft);color:var(--cc);border:1px solid var(--line);border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">Copy</button>
                   </div>
                 </sc-for>
-              </div>
-              </sc-if>
-              <sc-if value="{{ sec.hasKling }}" hint-placeholder-val="{{ true }}">
-              <div>
-                <div class="cc-mono" style="font-size:9.5px;letter-spacing:.06em;color:#d97757;margin-bottom:5px">KLING AI PROMPT · ANIMATION</div>
-                <div style="display:flex;align-items:flex-start;gap:10px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:11px 13px">
-                  <div style="flex:1;font-size:12.5px;line-height:1.55;color:var(--text)">{{ sec.klingPrompt }}</div>
-                  <button onClick="{{ sec.copyKling }}" title="Copy" style="flex:none;background:rgba(217,119,87,.16);color:#d97757;border:1px solid var(--line);border-radius:8px;padding:5px 12px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit">Copy</button>
-                </div>
               </div>
               </sc-if>
             </div>
@@ -2093,7 +2090,7 @@ class Component extends DCLogic {
       .then(j=>this.setState({ ccStoryLoading:false, ccStoryboard:j.error?this.state.ccStoryboard:j, ccStoryError:j.error||'' }))
       .catch(e=>this.setState({ ccStoryLoading:false, ccStoryError:String(e) }));
   }
-  ccCopyAllPrompts(){ const sb=this.state.ccStoryboard; if(!sb) return; const txt=(sb.sections||[]).filter(s=>s.designPrompt||s.klingPrompt).map(s=>{ let o='['+(s.time||'')+'] '+(s.label||''); if(s.designPrompt) o+='\n[Claude Design] '+s.designPrompt; if(s.klingPrompt) o+='\n[Kling AI] '+s.klingPrompt; return o; }).join('\n\n'); this.ccCopy(txt,'All prompts copied'); }
+  ccCopyAllPrompts(){ const sb=this.state.ccStoryboard; if(!sb) return; const txt=(sb.sections||[]).map(s=>{ let o=(s.time||'')+' – "'+(s.narration||'')+'"\n'+(s.animation||''); if((s.frames||[]).length) o+='\nFrames:\n'+(s.frames||[]).map((f,i)=>'  '+(i+1)+'. '+(f.caption?f.caption+' — ':'')+(f.visual||'')).join('\n'); return o; }).join('\n\n'); this.ccCopy(txt,'Whole breakdown copied'); }
   ccSeg(active){ return active
     ? { padding:'7px 16px',borderRadius:'8px',border:'none',fontFamily:'inherit',fontSize:'13px',fontWeight:'600',cursor:'pointer',background:'var(--surface)',color:'var(--text)',boxShadow:'0 1px 2px rgba(20,18,40,.12)' }
     : { padding:'7px 16px',borderRadius:'8px',border:'none',fontFamily:'inherit',fontSize:'13px',fontWeight:'600',cursor:'pointer',background:'transparent',color:'var(--text-3)' }; }
@@ -2152,7 +2149,7 @@ Hier ist das Skript:
       goFrames:()=>this.setState({ccTab:'frames'}), goScript:()=>this.setState({ccTab:'script'}), goPrompt:()=>this.setState({ccTab:'prompt'}), goInsights:()=>this.setState({ccTab:'insights'}), goAnim:()=>this.setState({ccTab:'animation'}),
       tFrames:tab==='frames'?'var(--text)':'var(--text-3)', tScript:tab==='script'?'var(--text)':'var(--text-3)', tPrompt:tab==='prompt'?'var(--text)':'var(--text-3)', tInsights:tab==='insights'?'var(--text)':'var(--text-3)', tAnim:tab==='animation'?'var(--text)':'var(--text-3)',
       animScript:this.ccAnimScriptVal(), animInput:(e)=>this.ccAnimInput(e), animPrefill:()=>this.ccAnimPrefill(), animGenerate:()=>this.ccAnimate(), animLoading:!!s.ccStoryLoading, animError:s.ccStoryError||'', animGenLabel: s.ccStoryLoading?'Building storyboard…':(s.ccStoryboard?'Regenerate':'Generate storyboard'), animHas:!!s.ccStoryboard, animTitle:(s.ccStoryboard&&s.ccStoryboard.title)||'', animCopyAll:()=>this.ccCopyAllPrompts(), animHasScript:!!this.ccAnimScriptVal().trim(),
-      animSections: s.ccStoryboard ? (s.ccStoryboard.sections||[]).map(sec=>{ const T={'ui-animation':{label:'UI-Animation',c:'var(--cc)',bg:'var(--cc-soft)'},'static':{label:'Static',c:'#e0a458',bg:'rgba(224,164,88,.14)'},'none':{label:'No visual',c:'var(--text-3)',bg:'var(--fill)'}}; const t=T[sec.type]||T.none; return { label:sec.label, time:sec.time, subtitle:sec.subtitle||'', narration:sec.narration||'', typeLabel:t.label, typeStyle:{ fontSize:'10px', fontWeight:'700', padding:'2px 8px', borderRadius:'6px', color:t.c, background:t.bg, whiteSpace:'nowrap', textTransform:'uppercase', letterSpacing:'.03em' }, duration:sec.duration||'', aspect:sec.aspect||'', hasMeta:!!(sec.duration||sec.aspect), frames:(sec.frames||[]).map((f,i)=>({ n:i+1, caption:f.caption||('Frame '+(i+1)), visual:f.visual||'', copy:()=>this.ccCopy(f.visual,'Frame '+(i+1)+' copied') })), hasFrames:(sec.frames||[]).length>0, klingPrompt:sec.klingPrompt||'', hasKling:!!sec.klingPrompt, copyKling:()=>this.ccCopy(sec.klingPrompt,'Kling prompt copied') }; }) : [],
+      animSections: s.ccStoryboard ? (s.ccStoryboard.sections||[]).map(sec=>({ label:sec.label||'', time:sec.time||'', narration:sec.narration||'', animation:sec.animation||'', hasAnimation:!!sec.animation, copyAnim:()=>this.ccCopy(sec.animation,'Animation brief copied'), frames:(sec.frames||[]).map((f,i)=>({ n:i+1, caption:f.caption||('Frame '+(i+1)), visual:f.visual||'', copy:()=>this.ccCopy((f.caption?f.caption+': ':'')+f.visual,'Frame '+(i+1)+' copied') })), hasFrames:(sec.frames||[]).length>0 })) : [],
       genLabel: s.ccScriptLoading?'Generating…':(s.ccScript?'Regenerate':'Generate script'), generate:()=>this.generateScript(),
       brief:s.ccBrief||'', onBrief:(e)=>this.setState({ ccBrief: e&&e.target?e.target.value:'' }),
       copyOriginal:()=>this.ccCopy((r&&r.transcript&&r.transcript.text)||'','Original copied'),
