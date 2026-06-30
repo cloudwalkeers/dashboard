@@ -801,14 +801,18 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
       <sc-if value="{{ CC.isAnim }}" hint-placeholder-val="{{ false }}">
       <div>
         <div style="margin-bottom:18px">
-          <div style="font-weight:700;font-size:15px;margin-bottom:6px">Script → Animations‑Storyboard</div>
-          <p style="margin:0 0 12px;font-size:12.5px;color:var(--text-2);max-width:700px">Skript einfügen (am besten mit Zeitstempeln). Pro Beat bekommst du das passende Visual — Claude/ChatGPT‑UI‑Animation, statisches Bild, oder keins — plus einen fertigen <strong>Claude‑Design‑Prompt</strong> zum Kopieren.</p>
-          <textarea value="{{ CC.animScript }}" onInput="{{ CC.animInput }}" placeholder="z.B. „(0:28) Nummer eins ist der Contract Reviewer. (0:31) Lade einen Vertrag hoch …“" style="width:100%;min-height:120px;box-sizing:border-box;font-family:inherit;font-size:13px;line-height:1.55;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--text);resize:vertical;outline:none"></textarea>
-          <div style="display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap">
-            <button onClick="{{ CC.animGenerate }}" style="background:var(--cc);color:var(--cc-on);border:none;border-radius:10px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">{{ CC.animGenLabel }}</button>
-            <button onClick="{{ CC.animPrefill }}" style="background:none;border:1px solid var(--line);border-radius:10px;padding:9px 14px;font-size:12.5px;font-weight:600;color:var(--text-2);cursor:pointer;font-family:inherit">Aus generiertem Script</button>
-            <sc-if value="{{ CC.animHas }}" hint-placeholder-val="{{ false }}"><button onClick="{{ CC.animCopyAll }}" style="background:none;border:1px solid var(--line);border-radius:10px;padding:9px 14px;font-size:12.5px;font-weight:600;color:var(--text-2);cursor:pointer;font-family:inherit">Alle Prompts kopieren</button></sc-if>
+          <div style="font-weight:700;font-size:15px;margin-bottom:6px">Animations‑Breakdown · Reverse‑Engineering</div>
+          <p style="margin:0 0 12px;font-size:12.5px;color:var(--text-2);max-width:740px">Bricht das <strong>extrahierte Reel</strong> Szene für Szene auf: die <strong>echten Frames</strong>, was animiert wird, und eine Spec, um jeden Frame sauber als Mockup nachzubauen.</p>
+          <sc-if value="{{ CC.animHasReel }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <button onClick="{{ CC.animBreakdown }}" style="background:var(--cc);color:var(--cc-on);border:none;border-radius:10px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">{{ CC.animBreakdownLabel }}</button>
+            <sc-if value="{{ CC.animHas }}" hint-placeholder-val="{{ false }}"><button onClick="{{ CC.animRenderAll }}" style="background:none;border:1px solid var(--line);border-radius:10px;padding:9px 14px;font-size:12.5px;font-weight:600;color:var(--text-2);cursor:pointer;font-family:inherit">{{ CC.animRenderAllLabel }}</button></sc-if>
+            <sc-if value="{{ CC.animHas }}" hint-placeholder-val="{{ false }}"><button onClick="{{ CC.animCopyAll }}" style="background:none;border:1px solid var(--line);border-radius:10px;padding:9px 14px;font-size:12.5px;font-weight:600;color:var(--text-2);cursor:pointer;font-family:inherit">Breakdown kopieren</button></sc-if>
           </div>
+          </sc-if>
+          <sc-if value="{{ !CC.animHasReel }}" hint-placeholder-val="{{ false }}">
+          <div style="background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:20px;font-size:13px;color:var(--text-3)">Erst ein Reel im <strong>Frames</strong>‑Tab extrahieren — dann brichst du hier dessen Animationen Frame für Frame auf.</div>
+          </sc-if>
           <sc-if value="{{ CC.animError }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px;color:#dc2626;margin-top:8px">{{ CC.animError }}</div></sc-if>
         </div>
         <sc-if value="{{ CC.animHas }}" hint-placeholder-val="{{ false }}">
@@ -833,13 +837,23 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
               <div class="cc-mono" style="font-size:9.5px;letter-spacing:.06em;color:var(--cc);margin-bottom:6px">FRAMES · MOCKUP-SPEC (Claude Design)</div>
               <div style="display:flex;flex-direction:column;gap:7px">
                 <sc-for list="{{ sec.frames }}" as="fr" hint-placeholder-count="4">
-                  <div style="display:flex;gap:11px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:10px 12px">
-                    <div style="flex:none;width:22px;height:22px;border-radius:6px;background:var(--cc-soft);color:var(--cc);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center">{{ fr.n }}</div>
+                  <div style="display:flex;gap:12px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:11px 12px">
+                    <sc-if value="{{ fr.hasImg }}" hint-placeholder-val="{{ true }}">
+                      <img src="{{ fr.imgUrl }}" title="real frame {{ fr.n }}" style="width:90px;height:160px;flex:none;object-fit:cover;border-radius:8px;border:1px solid var(--line);background:#000"/>
+                    </sc-if>
+                    <sc-if value="{{ fr.rendered }}" hint-placeholder-val="{{ false }}">
+                      <div title="clean mockup" style="width:90px;height:160px;flex:none;overflow:hidden;border-radius:8px;border:1px solid var(--cc);background:#fff">
+                        <iframe srcdoc="{{ fr.html }}" sandbox="" scrolling="no" style="width:360px;height:640px;border:none;transform:scale(0.25);transform-origin:top left"></iframe>
+                      </div>
+                    </sc-if>
                     <div style="flex:1;min-width:0">
-                      <div style="font-size:12px;font-weight:700;margin-bottom:2px">{{ fr.caption }}</div>
-                      <div style="font-size:12px;color:var(--text-2);line-height:1.5">{{ fr.visual }}</div>
+                      <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px"><span style="flex:none;width:19px;height:19px;border-radius:5px;background:var(--cc-soft);color:var(--cc);font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center">{{ fr.n }}</span><span style="font-size:11.5px;font-weight:700">{{ fr.caption }}</span></div>
+                      <div style="font-size:11.5px;color:var(--text-2);line-height:1.5;margin-bottom:7px">{{ fr.visual }}</div>
+                      <div style="display:flex;gap:6px;flex-wrap:wrap">
+                        <button onClick="{{ fr.render }}" title="Re-render this frame as a clean HTML mockup" style="background:var(--cc-soft);color:var(--cc);border:1px solid var(--line);border-radius:7px;padding:3px 10px;font-size:10.5px;font-weight:700;cursor:pointer;font-family:inherit">{{ fr.renderLabel }}</button>
+                        <button onClick="{{ fr.copy }}" style="background:none;color:var(--text-3);border:1px solid var(--line);border-radius:7px;padding:3px 10px;font-size:10.5px;font-weight:600;cursor:pointer;font-family:inherit">Spec</button>
+                      </div>
                     </div>
-                    <button onClick="{{ fr.copy }}" title="Copy frame" style="flex:none;align-self:flex-start;background:var(--cc-soft);color:var(--cc);border:1px solid var(--line);border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">Copy</button>
                   </div>
                 </sc-for>
               </div>
@@ -848,8 +862,8 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
           </sc-for>
         </div>
         </sc-if>
-        <sc-if value="{{ !CC.animHas }}" hint-placeholder-val="{{ true }}">
-          <div style="background:var(--surface);border:1px dashed var(--line);border-radius:14px;padding:34px 24px;text-align:center;font-size:13.5px;color:var(--text-3)">Paste a script and hit <strong>Generate storyboard</strong> — you get a per‑beat visual plan with copy‑paste Claude Design prompts.</div>
+        <sc-if value="{{ CC.animEmpty }}" hint-placeholder-val="{{ true }}">
+          <div style="background:var(--surface);border:1px dashed var(--line);border-radius:14px;padding:34px 24px;text-align:center;font-size:13.5px;color:var(--text-3)">Hit <strong>Break down animations</strong> — the reel is split into scenes with its real frames + an animation brief each, plus a one‑click clean mockup.</div>
         </sc-if>
       </div>
       </sc-if>
@@ -1340,7 +1354,7 @@ class Component extends DCLogic {
     this.MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     this.state = { view:'overview', sel:null, range:'30D', sort:'reach', loading:true, syncing:false, loadError:null, analysis:null, analysisFor:null, analysisLoading:false,
       ccUrl:'', ccLoading:false, ccResult:null, ccError:'', ccTab:'frames', ccScript:'', ccScriptLoading:false, ccBrief:'', ccProgress:0, ccStep:'',
-      ccAnimScript:null, ccStoryboard:null, ccStoryLoading:false, ccStoryError:'',
+      ccAnimScript:null, ccStoryboard:null, ccStoryLoading:false, ccStoryError:'', ccFrameHtml:{}, ccFrameBusy:{}, ccRenderingAll:false,
       ccSel:{}, ccExporting:false, ccSaving:false, ccSaved:'',
       ccCur:0, ccCView:'scrubber', ccPlaying:false, ccZones:false, ccPromptSrc:'original', ccIncVis:false, ccToast:'',
       pipeItems:null, pipeLoading:false, pipeError:'', pipeLoaded:false,
@@ -2081,16 +2095,34 @@ class Component extends DCLogic {
   ccAnimScriptVal(){ const s=this.state; return s.ccAnimScript!=null ? s.ccAnimScript : (s.ccScript||''); }
   ccAnimInput(e){ this.setState({ ccAnimScript:(e&&e.target&&e.target.value)||'' }); }
   ccAnimPrefill(){ const r=this.state.ccResult; const src=(this.state.ccScript||'').trim() || ((r&&r.transcript&&r.transcript.text)||'').trim(); if(!src){ this.setState({ ccStoryError:'Nothing to pull in yet — extract a reel (Frames tab) or generate a script first, or just paste a script above.' }); return; } this.setState({ ccAnimScript:src, ccStoryError:'' }); }
-  ccAnimate(){
-    const script=this.ccAnimScriptVal().trim();
-    if(!script){ this.setState({ ccStoryError:'Paste a script (ideally with timestamps) first.' }); return; }
-    this.setState({ ccStoryLoading:true, ccStoryError:'' });
-    fetch('/api/animate',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ script }) })
-      .then(r=>r.json())
-      .then(j=>this.setState({ ccStoryLoading:false, ccStoryboard:j.error?this.state.ccStoryboard:j, ccStoryError:j.error||'' }))
+  ccBreakdownReel(){
+    const r=this.state.ccResult;
+    if(!r || !(r.frames && r.frames.length)){ this.setState({ ccStoryError:'Extract a reel first (Frames tab), then break down its animations here.' }); return; }
+    this.setState({ ccStoryLoading:true, ccStoryError:'', ccStoryboard:null, ccFrameHtml:{}, ccFrameBusy:{} });
+    fetch('/api/animate/reel',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ shortcode:r.id, frames:r.frames, transcript:r.transcript }) })
+      .then(res=>res.json())
+      .then(j=>this.setState({ ccStoryLoading:false, ccStoryboard:j.error?null:j, ccStoryError:j.error||'' }))
       .catch(e=>this.setState({ ccStoryLoading:false, ccStoryError:String(e) }));
   }
   ccCopyAllPrompts(){ const sb=this.state.ccStoryboard; if(!sb) return; const txt=(sb.sections||[]).map(s=>{ let o=(s.time||'')+' – "'+(s.narration||'')+'"\n'+(s.animation||''); if((s.frames||[]).length) o+='\nFrames:\n'+(s.frames||[]).map((f,i)=>'  '+(i+1)+'. '+(f.caption?f.caption+' — ':'')+(f.visual||'')).join('\n'); return o; }).join('\n\n'); this.ccCopy(txt,'Whole breakdown copied'); }
+  ccRenderFrame(si,fi,visual,context,force){
+    const key=si+'_'+fi;
+    if((this.state.ccFrameBusy||{})[key]) return Promise.resolve();
+    if(!force && (this.state.ccFrameHtml||{})[key]) return Promise.resolve();
+    this.setState({ ccFrameBusy:Object.assign({}, this.state.ccFrameBusy, {[key]:true}), ccStoryError:'' });
+    return fetch('/api/animate/frame',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ visual, context }) })
+      .then(r=>r.json())
+      .then(j=>{ const busy=Object.assign({}, this.state.ccFrameBusy); delete busy[key]; const html=Object.assign({}, this.state.ccFrameHtml); if(j.html) html[key]=j.html; this.setState({ ccFrameBusy:busy, ccFrameHtml:html, ccStoryError:j.error||'' }); })
+      .catch(e=>{ const busy=Object.assign({}, this.state.ccFrameBusy); delete busy[key]; this.setState({ ccFrameBusy:busy, ccStoryError:String(e) }); });
+  }
+  ccRenderAllVisuals(){
+    const sb=this.state.ccStoryboard; if(!sb||this.state.ccRenderingAll) return;
+    const tasks=[]; (sb.sections||[]).forEach((sec,si)=>(sec.frames||[]).forEach((f,fi)=>{ if(!(this.state.ccFrameHtml||{})[si+'_'+fi]) tasks.push({ si,fi,visual:f.visual,context:(sec.label||'')+' — '+(sec.narration||'') }); }));
+    if(!tasks.length) return;
+    this.setState({ ccRenderingAll:true });
+    let i=0; const worker=()=>{ if(i>=tasks.length) return Promise.resolve(); const t=tasks[i++]; return this.ccRenderFrame(t.si,t.fi,t.visual,t.context).then(worker); };
+    Promise.all([worker(),worker(),worker()]).then(()=>this.setState({ ccRenderingAll:false }));
+  }
   ccSeg(active){ return active
     ? { padding:'7px 16px',borderRadius:'8px',border:'none',fontFamily:'inherit',fontSize:'13px',fontWeight:'600',cursor:'pointer',background:'var(--surface)',color:'var(--text)',boxShadow:'0 1px 2px rgba(20,18,40,.12)' }
     : { padding:'7px 16px',borderRadius:'8px',border:'none',fontFamily:'inherit',fontSize:'13px',fontWeight:'600',cursor:'pointer',background:'transparent',color:'var(--text-3)' }; }
@@ -2148,8 +2180,8 @@ Hier ist das Skript:
       isFrames:tab==='frames', isScript:tab==='script', isPrompt:tab==='prompt', isInsights:tab==='insights', isAnim:tab==='animation',
       goFrames:()=>this.setState({ccTab:'frames'}), goScript:()=>this.setState({ccTab:'script'}), goPrompt:()=>this.setState({ccTab:'prompt'}), goInsights:()=>this.setState({ccTab:'insights'}), goAnim:()=>this.setState({ccTab:'animation'}),
       tFrames:tab==='frames'?'var(--text)':'var(--text-3)', tScript:tab==='script'?'var(--text)':'var(--text-3)', tPrompt:tab==='prompt'?'var(--text)':'var(--text-3)', tInsights:tab==='insights'?'var(--text)':'var(--text-3)', tAnim:tab==='animation'?'var(--text)':'var(--text-3)',
-      animScript:this.ccAnimScriptVal(), animInput:(e)=>this.ccAnimInput(e), animPrefill:()=>this.ccAnimPrefill(), animGenerate:()=>this.ccAnimate(), animLoading:!!s.ccStoryLoading, animError:s.ccStoryError||'', animGenLabel: s.ccStoryLoading?'Building storyboard…':(s.ccStoryboard?'Regenerate':'Generate storyboard'), animHas:!!s.ccStoryboard, animTitle:(s.ccStoryboard&&s.ccStoryboard.title)||'', animCopyAll:()=>this.ccCopyAllPrompts(), animHasScript:!!this.ccAnimScriptVal().trim(),
-      animSections: s.ccStoryboard ? (s.ccStoryboard.sections||[]).map(sec=>({ label:sec.label||'', time:sec.time||'', narration:sec.narration||'', animation:sec.animation||'', hasAnimation:!!sec.animation, copyAnim:()=>this.ccCopy(sec.animation,'Animation brief copied'), frames:(sec.frames||[]).map((f,i)=>({ n:i+1, caption:f.caption||('Frame '+(i+1)), visual:f.visual||'', copy:()=>this.ccCopy((f.caption?f.caption+': ':'')+f.visual,'Frame '+(i+1)+' copied') })), hasFrames:(sec.frames||[]).length>0 })) : [],
+      animHasReel: !!(r && r.frames && r.frames.length), animEmpty: !!(r && r.frames && r.frames.length) && !s.ccStoryboard && !s.ccStoryLoading, animReelTitle: (r && ((r.transcript&&r.transcript.segments&&r.transcript.segments[0]&&r.transcript.segments[0].text)||r.id)) || '', animBreakdown:()=>this.ccBreakdownReel(), animBreakdownLabel: s.ccStoryLoading?'Breaking down…':(s.ccStoryboard?'Re-break down':'Break down animations'), animLoading:!!s.ccStoryLoading, animError:s.ccStoryError||'', animHas:!!s.ccStoryboard, animTitle:(s.ccStoryboard&&s.ccStoryboard.title)||'', animCopyAll:()=>this.ccCopyAllPrompts(), animRenderAll:()=>this.ccRenderAllVisuals(), animRenderingAll:!!s.ccRenderingAll, animRenderAllLabel: s.ccRenderingAll?'Rendering…':'🖼 Render all clean mockups',
+      animSections: s.ccStoryboard ? (s.ccStoryboard.sections||[]).map((sec,si)=>({ label:sec.label||'', time:sec.time||'', narration:sec.narration||'', animation:sec.animation||'', hasAnimation:!!sec.animation, copyAnim:()=>this.ccCopy(sec.animation,'Animation brief copied'), frames:(sec.frames||[]).map((f,fi)=>{ const key=si+'_'+fi; const html=(s.ccFrameHtml||{})[key]||''; const busy=!!(s.ccFrameBusy||{})[key]; const ctx=(sec.label||'')+' — '+(sec.narration||''); const spec=(f.visual||'')+(f.motion?(' — Bewegung: '+f.motion):''); return { n:fi+1, caption:f.caption||('Frame '+(fi+1)), visual:f.visual||'', motion:f.motion||'', hasMotion:!!f.motion, imgUrl:f.img?('/analysis/'+f.img):'', hasImg:!!f.img, copy:()=>this.ccCopy(spec,'Frame spec copied'), html:html, rendered:!!html, rendering:busy, render:()=>this.ccRenderFrame(si,fi,spec,ctx,false), renderLabel: busy?'…':'🖼 Clean mockup' }; }), hasFrames:(sec.frames||[]).length>0 })) : [],
       genLabel: s.ccScriptLoading?'Generating…':(s.ccScript?'Regenerate':'Generate script'), generate:()=>this.generateScript(),
       brief:s.ccBrief||'', onBrief:(e)=>this.setState({ ccBrief: e&&e.target?e.target.value:'' }),
       copyOriginal:()=>this.ccCopy((r&&r.transcript&&r.transcript.text)||'','Original copied'),
