@@ -191,6 +191,31 @@ const server = http.createServer(async (req, res) => {
         return send(res, e && e.code === "NO_SCRIPT" ? 200 : 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e), code: e && e.code }));
       }
     }
+    // Reverse-engineer an extracted reel into a frame-by-frame animation breakdown.
+    if (u.pathname === "/api/animate/reel" && req.method === "POST") {
+      const body = await readJson(req);
+      try {
+        let frames = body.frames, transcript = body.transcript;
+        if ((!frames || !frames.length) && body.shortcode) {
+          const f = path.join(ANALYSIS, body.shortcode + ".json");
+          if (existsSync(f)) { const j = JSON.parse(readFileSync(f, "utf8")); frames = j.frames; transcript = j.transcript; }
+        }
+        const { breakdownReel } = await import("./lib/animate.mjs");
+        return send(res, 200, ".json", JSON.stringify(await breakdownReel({ frames, transcript })));
+      } catch (e) {
+        return send(res, e && e.code === "NO_FRAMES" ? 200 : 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e), code: e && e.code }));
+      }
+    }
+    // Render one frame's description into an actual HTML mockup (a picture).
+    if (u.pathname === "/api/animate/frame" && req.method === "POST") {
+      const body = await readJson(req);
+      try {
+        const { renderFrame } = await import("./lib/animate.mjs");
+        return send(res, 200, ".json", JSON.stringify({ html: await renderFrame(body.visual || "", { context: body.context || "" }) }));
+      } catch (e) {
+        return send(res, e && e.code === "NO_VISUAL" ? 200 : 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
 
     // Studio: RAG "what works" advisor (generate / refine, grounded in the reels).
     if (u.pathname === "/api/studio" && req.method === "POST") {
