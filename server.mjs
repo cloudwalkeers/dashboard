@@ -211,7 +211,9 @@ const server = http.createServer(async (req, res) => {
       const body = await readJson(req);
       try {
         const { renderFrame } = await import("./lib/animate.mjs");
-        return send(res, 200, ".json", JSON.stringify({ html: await renderFrame(body.visual || "", { context: body.context || "" }) }));
+        let imageDataUrl = null;
+        if (body.img) { const p = path.join(ANALYSIS, body.img); if (existsSync(p)) imageDataUrl = "data:image/jpeg;base64," + readFileSync(p).toString("base64"); }
+        return send(res, 200, ".json", JSON.stringify({ html: await renderFrame(body.visual || "", { context: body.context || "", imageDataUrl }) }));
       } catch (e) {
         return send(res, e && e.code === "NO_VISUAL" ? 200 : 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
       }

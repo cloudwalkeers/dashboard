@@ -835,23 +835,20 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
               </div>
               </sc-if>
               <sc-if value="{{ sec.hasFrames }}" hint-placeholder-val="{{ true }}">
-              <div class="cc-mono" style="font-size:9.5px;letter-spacing:.06em;color:var(--cc);margin-bottom:6px">FRAMES · MOCKUP-SPEC (Claude Design)</div>
-              <div style="display:flex;flex-direction:column;gap:7px">
-                <sc-for list="{{ sec.frames }}" as="fr" hint-placeholder-count="4">
-                  <div style="display:flex;gap:12px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:11px 12px">
-                    <sc-if value="{{ fr.rendered }}" hint-placeholder-val="{{ false }}">
-                      <div title="clean mockup" style="width:108px;height:192px;flex:none;overflow:hidden;border-radius:8px;border:1px solid var(--line);background:#fff">
-                        <iframe srcdoc="{{ fr.html }}" sandbox="" scrolling="no" style="width:360px;height:640px;border:none;transform:scale(0.3);transform-origin:top left"></iframe>
-                      </div>
-                    </sc-if>
-                    <sc-if value="{{ !fr.rendered }}" hint-placeholder-val="{{ true }}">
-                      <button onClick="{{ fr.render }}" title="Render this frame as a clean UI mockup" style="width:108px;height:192px;flex:none;border-radius:8px;border:1px dashed var(--line);background:var(--surface);color:var(--text-3);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;text-align:center;padding:8px">{{ fr.renderLabel }}</button>
-                    </sc-if>
-                    <div style="flex:1;min-width:0">
-                      <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px"><span style="flex:none;width:19px;height:19px;border-radius:5px;background:var(--cc-soft);color:var(--cc);font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center">{{ fr.n }}</span><span style="font-size:11.5px;font-weight:700">{{ fr.caption }}</span></div>
-                      <div style="font-size:11.5px;color:var(--text-2);line-height:1.5;margin-bottom:7px">{{ fr.visual }}</div>
-                      <button onClick="{{ fr.copy }}" style="background:none;color:var(--text-3);border:1px solid var(--line);border-radius:7px;padding:3px 10px;font-size:10.5px;font-weight:600;cursor:pointer;font-family:inherit">Spec</button>
+              <div class="cc-mono" style="font-size:9.5px;letter-spacing:.06em;color:var(--cc);margin-bottom:7px">ANIMATIONS-FLOW · {{ sec.frameCount }} FRAMES</div>
+              <div class="sg-scroll" style="display:flex;align-items:flex-start;gap:7px;overflow-x:auto;padding-bottom:8px">
+                <sc-for list="{{ sec.frames }}" as="fr" hint-placeholder-count="3">
+                  <div style="flex:none;display:flex;align-items:flex-start;gap:7px">
+                    <div style="width:132px;display:flex;flex-direction:column;gap:6px">
+                      <sc-if value="{{ fr.rendered }}" hint-placeholder-val="{{ false }}">
+                        <div title="recreated mockup" style="width:132px;height:235px;overflow:hidden;border-radius:10px;border:1px solid var(--line);background:#fff"><iframe srcdoc="{{ fr.html }}" sandbox="" scrolling="no" style="width:360px;height:640px;border:none;transform:scale(0.3667);transform-origin:top left"></iframe></div>
+                      </sc-if>
+                      <sc-if value="{{ !fr.rendered }}" hint-placeholder-val="{{ true }}">
+                        <button onClick="{{ fr.render }}" title="Recreate this frame's UI from the real video frame (no person)" style="width:132px;height:235px;border-radius:10px;border:1px dashed var(--line);background:var(--surface);color:var(--text-3);font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;text-align:center;padding:10px">{{ fr.renderLabel }}</button>
+                      </sc-if>
+                      <div onClick="{{ fr.copy }}" title="Copy this frame's spec" style="font-size:10.5px;color:var(--text-2);line-height:1.35;cursor:pointer"><span style="font-weight:800;color:var(--cc)">{{ fr.n }}.</span> {{ fr.caption }}</div>
                     </div>
+                    <sc-if value="{{ fr.notLast }}" hint-placeholder-val="{{ true }}"><span style="font-size:24px;color:var(--text-3);flex:none;margin-top:98px">→</span></sc-if>
                   </div>
                 </sc-for>
               </div>
@@ -2099,26 +2096,26 @@ class Component extends DCLogic {
     this.setState({ ccStoryLoading:true, ccStoryError:'', ccStoryboard:null, ccFrameHtml:{}, ccFrameBusy:{} });
     fetch('/api/animate/reel',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ shortcode:r.id, frames:r.frames, transcript:r.transcript }) })
       .then(res=>res.json())
-      .then(j=>{ this.setState({ ccStoryLoading:false, ccStoryboard:j.error?null:j, ccStoryError:j.error||'' }); if(!j.error && j.sections && j.sections.length) setTimeout(()=>this.ccRenderAllVisuals(),60); })
+      .then(j=>this.setState({ ccStoryLoading:false, ccStoryboard:j.error?null:j, ccStoryError:j.error||'' }))
       .catch(e=>this.setState({ ccStoryLoading:false, ccStoryError:String(e) }));
   }
   ccCopyAllPrompts(){ const sb=this.state.ccStoryboard; if(!sb) return; const txt=(sb.sections||[]).map(s=>{ let o=(s.time||'')+' – "'+(s.narration||'')+'"\n'+(s.animation||''); if((s.frames||[]).length) o+='\nFrames:\n'+(s.frames||[]).map((f,i)=>'  '+(i+1)+'. '+(f.caption?f.caption+' — ':'')+(f.visual||'')).join('\n'); return o; }).join('\n\n'); this.ccCopy(txt,'Whole breakdown copied'); }
-  ccRenderFrame(si,fi,visual,context,force){
+  ccRenderFrame(si,fi,visual,context,img,force){
     const key=si+'_'+fi;
     if((this.state.ccFrameBusy||{})[key]) return Promise.resolve();
     if(!force && (this.state.ccFrameHtml||{})[key]) return Promise.resolve();
     this.setState({ ccFrameBusy:Object.assign({}, this.state.ccFrameBusy, {[key]:true}), ccStoryError:'' });
-    return fetch('/api/animate/frame',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ visual, context }) })
+    return fetch('/api/animate/frame',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ visual, context, img }) })
       .then(r=>r.json())
       .then(j=>{ const busy=Object.assign({}, this.state.ccFrameBusy); delete busy[key]; const html=Object.assign({}, this.state.ccFrameHtml); if(j.html) html[key]=j.html; this.setState({ ccFrameBusy:busy, ccFrameHtml:html, ccStoryError:j.error||'' }); })
       .catch(e=>{ const busy=Object.assign({}, this.state.ccFrameBusy); delete busy[key]; this.setState({ ccFrameBusy:busy, ccStoryError:String(e) }); });
   }
   ccRenderAllVisuals(){
     const sb=this.state.ccStoryboard; if(!sb||this.state.ccRenderingAll) return;
-    const tasks=[]; (sb.sections||[]).forEach((sec,si)=>(sec.frames||[]).forEach((f,fi)=>{ if(!(this.state.ccFrameHtml||{})[si+'_'+fi]) tasks.push({ si,fi,visual:f.visual,context:(sec.label||'')+' — '+(sec.narration||'') }); }));
+    const tasks=[]; (sb.sections||[]).forEach((sec,si)=>(sec.frames||[]).forEach((f,fi)=>{ if(!(this.state.ccFrameHtml||{})[si+'_'+fi]) tasks.push({ si,fi,visual:f.visual,img:f.img,context:(sec.label||'')+' — '+(sec.narration||'') }); }));
     if(!tasks.length) return;
     this.setState({ ccRenderingAll:true });
-    let i=0; const worker=()=>{ if(i>=tasks.length) return Promise.resolve(); const t=tasks[i++]; return this.ccRenderFrame(t.si,t.fi,t.visual,t.context).then(worker); };
+    let i=0; const worker=()=>{ if(i>=tasks.length) return Promise.resolve(); const t=tasks[i++]; return this.ccRenderFrame(t.si,t.fi,t.visual,t.context,t.img).then(worker); };
     Promise.all([worker(),worker(),worker()]).then(()=>this.setState({ ccRenderingAll:false }));
   }
   ccSeg(active){ return active
@@ -2179,7 +2176,7 @@ Hier ist das Skript:
       goFrames:()=>this.setState({ccTab:'frames'}), goScript:()=>this.setState({ccTab:'script'}), goPrompt:()=>this.setState({ccTab:'prompt'}), goInsights:()=>this.setState({ccTab:'insights'}), goAnim:()=>this.setState({ccTab:'animation'}),
       tFrames:tab==='frames'?'var(--text)':'var(--text-3)', tScript:tab==='script'?'var(--text)':'var(--text-3)', tPrompt:tab==='prompt'?'var(--text)':'var(--text-3)', tInsights:tab==='insights'?'var(--text)':'var(--text-3)', tAnim:tab==='animation'?'var(--text)':'var(--text-3)',
       animHasReel: !!(r && r.frames && r.frames.length), animEmpty: !!(r && r.frames && r.frames.length) && !s.ccStoryboard && !s.ccStoryLoading, animReelTitle: (r && ((r.transcript&&r.transcript.segments&&r.transcript.segments[0]&&r.transcript.segments[0].text)||r.id)) || '', animBreakdown:()=>this.ccBreakdownReel(), animBreakdownLabel: s.ccStoryLoading?'Breaking down…':(s.ccStoryboard?'Re-break down':'Break down animations'), animLoading:!!s.ccStoryLoading, animError:s.ccStoryError||'', animHas:!!s.ccStoryboard, animTitle:(s.ccStoryboard&&s.ccStoryboard.title)||'', animCopyAll:()=>this.ccCopyAllPrompts(), animRenderAll:()=>this.ccRenderAllVisuals(), animRenderingAll:!!s.ccRenderingAll, animRenderAllLabel: s.ccRenderingAll?'Rendering…':'🖼 Render all clean mockups',
-      animSections: s.ccStoryboard ? (s.ccStoryboard.sections||[]).map((sec,si)=>({ label:sec.label||'', time:sec.time||'', narration:sec.narration||'', animation:sec.animation||'', hasAnimation:!!sec.animation, copyAnim:()=>this.ccCopy(sec.animation,'Animation brief copied'), frames:(sec.frames||[]).map((f,fi)=>{ const key=si+'_'+fi; const html=(s.ccFrameHtml||{})[key]||''; const busy=!!(s.ccFrameBusy||{})[key]; const ctx=(sec.label||'')+' — '+(sec.narration||''); return { n:fi+1, caption:f.caption||('Frame '+(fi+1)), visual:f.visual||'', copy:()=>this.ccCopy((f.caption?f.caption+': ':'')+f.visual,'Frame spec copied'), html:html, rendered:!!html, rendering:busy, render:()=>this.ccRenderFrame(si,fi,f.visual,ctx,false), renderLabel: busy?'…':'🖼 Render mockup' }; }), hasFrames:(sec.frames||[]).length>0 })) : [],
+      animSections: s.ccStoryboard ? (s.ccStoryboard.sections||[]).map((sec,si)=>({ label:sec.label||'', time:sec.time||'', narration:sec.narration||'', animation:sec.animation||'', hasAnimation:!!sec.animation, copyAnim:()=>this.ccCopy(sec.animation,'Animation brief copied'), frames:(sec.frames||[]).map((f,fi,arr)=>{ const key=si+'_'+fi; const html=(s.ccFrameHtml||{})[key]||''; const busy=!!(s.ccFrameBusy||{})[key]; const ctx=(sec.label||'')+' — '+(sec.narration||''); return { n:fi+1, caption:f.caption||('Frame '+(fi+1)), visual:f.visual||'', notLast: fi<arr.length-1, copy:()=>this.ccCopy((f.caption?f.caption+': ':'')+f.visual,'Frame spec copied'), html:html, rendered:!!html, rendering:busy, render:()=>this.ccRenderFrame(si,fi,f.visual,ctx,f.img,false), renderLabel: busy?'…':'🖼 Render' }; }), hasFrames:(sec.frames||[]).length>0, frameCount:(sec.frames||[]).length })) : [],
       genLabel: s.ccScriptLoading?'Generating…':(s.ccScript?'Regenerate':'Generate script'), generate:()=>this.generateScript(),
       brief:s.ccBrief||'', onBrief:(e)=>this.setState({ ccBrief: e&&e.target?e.target.value:'' }),
       copyOriginal:()=>this.ccCopy((r&&r.transcript&&r.transcript.text)||'','Original copied'),
