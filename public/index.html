@@ -528,6 +528,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
         <button onClick="{{ CC.goFrames }}" style="position:relative;border:none;background:transparent;font-family:inherit;font-size:14px;font-weight:600;padding:11px 16px;cursor:pointer;color:{{ CC.tFrames }}">Frames<sc-if value="{{ CC.isFrames }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;left:12px;right:12px;bottom:-1px;height:2.5px;background:var(--cc);border-radius:2px"></div></sc-if></button>
         <button onClick="{{ CC.goScript }}" style="position:relative;border:none;background:transparent;font-family:inherit;font-size:14px;font-weight:600;padding:11px 16px;cursor:pointer;color:{{ CC.tScript }}">Script<sc-if value="{{ CC.isScript }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;left:12px;right:12px;bottom:-1px;height:2.5px;background:var(--cc);border-radius:2px"></div></sc-if></button>
         <button onClick="{{ CC.goPrompt }}" style="position:relative;border:none;background:transparent;font-family:inherit;font-size:14px;font-weight:600;padding:11px 16px;cursor:pointer;color:{{ CC.tPrompt }}">Visuals &amp; Prompt<sc-if value="{{ CC.isPrompt }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;left:12px;right:12px;bottom:-1px;height:2.5px;background:var(--cc);border-radius:2px"></div></sc-if></button>
+        <button onClick="{{ CC.goAnim }}" style="position:relative;border:none;background:transparent;font-family:inherit;font-size:14px;font-weight:600;padding:11px 16px;cursor:pointer;color:{{ CC.tAnim }}">Animation<sc-if value="{{ CC.isAnim }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;left:12px;right:12px;bottom:-1px;height:2.5px;background:var(--cc);border-radius:2px"></div></sc-if></button>
         <button onClick="{{ CC.goInsights }}" style="position:relative;border:none;background:transparent;font-family:inherit;font-size:14px;font-weight:600;padding:11px 16px;cursor:pointer;color:{{ CC.tInsights }}">Insights<sc-if value="{{ CC.isInsights }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;left:12px;right:12px;bottom:-1px;height:2.5px;background:var(--cc);border-radius:2px"></div></sc-if></button>
       </div>
 
@@ -792,6 +793,45 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
             </sc-for>
           </div>
         </div>
+        </sc-if>
+      </div>
+      </sc-if>
+
+      <!-- ANIMATION -->
+      <sc-if value="{{ CC.isAnim }}" hint-placeholder-val="{{ false }}">
+      <div>
+        <div style="margin-bottom:18px">
+          <div style="font-weight:700;font-size:15px;margin-bottom:6px">Script → Animations‑Storyboard</div>
+          <p style="margin:0 0 12px;font-size:12.5px;color:var(--text-2);max-width:700px">Skript einfügen (am besten mit Zeitstempeln). Pro Beat bekommst du das passende Visual — Claude/ChatGPT‑UI‑Animation, statisches Bild, oder keins — plus einen fertigen <strong>Claude‑Design‑Prompt</strong> zum Kopieren.</p>
+          <textarea value="{{ CC.animScript }}" onInput="{{ CC.animInput }}" placeholder="z.B. „(0:28) Nummer eins ist der Contract Reviewer. (0:31) Lade einen Vertrag hoch …“" style="width:100%;min-height:120px;box-sizing:border-box;font-family:inherit;font-size:13px;line-height:1.55;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--text);resize:vertical;outline:none"></textarea>
+          <div style="display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap">
+            <button onClick="{{ CC.animGenerate }}" style="background:var(--cc);color:var(--cc-on);border:none;border-radius:10px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">{{ CC.animGenLabel }}</button>
+            <button onClick="{{ CC.animPrefill }}" style="background:none;border:1px solid var(--line);border-radius:10px;padding:9px 14px;font-size:12.5px;font-weight:600;color:var(--text-2);cursor:pointer;font-family:inherit">Aus generiertem Script</button>
+            <sc-if value="{{ CC.animHas }}" hint-placeholder-val="{{ false }}"><button onClick="{{ CC.animCopyAll }}" style="background:none;border:1px solid var(--line);border-radius:10px;padding:9px 14px;font-size:12.5px;font-weight:600;color:var(--text-2);cursor:pointer;font-family:inherit">Alle Prompts kopieren</button></sc-if>
+          </div>
+          <sc-if value="{{ CC.animError }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px;color:#dc2626;margin-top:8px">{{ CC.animError }}</div></sc-if>
+        </div>
+        <sc-if value="{{ CC.animHas }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <sc-for list="{{ CC.animBeats }}" as="b" hint-placeholder-count="6">
+            <div style="display:grid;grid-template-columns:74px 1fr;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:14px 16px">
+              <div class="cc-mono" style="font-size:12px;font-weight:700;color:var(--cc);padding-top:2px">{{ b.time }}</div>
+              <div style="min-width:0">
+                <div style="display:flex;align-items:center;gap:9px;margin-bottom:6px;flex-wrap:wrap"><span style="{{ b.typeStyle }}">{{ b.typeLabel }}</span><span style="font-size:12px;color:var(--text-3)">{{ b.visual }}</span></div>
+                <div style="font-size:13px;color:var(--text-2);line-height:1.5;margin-bottom:8px">{{ b.narration }}</div>
+                <sc-if value="{{ b.hasPrompt }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;align-items:flex-start;gap:10px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:11px 13px">
+                  <div style="flex:1;font-size:12.5px;line-height:1.5;color:var(--text)">{{ b.prompt }}</div>
+                  <button onClick="{{ b.copy }}" title="Copy prompt" style="flex:none;background:var(--cc-soft);color:var(--cc);border:1px solid var(--line);border-radius:8px;padding:5px 12px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit">Copy</button>
+                </div>
+                </sc-if>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+        </sc-if>
+        <sc-if value="{{ !CC.animHas }}" hint-placeholder-val="{{ true }}">
+          <div style="background:var(--surface);border:1px dashed var(--line);border-radius:14px;padding:34px 24px;text-align:center;font-size:13.5px;color:var(--text-3)">Paste a script and hit <strong>Generate storyboard</strong> — you get a per‑beat visual plan with copy‑paste Claude Design prompts.</div>
         </sc-if>
       </div>
       </sc-if>
@@ -1282,6 +1322,7 @@ class Component extends DCLogic {
     this.MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     this.state = { view:'overview', sel:null, range:'30D', sort:'reach', loading:true, syncing:false, loadError:null, analysis:null, analysisFor:null, analysisLoading:false,
       ccUrl:'', ccLoading:false, ccResult:null, ccError:'', ccTab:'frames', ccScript:'', ccScriptLoading:false, ccBrief:'', ccProgress:0, ccStep:'',
+      ccAnimScript:null, ccStoryboard:null, ccStoryLoading:false, ccStoryError:'',
       ccSel:{}, ccExporting:false, ccSaving:false, ccSaved:'',
       ccCur:0, ccCView:'scrubber', ccPlaying:false, ccZones:false, ccPromptSrc:'original', ccIncVis:false, ccToast:'',
       pipeItems:null, pipeLoading:false, pipeError:'', pipeLoaded:false,
@@ -2019,6 +2060,19 @@ class Component extends DCLogic {
   componentWillUnmount(){ if(this._ccTimer) clearInterval(this._ccTimer); clearTimeout(this._ccToast); }
   ccFlash(msg){ this.setState({ ccToast:msg }); clearTimeout(this._ccToast); this._ccToast=setTimeout(()=>this.setState({ ccToast:'' }),1500); }
   ccCopy(text,msg){ try{ navigator.clipboard.writeText(text||''); }catch(e){} this.ccFlash(msg||'Copied'); }
+  ccAnimScriptVal(){ const s=this.state; return s.ccAnimScript!=null ? s.ccAnimScript : (s.ccScript||''); }
+  ccAnimInput(e){ this.setState({ ccAnimScript:(e&&e.target&&e.target.value)||'' }); }
+  ccAnimPrefill(){ this.setState({ ccAnimScript:this.state.ccScript||'' }); }
+  ccAnimate(){
+    const script=this.ccAnimScriptVal().trim();
+    if(!script){ this.setState({ ccStoryError:'Paste a script (ideally with timestamps) first.' }); return; }
+    this.setState({ ccStoryLoading:true, ccStoryError:'' });
+    fetch('/api/animate',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ script }) })
+      .then(r=>r.json())
+      .then(j=>this.setState({ ccStoryLoading:false, ccStoryboard:j.error?this.state.ccStoryboard:j, ccStoryError:j.error||'' }))
+      .catch(e=>this.setState({ ccStoryLoading:false, ccStoryError:String(e) }));
+  }
+  ccCopyAllPrompts(){ const sb=this.state.ccStoryboard; if(!sb) return; const txt=(sb.beats||[]).filter(b=>b.prompt).map(b=>'['+b.time+'] '+b.prompt).join('\n\n'); this.ccCopy(txt,'All prompts copied'); }
   ccSeg(active){ return active
     ? { padding:'7px 16px',borderRadius:'8px',border:'none',fontFamily:'inherit',fontSize:'13px',fontWeight:'600',cursor:'pointer',background:'var(--surface)',color:'var(--text)',boxShadow:'0 1px 2px rgba(20,18,40,.12)' }
     : { padding:'7px 16px',borderRadius:'8px',border:'none',fontFamily:'inherit',fontSize:'13px',fontWeight:'600',cursor:'pointer',background:'transparent',color:'var(--text-3)' }; }
@@ -2073,9 +2127,11 @@ Hier ist das Skript:
       step:s.ccStep||'', progressPct:(s.ccProgress||0)+'%',
       barStyle:{ height:'100%', width:(s.ccProgress||0)+'%', background:'var(--cc)', borderRadius:'999px', transition:'width .3s ease' },
       error:s.ccError||'', hasResult:!!r, toast:s.ccToast||'',
-      isFrames:tab==='frames', isScript:tab==='script', isPrompt:tab==='prompt', isInsights:tab==='insights',
-      goFrames:()=>this.setState({ccTab:'frames'}), goScript:()=>this.setState({ccTab:'script'}), goPrompt:()=>this.setState({ccTab:'prompt'}), goInsights:()=>this.setState({ccTab:'insights'}),
-      tFrames:tab==='frames'?'var(--text)':'var(--text-3)', tScript:tab==='script'?'var(--text)':'var(--text-3)', tPrompt:tab==='prompt'?'var(--text)':'var(--text-3)', tInsights:tab==='insights'?'var(--text)':'var(--text-3)',
+      isFrames:tab==='frames', isScript:tab==='script', isPrompt:tab==='prompt', isInsights:tab==='insights', isAnim:tab==='animation',
+      goFrames:()=>this.setState({ccTab:'frames'}), goScript:()=>this.setState({ccTab:'script'}), goPrompt:()=>this.setState({ccTab:'prompt'}), goInsights:()=>this.setState({ccTab:'insights'}), goAnim:()=>this.setState({ccTab:'animation'}),
+      tFrames:tab==='frames'?'var(--text)':'var(--text-3)', tScript:tab==='script'?'var(--text)':'var(--text-3)', tPrompt:tab==='prompt'?'var(--text)':'var(--text-3)', tInsights:tab==='insights'?'var(--text)':'var(--text-3)', tAnim:tab==='animation'?'var(--text)':'var(--text-3)',
+      animScript:this.ccAnimScriptVal(), animInput:(e)=>this.ccAnimInput(e), animPrefill:()=>this.ccAnimPrefill(), animGenerate:()=>this.ccAnimate(), animLoading:!!s.ccStoryLoading, animError:s.ccStoryError||'', animGenLabel: s.ccStoryLoading?'Building storyboard…':(s.ccStoryboard?'Regenerate':'Generate storyboard'), animHas:!!s.ccStoryboard, animTitle:(s.ccStoryboard&&s.ccStoryboard.title)||'', animCopyAll:()=>this.ccCopyAllPrompts(), animHasScript:!!this.ccAnimScriptVal().trim(),
+      animBeats: s.ccStoryboard ? (s.ccStoryboard.beats||[]).map(b=>{ const T={'ui-animation':{label:'UI-Animation',c:'var(--cc)',bg:'var(--cc-soft)'},'static':{label:'Static',c:'#e0a458',bg:'rgba(224,164,88,.14)'},'none':{label:'No visual',c:'var(--text-3)',bg:'var(--fill)'}}; const t=T[b.type]||T.none; return { time:b.time, narration:b.narration, hasPrompt:!!b.prompt, visual:b.visual||'—', prompt:b.prompt||'', typeLabel:t.label, typeStyle:{ fontSize:'10px', fontWeight:'700', padding:'2px 8px', borderRadius:'6px', color:t.c, background:t.bg, whiteSpace:'nowrap', textTransform:'uppercase', letterSpacing:'.03em' }, copy:()=>this.ccCopy(b.prompt,'Prompt copied') }; }) : [],
       genLabel: s.ccScriptLoading?'Generating…':(s.ccScript?'Regenerate':'Generate script'), generate:()=>this.generateScript(),
       brief:s.ccBrief||'', onBrief:(e)=>this.setState({ ccBrief: e&&e.target?e.target.value:'' }),
       copyOriginal:()=>this.ccCopy((r&&r.transcript&&r.transcript.text)||'','Original copied'),

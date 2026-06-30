@@ -181,6 +181,17 @@ const server = http.createServer(async (req, res) => {
       }
     }
 
+    // Animation storyboard: a script -> per-beat visual plan + Claude Design prompts.
+    if (u.pathname === "/api/animate" && req.method === "POST") {
+      const body = await readJson(req);
+      try {
+        const { storyboard } = await import("./lib/animate.mjs");
+        return send(res, 200, ".json", JSON.stringify(await storyboard(body.script || "")));
+      } catch (e) {
+        return send(res, e && e.code === "NO_SCRIPT" ? 200 : 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e), code: e && e.code }));
+      }
+    }
+
     // Studio: RAG "what works" advisor (generate / refine, grounded in the reels).
     if (u.pathname === "/api/studio" && req.method === "POST") {
       const body = await readJson(req);
