@@ -6,6 +6,8 @@ node_modules/
 .DS_Store
 /analysis/
 /originals/
+ig_cookies.txt
+cookies.txt
 _*
 remotion/node_modules/
 remotion/out/
