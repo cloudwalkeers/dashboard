@@ -499,6 +499,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
         <input value="{{ CC.url }}" onInput="{{ CC.onUrl }}" placeholder="https://www.instagram.com/…/reel/…" class="cc-mono" style="flex:1;border:none;outline:none;background:transparent;font-size:13px;color:var(--text);padding:14px 0"/>
       </div>
       <button onClick="{{ CC.extract }}" style="border:none;background:var(--text);color:var(--bg);font-family:inherit;font-weight:600;font-size:14px;padding:0 26px;border-radius:12px;cursor:pointer">{{ CC.extractLabel }}</button>
+      <button onClick="{{ CC.forceExtract }}" title="Re-download + re-analyze from scratch, ignoring any cached/stored version" style="border:1px solid var(--line);background:var(--surface);color:var(--text-2);font-family:inherit;font-weight:600;font-size:12.5px;padding:0 14px;border-radius:12px;cursor:pointer;white-space:nowrap">↻ Force re‑fetch</button>
     </div>
     <sc-if value="{{ CC.error }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:#dc2626;margin-bottom:8px">{{ CC.error }}</div></sc-if>
     <sc-if value="{{ CC.extracting }}" hint-placeholder-val="{{ false }}">
@@ -1664,12 +1665,12 @@ class Component extends DCLogic {
     const map={ 'metadata':'Reading reel info…','download':'Downloading reel…','frames':'Extracting frames + audio…','transcribe':'Transcribing audio…','analyze':'Writing the analysis…','store':'Saving to database…','cached (supabase)':'Loaded from database' };
     return map[s]||s;
   }
-  extract(){
+  extract(force){
     const url=(this.state.ccUrl||'').trim();
     if(!url){ this.setState({ ccError:'Paste an Instagram reel link first.' }); return; }
     if(this._ccTimer){ clearInterval(this._ccTimer); this._ccTimer=null; }
-    this.setState({ ccLoading:true, ccError:'', ccResult:null, ccScript:'', ccSel:{}, ccSaved:'', ccCur:0, ccCView:'scrubber', ccPlaying:false, ccProgress:2, ccStep:'Starting…' });
-    fetch('/api/extract',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ url }) })
+    this.setState({ ccLoading:true, ccError:'', ccResult:null, ccScript:'', ccSel:{}, ccSaved:'', ccCur:0, ccCView:'scrubber', ccPlaying:false, ccProgress:2, ccStep: force?'Re-fetching (ignoring cache)…':'Starting…' });
+    fetch('/api/extract',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ url, force: !!force }) })
       .then(async (res)=>{
         if(!res.body){ const j=await res.json().catch(()=>({error:'no response'})); this.setState({ ccLoading:false, ccError:j.error||'failed' }); return; }
         const reader=res.body.getReader(), dec=new TextDecoder(); let buf='';
@@ -2170,7 +2171,7 @@ Hier ist das Skript:
     const s=this.state, r=s.ccResult, tab=s.ccTab||'frames';
     const cc={
       url:s.ccUrl||'', onUrl:(e)=>this.setState({ ccUrl: e&&e.target?e.target.value:'' }),
-      extract:()=>this.extract(), extracting:!!s.ccLoading, extractLabel: s.ccLoading?'Extracting…':'Extract',
+      extract:()=>this.extract(false), forceExtract:()=>this.extract(true), extracting:!!s.ccLoading, extractLabel: s.ccLoading?'Extracting…':'Extract',
       step:s.ccStep||'', progressPct:(s.ccProgress||0)+'%',
       barStyle:{ height:'100%', width:(s.ccProgress||0)+'%', background:'var(--cc)', borderRadius:'999px', transition:'width .3s ease' },
       error:s.ccError||'', hasResult:!!r, toast:s.ccToast||'',
