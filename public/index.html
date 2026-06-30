@@ -812,20 +812,42 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
           <sc-if value="{{ CC.animError }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px;color:#dc2626;margin-top:8px">{{ CC.animError }}</div></sc-if>
         </div>
         <sc-if value="{{ CC.animHas }}" hint-placeholder-val="{{ false }}">
-        <div style="display:flex;flex-direction:column;gap:10px">
-          <sc-for list="{{ CC.animBeats }}" as="b" hint-placeholder-count="6">
-            <div style="display:grid;grid-template-columns:74px 1fr;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:14px 16px">
-              <div class="cc-mono" style="font-size:12px;font-weight:700;color:var(--cc);padding-top:2px">{{ b.time }}</div>
-              <div style="min-width:0">
-                <div style="display:flex;align-items:center;gap:9px;margin-bottom:6px;flex-wrap:wrap"><span style="{{ b.typeStyle }}">{{ b.typeLabel }}</span><span style="font-size:12px;color:var(--text-3)">{{ b.visual }}</span></div>
-                <div style="font-size:13px;color:var(--text-2);line-height:1.5;margin-bottom:8px">{{ b.narration }}</div>
-                <sc-if value="{{ b.hasPrompt }}" hint-placeholder-val="{{ true }}">
-                <div style="display:flex;align-items:flex-start;gap:10px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:11px 13px">
-                  <div style="flex:1;font-size:12.5px;line-height:1.5;color:var(--text)">{{ b.prompt }}</div>
-                  <button onClick="{{ b.copy }}" title="Copy prompt" style="flex:none;background:var(--cc-soft);color:var(--cc);border:1px solid var(--line);border-radius:8px;padding:5px 12px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit">Copy</button>
-                </div>
-                </sc-if>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <sc-for list="{{ CC.animSections }}" as="sec" hint-placeholder-count="5">
+            <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:5px;flex-wrap:wrap">
+                <span style="{{ sec.typeStyle }}">{{ sec.typeLabel }}</span>
+                <span style="font-weight:700;font-size:14.5px">{{ sec.label }}</span>
+                <span class="cc-mono" style="font-size:11px;color:var(--cc)">{{ sec.time }}</span>
+                <sc-if value="{{ sec.hasMeta }}" hint-placeholder-val="{{ true }}"><span class="cc-mono" style="font-size:10px;color:var(--text-3);margin-left:auto;white-space:nowrap">{{ sec.duration }} · {{ sec.aspect }}</span></sc-if>
               </div>
+              <div style="font-size:12.5px;color:var(--text-2);margin-bottom:9px">{{ sec.subtitle }}</div>
+              <div style="font-size:12.5px;color:var(--text-3);line-height:1.5;margin-bottom:12px">{{ sec.narration }}</div>
+              <sc-if value="{{ sec.hasSteps }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:13px">
+                <sc-for list="{{ sec.steps }}" as="st" hint-placeholder-count="4">
+                  <div style="display:flex;align-items:center;gap:6px;background:var(--fill);border:1px solid var(--line);border-radius:8px;padding:5px 10px;font-size:11.5px;color:var(--text-2)"><span style="font-weight:800;color:var(--cc)">{{ st.n }}</span>{{ st.text }}</div>
+                </sc-for>
+              </div>
+              </sc-if>
+              <sc-if value="{{ sec.hasDesign }}" hint-placeholder-val="{{ true }}">
+              <div style="margin-bottom:8px">
+                <div class="cc-mono" style="font-size:9.5px;letter-spacing:.06em;color:var(--cc);margin-bottom:5px">CLAUDE DESIGN PROMPT · MOCKUP</div>
+                <div style="display:flex;align-items:flex-start;gap:10px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:11px 13px">
+                  <div style="flex:1;font-size:12.5px;line-height:1.55;color:var(--text)">{{ sec.designPrompt }}</div>
+                  <button onClick="{{ sec.copyDesign }}" title="Copy" style="flex:none;background:var(--cc-soft);color:var(--cc);border:1px solid var(--line);border-radius:8px;padding:5px 12px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit">Copy</button>
+                </div>
+              </div>
+              </sc-if>
+              <sc-if value="{{ sec.hasKling }}" hint-placeholder-val="{{ true }}">
+              <div>
+                <div class="cc-mono" style="font-size:9.5px;letter-spacing:.06em;color:#d97757;margin-bottom:5px">KLING AI PROMPT · ANIMATION</div>
+                <div style="display:flex;align-items:flex-start;gap:10px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:11px 13px">
+                  <div style="flex:1;font-size:12.5px;line-height:1.55;color:var(--text)">{{ sec.klingPrompt }}</div>
+                  <button onClick="{{ sec.copyKling }}" title="Copy" style="flex:none;background:rgba(217,119,87,.16);color:#d97757;border:1px solid var(--line);border-radius:8px;padding:5px 12px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit">Copy</button>
+                </div>
+              </div>
+              </sc-if>
             </div>
           </sc-for>
         </div>
@@ -2072,7 +2094,7 @@ class Component extends DCLogic {
       .then(j=>this.setState({ ccStoryLoading:false, ccStoryboard:j.error?this.state.ccStoryboard:j, ccStoryError:j.error||'' }))
       .catch(e=>this.setState({ ccStoryLoading:false, ccStoryError:String(e) }));
   }
-  ccCopyAllPrompts(){ const sb=this.state.ccStoryboard; if(!sb) return; const txt=(sb.beats||[]).filter(b=>b.prompt).map(b=>'['+b.time+'] '+b.prompt).join('\n\n'); this.ccCopy(txt,'All prompts copied'); }
+  ccCopyAllPrompts(){ const sb=this.state.ccStoryboard; if(!sb) return; const txt=(sb.sections||[]).filter(s=>s.designPrompt||s.klingPrompt).map(s=>{ let o='['+(s.time||'')+'] '+(s.label||''); if(s.designPrompt) o+='\n[Claude Design] '+s.designPrompt; if(s.klingPrompt) o+='\n[Kling AI] '+s.klingPrompt; return o; }).join('\n\n'); this.ccCopy(txt,'All prompts copied'); }
   ccSeg(active){ return active
     ? { padding:'7px 16px',borderRadius:'8px',border:'none',fontFamily:'inherit',fontSize:'13px',fontWeight:'600',cursor:'pointer',background:'var(--surface)',color:'var(--text)',boxShadow:'0 1px 2px rgba(20,18,40,.12)' }
     : { padding:'7px 16px',borderRadius:'8px',border:'none',fontFamily:'inherit',fontSize:'13px',fontWeight:'600',cursor:'pointer',background:'transparent',color:'var(--text-3)' }; }
@@ -2131,7 +2153,7 @@ Hier ist das Skript:
       goFrames:()=>this.setState({ccTab:'frames'}), goScript:()=>this.setState({ccTab:'script'}), goPrompt:()=>this.setState({ccTab:'prompt'}), goInsights:()=>this.setState({ccTab:'insights'}), goAnim:()=>this.setState({ccTab:'animation'}),
       tFrames:tab==='frames'?'var(--text)':'var(--text-3)', tScript:tab==='script'?'var(--text)':'var(--text-3)', tPrompt:tab==='prompt'?'var(--text)':'var(--text-3)', tInsights:tab==='insights'?'var(--text)':'var(--text-3)', tAnim:tab==='animation'?'var(--text)':'var(--text-3)',
       animScript:this.ccAnimScriptVal(), animInput:(e)=>this.ccAnimInput(e), animPrefill:()=>this.ccAnimPrefill(), animGenerate:()=>this.ccAnimate(), animLoading:!!s.ccStoryLoading, animError:s.ccStoryError||'', animGenLabel: s.ccStoryLoading?'Building storyboard…':(s.ccStoryboard?'Regenerate':'Generate storyboard'), animHas:!!s.ccStoryboard, animTitle:(s.ccStoryboard&&s.ccStoryboard.title)||'', animCopyAll:()=>this.ccCopyAllPrompts(), animHasScript:!!this.ccAnimScriptVal().trim(),
-      animBeats: s.ccStoryboard ? (s.ccStoryboard.beats||[]).map(b=>{ const T={'ui-animation':{label:'UI-Animation',c:'var(--cc)',bg:'var(--cc-soft)'},'static':{label:'Static',c:'#e0a458',bg:'rgba(224,164,88,.14)'},'none':{label:'No visual',c:'var(--text-3)',bg:'var(--fill)'}}; const t=T[b.type]||T.none; return { time:b.time, narration:b.narration, hasPrompt:!!b.prompt, visual:b.visual||'—', prompt:b.prompt||'', typeLabel:t.label, typeStyle:{ fontSize:'10px', fontWeight:'700', padding:'2px 8px', borderRadius:'6px', color:t.c, background:t.bg, whiteSpace:'nowrap', textTransform:'uppercase', letterSpacing:'.03em' }, copy:()=>this.ccCopy(b.prompt,'Prompt copied') }; }) : [],
+      animSections: s.ccStoryboard ? (s.ccStoryboard.sections||[]).map(sec=>{ const T={'ui-animation':{label:'UI-Animation',c:'var(--cc)',bg:'var(--cc-soft)'},'static':{label:'Static',c:'#e0a458',bg:'rgba(224,164,88,.14)'},'none':{label:'No visual',c:'var(--text-3)',bg:'var(--fill)'}}; const t=T[sec.type]||T.none; return { label:sec.label, time:sec.time, subtitle:sec.subtitle||'', narration:sec.narration||'', typeLabel:t.label, typeStyle:{ fontSize:'10px', fontWeight:'700', padding:'2px 8px', borderRadius:'6px', color:t.c, background:t.bg, whiteSpace:'nowrap', textTransform:'uppercase', letterSpacing:'.03em' }, duration:sec.duration||'', aspect:sec.aspect||'', hasMeta:!!(sec.duration||sec.aspect), steps:(sec.steps||[]).map((x,i)=>({ n:i+1, text:x })), hasSteps:(sec.steps||[]).length>0, designPrompt:sec.designPrompt||'', hasDesign:!!sec.designPrompt, copyDesign:()=>this.ccCopy(sec.designPrompt,'Design prompt copied'), klingPrompt:sec.klingPrompt||'', hasKling:!!sec.klingPrompt, copyKling:()=>this.ccCopy(sec.klingPrompt,'Kling prompt copied') }; }) : [],
       genLabel: s.ccScriptLoading?'Generating…':(s.ccScript?'Regenerate':'Generate script'), generate:()=>this.generateScript(),
       brief:s.ccBrief||'', onBrief:(e)=>this.setState({ ccBrief: e&&e.target?e.target.value:'' }),
       copyOriginal:()=>this.ccCopy((r&&r.transcript&&r.transcript.text)||'','Original copied'),
