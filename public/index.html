@@ -1186,8 +1186,9 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
       </div>
       <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
         <div style="display:inline-flex;background:var(--fill);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px">
-          <button onClick="{{ LAB.setRate }}" style="{{ LAB.segRate }}">Rate</button>
-          <button onClick="{{ LAB.setLikes }}" style="{{ LAB.segLikes }}">Likes</button>
+          <button onClick="{{ LAB.setRate }}" style="{{ LAB.segRate }}">Likes</button>
+          <button onClick="{{ LAB.setSaves }}" style="{{ LAB.segSaves }}">Saves</button>
+          <button onClick="{{ LAB.setWatch }}" style="{{ LAB.segWatch }}">Watch</button>
         </div>
         <button onClick="{{ LAB.rebuild }}" style="{{ refreshBtnStyle }}">↻ Rebuild</button>
       </div>
@@ -1882,9 +1883,9 @@ class Component extends DCLogic {
       configured: s.labConfigured!==false,
       loading: !!s.labLoading, rebuilding: !!s.labRebuilding, error: s.labError||'',
       n: d.n||0, withViews: d.withViews||0, outcome,
-      outcomeNote: outcome==='rate' ? '· likes ÷ views (reach-controlled)' : '· raw likes (confounded by reach)',
-      segRate:this.ccSeg(outcome!=='likes'), segLikes:this.ccSeg(outcome==='likes'),
-      setRate:()=>this.labFetch('rate'), setLikes:()=>this.labFetch('likes'), rebuild:()=>this.labRebuild(),
+      outcomeNote: outcome==='save_rate' ? '· saves ÷ views' : outcome==='watch_through' ? '· % of the reel watched' : '· likes ÷ views (reach-controlled)',
+      segRate:this.ccSeg(outcome==='rate'), segSaves:this.ccSeg(outcome==='save_rate'), segWatch:this.ccSeg(outcome==='watch_through'),
+      setRate:()=>this.labFetch('rate'), setSaves:()=>this.labFetch('save_rate'), setWatch:()=>this.labFetch('watch_through'), rebuild:()=>this.labRebuild(),
       hasExp: !!exp, expClaim: exp&&exp.claim, expDo: exp&&exp.instruction,
       expTest: exp&&exp.arms&&exp.arms.test, expControl: exp&&exp.arms&&exp.arms.control,
       hyps, hasHyps: hyps.length>0,
