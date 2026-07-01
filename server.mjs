@@ -24,6 +24,32 @@ loadToken(); // adopt the persisted/refreshed IG token so it survives past its 6
 const PORT = Number(process.env.PORT || 5173);
 const CACHE_MS = 5 * 60 * 1000;
 let cache = null; // { t, payload }
+let trendCache = null; // { t, trend } — real daily account reach, cached ~30 min
+
+// Real daily account trend (reach is exposed per-day; daily plays is not, so we
+// derive it from real reach × the catalogue's plays/reach ratio). Cached so the
+// fast stored view isn't slowed by an Instagram round-trip on every load.
+async function realTrend(defs) {
+  if (!isConfigured()) return null;
+  if (trendCache && Date.now() - trendCache.t < 30 * 60 * 1000) return trendCache.trend;
+  try {
+    const { fetchAccountTrend } = await import("./lib/graph.mjs");
+    const t = await fetchAccountTrend(90);
+    if (!t.reachS || !t.reachS.some((v) => v > 0)) return null;
+    let reachS = t.reachS;
+    const firstNz = reachS.findIndex((v) => v > 0);            // drop the empty pre-history
+    if (firstNz > 0) reachS = reachS.slice(firstNz);
+    let playsS = (t.playsS && t.playsS.length) ? t.playsS.slice(-reachS.length) : null;
+    if (!playsS) {
+      const tp = defs.reduce((s, d) => s + (d.plays || 0), 0), tr = defs.reduce((s, d) => s + (d.reach || 0), 0);
+      const ratio = tr ? tp / tr : 1.15;
+      playsS = reachS.map((v) => Math.round(v * ratio));
+    }
+    const trend = { reachS, playsS, reachModeled: false, playsModeled: !(t.playsS && t.playsS.length) };
+    trendCache = { t: Date.now(), trend };
+    return trend;
+  } catch { return null; }
+}
 
 const TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -495,7 +521,7 @@ server.listen(PORT, () => {
 async function fetchLivePayload() {
   let durations = null;
   try { const st = await import("./lib/store/stored.mjs"); if (st.isConfigured()) durations = await st.durationsByShortcode(); } catch { /* probe fallback */ }
-  const raw = await collectReels({ max: Number(process.env.MAX_REELS || 40), durations });
+  const raw = await collectReels({ max: Number(process.env.MAX_REELS || 60), durations });
   const payload = toPayload(raw, { source: "live" });
   try {
     const st = await import("./lib/store/stored.mjs");
@@ -527,7 +553,11 @@ async function getData(force, demo) {
     const stored = await import("./lib/store/stored.mjs");
     if (stored.isConfigured()) {
       const payload = await stored.storedPayload();
-      if (payload && payload.defs && payload.defs.length) return payload;
+      if (payload && payload.defs && payload.defs.length) {
+        const rt = await realTrend(payload.defs); // real daily reach (cached), not the modeled sine wave
+        if (rt) payload.trend = rt;
+        return payload;
+      }
     }
   } catch (e) {
     console.log("  stored payload skipped:", e && e.message ? e.message : e);
