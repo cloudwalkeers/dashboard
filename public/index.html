@@ -1504,12 +1504,20 @@ class Component extends DCLogic {
     return p;
   }
 
-  // Real retention (from an insights screen recording): resample the stored 9-point
-  // curve to the 21 points the chart expects. Linear interpolation.
-  realRet(curve){
+  // Real retention (from an insights recording) -> 21 chart points. Handles both the
+  // dense {t,p} anchor format (time in seconds; preserves the steep early drop) and
+  // the legacy even-spaced number array. Interpolates by TIME using the real length.
+  realRet(curve, durSec){
     if(!Array.isArray(curve) || curve.length<2) return null;
-    const n=curve.length, out=[];
-    for(let i=0;i<=20;i++){ const x=i/20*(n-1), lo=Math.floor(x), hi=Math.min(n-1,lo+1), f=x-lo; out.push(Math.max(1,Math.min(100,Math.round(curve[lo]*(1-f)+curve[hi]*f)))); }
+    const pairs = (typeof curve[0]==='object' && curve[0]!=null)
+      ? curve.map(x=>({t:+x.t, p:+x.p})).sort((a,b)=>a.t-b.t)
+      : curve.map((p,i,a)=>({t:(durSec||1)*i/(a.length-1), p:+p}));
+    const dur = pairs[pairs.length-1].t || durSec || 1;
+    const out=[];
+    for(let i=0;i<=20;i++){ const t=(i/20)*dur; let lo=pairs[0],hi=pairs[pairs.length-1];
+      for(let k=0;k<pairs.length;k++){ if(pairs[k].t<=t)lo=pairs[k]; if(pairs[k].t>=t){hi=pairs[k];break;} }
+      const p = lo.t===hi.t ? lo.p : lo.p+(hi.p-lo.p)*((t-lo.t)/(hi.t-lo.t));
+      out.push(Math.max(1,Math.min(100,Math.round(p)))); }
     return out;
   }
 
@@ -1532,7 +1540,7 @@ class Component extends DCLogic {
     const defs = payload.defs || [];
     const reels = defs.map(d => {
       const lenKnown = !!d.lenKnown && d.len>0;
-      const realCurve = this.realRet(d.retentionCurve);
+      const realCurve = this.realRet(d.retentionCurve, d.len);
       const retReal = !!realCurve;
       const ret = realCurve || this.synthRet(d.avgWatchSec, d.len, lenKnown);
       const eng = (d.likes||0)+(d.comments||0)+(d.shares||0)+(d.saves||0);
