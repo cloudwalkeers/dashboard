@@ -55,6 +55,28 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
   </div>
   </sc-if>
 
+  <sc-if value="{{ labPopupShow }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ labPopupClose }}" style="position:fixed;inset:0;background:rgba(0,0,0,.68);z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px">
+    <div onClick="{{ stop }}" style="width:540px;max-width:94vw;max-height:86vh;overflow-y:auto;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:0 24px 70px rgba(0,0,0,.5);padding:20px 22px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:3px">
+        <div style="font-weight:700;font-size:15.5px;line-height:1.3">Reels with {{ labPopupLabel }}</div>
+        <button onClick="{{ labPopupClose }}" style="background:var(--fill);border:none;border-radius:9px;width:30px;height:30px;font-size:17px;cursor:pointer;color:var(--text-2);font-family:inherit;flex:none">×</button>
+      </div>
+      <div class="cc-mono" style="font-size:11px;color:var(--text-3);margin-bottom:15px">{{ labPopupCount }} reels · sorted by this outcome (best first)</div>
+      <sc-if value="{{ labPopupLoading }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:var(--text-3);padding:12px 0">Loading…</div></sc-if>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <sc-for list="{{ labPopupReels }}" as="pr" hint-placeholder-count="4">
+          <a href="{{ pr.permalink }}" target="_blank" style="display:flex;align-items:center;gap:11px;text-decoration:none;background:var(--surface-2);border:1px solid var(--line);border-radius:11px;padding:9px 11px">
+            <sc-if value="{{ pr.hasThumb }}" hint-placeholder-val="{{ true }}"><img src="{{ pr.thumb }}" style="width:34px;height:46px;border-radius:6px;object-fit:cover;flex:none"/></sc-if>
+            <div style="flex:1;min-width:0"><div style="font-size:13px;color:var(--text);font-weight:550;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ pr.label }}</div><div class="cc-mono" style="font-size:11px;color:var(--text-3);margin-top:2px">{{ pr.plays }} views</div></div>
+            <div style="font-size:14.5px;font-weight:700;color:var(--cc);flex:none">{{ pr.metric }}</div>
+          </a>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
   <header style="position:sticky;top:0;z-index:20;background:var(--header);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)">
     <div style="max-width:1240px;margin:0 auto;padding:14px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px">
       <div style="display:flex;align-items:center;gap:12px">
@@ -1223,11 +1245,21 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
     </div>
     </sc-if>
 
-    <div class="cc-mono" style="font-size:10.5px;letter-spacing:.1em;color:var(--text-3);margin-bottom:12px">HYPOTHESIS LEDGER · contrasted on {{ LAB.outcome }}</div>
+    <sc-if value="{{ LAB.hasInterpret }}" hint-placeholder-val="{{ false }}">
+    <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:19px 22px;margin-bottom:24px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:11px"><span style="font-size:15px">🧠</span><div style="font-weight:700;font-size:14.5px">What this means</div><span class="cc-mono" style="font-size:9px;color:var(--cc);background:var(--cc-soft);padding:3px 8px;border-radius:99px;letter-spacing:.04em">AI · gpt-5.5</span></div>
+      <div style="font-size:13.5px;line-height:1.7;color:var(--text-2);white-space:pre-wrap">{{ LAB.interpretText }}</div>
+    </div>
+    </sc-if>
+    <sc-if value="{{ LAB.interpreting }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;align-items:center;gap:9px;font-size:13px;color:var(--text-3);margin-bottom:22px"><span style="display:inline-block;width:13px;height:13px;border:2px solid var(--line);border-top-color:var(--cc);border-radius:50%;animation:spin .7s linear infinite"></span> Reading the ledger…</div>
+    </sc-if>
+
+    <div class="cc-mono" style="font-size:10.5px;letter-spacing:.1em;color:var(--text-3);margin-bottom:12px">HYPOTHESIS LEDGER · contrasted on {{ LAB.outcome }} · <span style="color:var(--text-faint)">click a row to see its reels</span></div>
     <sc-if value="{{ LAB.hasHyps }}" hint-placeholder-val="{{ true }}">
     <div style="display:flex;flex-direction:column;gap:8px">
       <sc-for list="{{ LAB.hyps }}" as="hy" hint-placeholder-count="6">
-        <div style="display:grid;grid-template-columns:1fr 64px 132px 104px;gap:14px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 16px;opacity:{{ hy.rowOpacity }}">
+        <div onClick="{{ hy.openReels }}" title="Show the reels with this feature" style="display:grid;grid-template-columns:1fr 64px 132px 104px;gap:14px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 16px;opacity:{{ hy.rowOpacity }};cursor:pointer">
           <div style="min-width:0">
             <div style="font-size:13.5px;font-weight:600;color:var(--text)">{{ hy.label }}</div>
             <sc-if value="{{ hy.shared }}" hint-placeholder-val="{{ false }}"><div style="font-size:11px;color:#e0a458;margin-top:2px">⚠ also common in your flops — probably not a real edge</div></sc-if>
@@ -1660,7 +1692,19 @@ class Component extends DCLogic {
       navStudioStyle: this.tabStyle(this.state.view==='studio'),
       navLabStyle: this.tabStyle(this.state.view==='lab'),
       navClippersStyle: this.tabStyle(this.state.view==='clippers'),
-      zoomShow: !!this.state.ccZoom, zoomHtml: this.state.ccZoom||'', zoomClose: ()=>this.setState({ ccZoom:null })
+      zoomShow: !!this.state.ccZoom, zoomHtml: this.state.ccZoom||'', zoomClose: ()=>this.setState({ ccZoom:null }),
+      stop: (e)=>{ if(e&&e.stopPropagation) e.stopPropagation(); },
+      labPopupShow: !!this.state.labReelPopup,
+      labPopupLabel: this.state.labReelPopup ? (this.state.labReelPopup.label||'') : '',
+      labPopupLoading: this.state.labReelPopup ? !!this.state.labReelPopup.loading : false,
+      labPopupCount: this.state.labReelPopup ? (this.state.labReelPopup.reels||[]).length : 0,
+      labPopupReels: this.state.labReelPopup ? (this.state.labReelPopup.reels||[]).map((r)=>{
+        const oc=this.state.labReelPopup.outcome||'rate';
+        return { label:r.label, thumb:r.thumb||'', hasThumb:!!r.thumb, permalink:r.permalink,
+          metric: r.outcomeVal==null ? '—' : (oc==='likes'?this.fmtK(r.outcomeVal):(r.outcomeVal+'%')),
+          plays:this.fmtK(r.plays||0) };
+      }) : [],
+      labPopupClose: ()=>this.setState({ labReelPopup:null })
     };
   }
 
@@ -1863,14 +1907,30 @@ class Component extends DCLogic {
       .then(r=>r.json())
       .then(j=>this.setState({ labLoading:false, labLoaded:true, labData:j, labConfigured:j.configured!==false, labError:j.error||'' }))
       .catch(e=>this.setState({ labLoading:false, labLoaded:true, labError:String(e) }));
+    this.labInterpret(outcome);
+  }
+  labInterpret(outcome){
+    if((this.state.labInterpretByOutcome||{})[outcome]) return; // cached per outcome
+    this.setState({ labInterpreting:true });
+    fetch('/api/causal/interpret?outcome='+outcome)
+      .then(r=>r.json())
+      .then(j=>{ const c=Object.assign({}, this.state.labInterpretByOutcome||{}); if(j&&!j.error&&j.text) c[outcome]=j.text; this.setState({ labInterpreting:false, labInterpretByOutcome:c }); })
+      .catch(()=>this.setState({ labInterpreting:false }));
   }
   loadLab(force){ if(this.state.labLoading) return; if(this.state.labLoaded && !force) return; this.labFetch(this.state.labOutcome||'rate'); }
   labRebuild(){
     this.setState({ labRebuilding:true, labError:'' });
     fetch('/api/causal/rebuild',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ outcome:this.state.labOutcome||'rate' }) })
       .then(r=>r.json())
-      .then(j=>this.setState({ labRebuilding:false, labLoaded:true, labData: j.error?this.state.labData:j, labError:j.error||'' }))
+      .then(j=>{ this.setState({ labRebuilding:false, labLoaded:true, labData: j.error?this.state.labData:j, labError:j.error||'', labInterpretByOutcome:{} }); if(!j.error) this.labInterpret(this.state.labOutcome||'rate'); })
       .catch(e=>this.setState({ labRebuilding:false, labError:String(e) }));
+  }
+  labOpenReels(feature,value,label){
+    this.setState({ labReelPopup:{ feature, value, label, reels:[], loading:true, outcome:this.state.labOutcome||'rate' } });
+    fetch('/api/causal/reels?feature='+encodeURIComponent(feature)+'&value='+encodeURIComponent(value)+'&outcome='+(this.state.labOutcome||'rate'))
+      .then(r=>r.json())
+      .then(j=>this.setState({ labReelPopup:{ feature, value, label:(j&&j.label)||label, reels:(j&&j.reels)||[], loading:false, outcome:(j&&j.outcome)||this.state.labOutcome||'rate' } }))
+      .catch(e=>this.setState({ labReelPopup:{ feature, value, label, reels:[], loading:false, error:String(e) } }));
   }
   labVals(){
     const s=this.state, d=s.labData||{}, outcome=d.outcome||s.labOutcome||'rate';
@@ -1885,7 +1945,8 @@ class Component extends DCLogic {
       status:h.status,
       statusStyle:{ fontSize:'10.5px', fontWeight:'700', padding:'2px 9px', borderRadius:'999px', color:'#fff', background:(STAT[h.status]||'var(--text-3)'), textTransform:'uppercase', letterSpacing:'.03em' },
       shared:!!h.shared_by_losers,
-      rowOpacity: h.status==='inconclusive'?'0.6':'1'
+      rowOpacity: h.status==='inconclusive'?'0.6':'1',
+      openReels:()=>this.labOpenReels(h.feature,h.value,h.label||(h.feature+'='+h.value)),
     }));
     return {
       configured: s.labConfigured!==false,
@@ -1897,7 +1958,10 @@ class Component extends DCLogic {
       hasExp: !!exp, expClaim: exp&&exp.claim, expDo: exp&&exp.instruction,
       expTest: exp&&exp.arms&&exp.arms.test, expControl: exp&&exp.arms&&exp.arms.control,
       hyps, hasHyps: hyps.length>0,
-      empty: s.labLoaded && !s.labLoading && !hyps.length && s.labConfigured!==false
+      empty: s.labLoaded && !s.labLoading && !hyps.length && s.labConfigured!==false,
+      interpretText: (s.labInterpretByOutcome||{})[outcome]||'',
+      hasInterpret: !!((s.labInterpretByOutcome||{})[outcome]),
+      interpreting: !!s.labInterpreting && !((s.labInterpretByOutcome||{})[outcome])
     };
   }
   // ── Clippers: command center (roster + assignments + per-platform views) ───

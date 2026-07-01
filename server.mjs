@@ -182,6 +182,28 @@ const server = http.createServer(async (req, res) => {
         return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
       }
     }
+    // Lab: AI interpretation of the ledger (gpt-5.5) — what to act on / ignore.
+    if (u.pathname === "/api/causal/interpret" && req.method === "GET") {
+      const causal = await import("./lib/causal.mjs");
+      if (!causal.isConfigured()) return send(res, 200, ".json", JSON.stringify({ configured: false, text: "" }));
+      try {
+        return send(res, 200, ".json", JSON.stringify(await causal.interpret({ outcome: u.searchParams.get("outcome") || "rate" })));
+      } catch (e) {
+        return send(res, 200, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e), text: "" }));
+      }
+    }
+    // Lab: the reels that have a given feature value (for the click-through popup).
+    if (u.pathname === "/api/causal/reels" && req.method === "GET") {
+      const causal = await import("./lib/causal.mjs");
+      if (!causal.isConfigured()) return send(res, 200, ".json", JSON.stringify({ configured: false, reels: [] }));
+      try {
+        return send(res, 200, ".json", JSON.stringify(await causal.reelsForFeature({
+          feature: u.searchParams.get("feature"), value: u.searchParams.get("value"), outcome: u.searchParams.get("outcome") || "rate",
+        })));
+      } catch (e) {
+        return send(res, 200, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e), reels: [] }));
+      }
+    }
 
     // Animation storyboard: a script -> per-beat visual plan + Claude Design prompts.
     if (u.pathname === "/api/animate" && req.method === "POST") {
