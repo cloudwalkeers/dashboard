@@ -467,36 +467,40 @@ server.listen(PORT, () => {
   } catch { /* clippers optional */ }
 })();
 
-async function getData(force, demo) {
-  // 1) Live Graph API when credentials are configured.
-  if (!demo && isConfigured()) {
-    if (cache && !force && Date.now() - cache.t < CACHE_MS) return cache.payload;
-    try {
-      const raw = await collectReels({ max: Number(process.env.MAX_REELS || 40) });
-      const payload = toPayload(raw, { source: "live" });
-      // Prefer the reliable local extracted-frame cover over IG's CDN thumbnail URL
-      // (which can hotlink-block in the browser); falls back to the CDN cover.
-      try {
-        const stored = await import("./lib/store/stored.mjs");
-        if (stored.isConfigured()) {
-          const sc = (u) => { const m = String(u || "").match(/\/reels?\/([^/?#]+)/i); return m ? m[1] : null; };
-          const thumbs = await stored.localThumbs(payload.defs.map((d) => sc(d.permalink)));
-          payload.defs.forEach((d) => { const s = sc(d.permalink); if (s && thumbs[s]) d.thumb = thumbs[s]; });
-        }
-      } catch { /* keep the CDN cover */ }
-      cache = { t: Date.now(), payload };
-      // Persist the live metrics (one snapshot/reel/day) — best-effort, non-blocking.
-      import("./lib/store/metrics.mjs")
-        .then((m) => (m.isConfigured() ? m.storeMetrics(payload) : null))
-        .then((r) => r && r.stored && console.log("  metrics → supabase:", r.stored, "reel(s),", r.failed, "failed"))
-        .catch((e) => console.log("  metrics store skipped:", e && e.message ? e.message : e));
-      return payload;
-    } catch (e) {
-      return { defs: [], trend: { reachS: [], playsS: [] }, meta: { source: "live", error: e && e.message ? e.message : String(e) } };
+// Live Graph API pull → payload. Fast now: skips the per-reel duration probe using
+// stored durations, fetches insights in parallel, and prefers local covers. Persists
+// the snapshot (best-effort, non-blocking) so the stored view stays current.
+async function fetchLivePayload() {
+  let durations = null;
+  try { const st = await import("./lib/store/stored.mjs"); if (st.isConfigured()) durations = await st.durationsByShortcode(); } catch { /* probe fallback */ }
+  const raw = await collectReels({ max: Number(process.env.MAX_REELS || 40), durations });
+  const payload = toPayload(raw, { source: "live" });
+  try {
+    const st = await import("./lib/store/stored.mjs");
+    if (st.isConfigured()) {
+      const sc = (u) => { const m = String(u || "").match(/\/reels?\/([^/?#]+)/i); return m ? m[1] : null; };
+      const thumbs = await st.localThumbs(payload.defs.map((d) => sc(d.permalink)));
+      payload.defs.forEach((d) => { const s = sc(d.permalink); if (s && thumbs[s]) d.thumb = thumbs[s]; });
     }
-  }
+  } catch { /* keep the CDN cover */ }
+  cache = { t: Date.now(), payload };
+  import("./lib/store/metrics.mjs")
+    .then((m) => (m.isConfigured() ? m.storeMetrics(payload) : null))
+    .then((r) => r && r.stored && console.log("  metrics → supabase:", r.stored, "reel(s),", r.failed, "failed"))
+    .catch((e) => console.log("  metrics store skipped:", e && e.message ? e.message : e));
+  return payload;
+}
+
+async function getData(force, demo) {
   if (demo) return demoPayload();
-  // 2) No live creds → show the REAL reels stored in Supabase (not demo).
+  // Live pull ONLY on an explicit refresh (the Refresh button). Every other load
+  // serves fast stored data — which already holds the last-pulled reach/saves/watch.
+  if (force && isConfigured()) {
+    if (cache && Date.now() - cache.t < CACHE_MS) return cache.payload; // de-dupe rapid refreshes
+    try { return await fetchLivePayload(); }
+    catch (e) { console.log("  live refresh failed:", e && e.message ? e.message : e); /* fall through to stored */ }
+  }
+  // Default: the REAL catalogue from Supabase (fast; no round-trip to Instagram).
   try {
     const stored = await import("./lib/store/stored.mjs");
     if (stored.isConfigured()) {
@@ -506,7 +510,8 @@ async function getData(force, demo) {
   } catch (e) {
     console.log("  stored payload skipped:", e && e.message ? e.message : e);
   }
-  // 3) Nothing stored → demo so the dashboard still works out of the box.
+  // Nothing stored yet → one live pull if we can, else demo.
+  if (isConfigured()) { try { return await fetchLivePayload(); } catch { /* demo */ } }
   return demoPayload();
 }
 
