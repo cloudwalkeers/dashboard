@@ -529,8 +529,12 @@ async function fetchLivePayload() {
       const sc = (u) => { const m = String(u || "").match(/\/reels?\/([^/?#]+)/i); return m ? m[1] : null; };
       const shorts = payload.defs.map((d) => sc(d.permalink));
       const thumbs = await st.localThumbs(shorts);
-      const rets = await st.retentionByShortcode(shorts);
-      payload.defs.forEach((d) => { const s = sc(d.permalink); if (s && thumbs[s]) d.thumb = thumbs[s]; if (s && rets[s]) d.retentionCurve = rets[s]; });
+      const ins = await st.retentionByShortcode(shorts);
+      payload.defs.forEach((d) => {
+        const s = sc(d.permalink);
+        if (s && thumbs[s]) d.thumb = thumbs[s];
+        if (s && ins[s]) { if (ins[s].retention_curve) d.retentionCurve = ins[s].retention_curve; d.skipRate = ins[s].skip_rate; d.repostRate = ins[s].repost_rate; d.rateBenchmarks = ins[s].rate_benchmarks; }
+      });
     }
   } catch { /* keep the CDN cover */ }
   cache = { t: Date.now(), payload };
