@@ -527,8 +527,10 @@ async function fetchLivePayload() {
     const st = await import("./lib/store/stored.mjs");
     if (st.isConfigured()) {
       const sc = (u) => { const m = String(u || "").match(/\/reels?\/([^/?#]+)/i); return m ? m[1] : null; };
-      const thumbs = await st.localThumbs(payload.defs.map((d) => sc(d.permalink)));
-      payload.defs.forEach((d) => { const s = sc(d.permalink); if (s && thumbs[s]) d.thumb = thumbs[s]; });
+      const shorts = payload.defs.map((d) => sc(d.permalink));
+      const thumbs = await st.localThumbs(shorts);
+      const rets = await st.retentionByShortcode(shorts);
+      payload.defs.forEach((d) => { const s = sc(d.permalink); if (s && thumbs[s]) d.thumb = thumbs[s]; if (s && rets[s]) d.retentionCurve = rets[s]; });
     }
   } catch { /* keep the CDN cover */ }
   cache = { t: Date.now(), payload };
@@ -552,7 +554,7 @@ async function getData(force, demo) {
   try {
     const stored = await import("./lib/store/stored.mjs");
     if (stored.isConfigured()) {
-      const payload = await stored.storedPayload();
+      const payload = await stored.storedPayload({ account: process.env.IG_ACCOUNT || null });
       if (payload && payload.defs && payload.defs.length) {
         const rt = await realTrend(payload.defs); // real daily reach (cached), not the modeled sine wave
         if (rt) payload.trend = rt;
