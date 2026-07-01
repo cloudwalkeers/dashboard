@@ -48,6 +48,13 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
 </helmet>
 <div style="min-height:100vh;background:var(--surface-2);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif">
 
+  <sc-if value="{{ zoomShow }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ zoomClose }}" style="position:fixed;inset:0;background:rgba(0,0,0,.74);z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px">
+    <div style="width:360px;max-height:92vh;border-radius:18px;overflow-y:auto;overflow-x:hidden;border:1px solid var(--line);background:#fff;box-shadow:0 24px 70px rgba(0,0,0,.55)"><iframe srcdoc="{{ zoomHtml }}" sandbox="" scrolling="no" style="width:360px;height:1400px;border:none;display:block"></iframe></div>
+    <button onClick="{{ zoomClose }}" title="Close" style="position:fixed;top:18px;right:22px;background:rgba(255,255,255,.16);color:#fff;border:none;border-radius:10px;width:40px;height:40px;font-size:22px;cursor:pointer;font-family:inherit;z-index:1001">×</button>
+  </div>
+  </sc-if>
+
   <header style="position:sticky;top:0;z-index:20;background:var(--header);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)">
     <div style="max-width:1240px;margin:0 auto;padding:14px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px">
       <div style="display:flex;align-items:center;gap:12px">
@@ -801,12 +808,6 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
       <!-- ANIMATION -->
       <sc-if value="{{ CC.isAnim }}" hint-placeholder-val="{{ false }}">
       <div>
-        <sc-if value="{{ CC.showZoom }}" hint-placeholder-val="{{ false }}">
-        <div onClick="{{ CC.closeZoom }}" style="position:fixed;inset:0;background:rgba(0,0,0,.74);z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px">
-          <div style="width:360px;height:640px;max-height:90vh;border-radius:18px;overflow:hidden;border:1px solid var(--line);background:#fff;box-shadow:0 24px 70px rgba(0,0,0,.55)"><iframe srcdoc="{{ CC.zoomHtml }}" sandbox="" style="width:360px;height:640px;border:none"></iframe></div>
-          <button onClick="{{ CC.closeZoom }}" title="Close" style="position:fixed;top:18px;right:22px;background:rgba(255,255,255,.16);color:#fff;border:none;border-radius:10px;width:38px;height:38px;font-size:20px;cursor:pointer;font-family:inherit">×</button>
-        </div>
-        </sc-if>
         <div style="margin-bottom:18px">
           <div style="font-weight:700;font-size:15px;margin-bottom:6px">Animations‑Breakdown · Reverse‑Engineering</div>
           <p style="margin:0 0 12px;font-size:12.5px;color:var(--text-2);max-width:740px">Bricht das <strong>extrahierte Reel</strong> Szene für Szene auf: die <strong>echten Frames</strong>, was animiert wird, und eine Spec, um jeden Frame sauber als Mockup nachzubauen.</p>
@@ -1649,7 +1650,8 @@ class Component extends DCLogic {
       navDiscoveryStyle: this.tabStyle(this.state.view==='discovery'),
       navStudioStyle: this.tabStyle(this.state.view==='studio'),
       navLabStyle: this.tabStyle(this.state.view==='lab'),
-      navClippersStyle: this.tabStyle(this.state.view==='clippers')
+      navClippersStyle: this.tabStyle(this.state.view==='clippers'),
+      zoomShow: !!this.state.ccZoom, zoomHtml: this.state.ccZoom||'', zoomClose: ()=>this.setState({ ccZoom:null })
     };
   }
 
@@ -2102,7 +2104,7 @@ class Component extends DCLogic {
     this.setState({ ccStoryLoading:true, ccStoryError:'', ccStoryboard:null, ccFrameHtml:{}, ccFrameBusy:{} });
     fetch('/api/animate/reel',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ shortcode:r.id, frames:r.frames, transcript:r.transcript }) })
       .then(res=>res.json())
-      .then(j=>this.setState({ ccStoryLoading:false, ccStoryboard:j.error?null:j, ccStoryError:j.error||'' }))
+      .then(j=>{ this.setState({ ccStoryLoading:false, ccStoryboard:j.error?null:j, ccStoryError:j.error||'' }); if(!j.error && j.sections && j.sections.length) setTimeout(()=>this.ccRenderAllVisuals(),60); })
       .catch(e=>this.setState({ ccStoryLoading:false, ccStoryError:String(e) }));
   }
   ccCopyAllPrompts(){ const sb=this.state.ccStoryboard; if(!sb) return; const txt=(sb.sections||[]).map(s=>{ let o=(s.time||'')+' – "'+(s.narration||'')+'"\n'+(s.animation||''); if((s.frames||[]).length) o+='\nFrames:\n'+(s.frames||[]).map((f,i)=>'  '+(i+1)+'. '+(f.caption?f.caption+' — ':'')+(f.visual||'')).join('\n'); return o; }).join('\n\n'); this.ccCopy(txt,'Whole breakdown copied'); }
@@ -2122,7 +2124,7 @@ class Component extends DCLogic {
     if(!tasks.length) return;
     this.setState({ ccRenderingAll:true });
     let i=0; const worker=()=>{ if(i>=tasks.length) return Promise.resolve(); const t=tasks[i++]; return this.ccRenderFrame(t.si,t.fi,t.visual,t.context,t.img).then(worker); };
-    Promise.all([worker(),worker(),worker()]).then(()=>this.setState({ ccRenderingAll:false }));
+    Promise.all([worker(),worker(),worker(),worker(),worker()]).then(()=>this.setState({ ccRenderingAll:false }));
   }
   ccSeg(active){ return active
     ? { padding:'7px 16px',borderRadius:'8px',border:'none',fontFamily:'inherit',fontSize:'13px',fontWeight:'600',cursor:'pointer',background:'var(--surface)',color:'var(--text)',boxShadow:'0 1px 2px rgba(20,18,40,.12)' }
