@@ -141,8 +141,8 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
           <div style="display:flex;flex-direction:column;justify-content:space-between;padding:18px 0 26px;font-size:11px;color:var(--text-faint);text-align:right;width:34px;flex:none">
             <span>{{ trend.yTop }}</span><span>{{ trend.yMid }}</span><span>0</span>
           </div>
-          <div style="flex:1;min-width:0">
-            <svg width="100%" height="232" viewBox="0 0 760 232" preserveAspectRatio="none" style="display:block;overflow:visible">
+          <div style="flex:1;min-width:0;position:relative">
+            <svg width="100%" height="232" viewBox="0 0 760 232" preserveAspectRatio="none" style="display:block;overflow:visible" onMouseMove="{{ trend.onMove }}" onMouseLeave="{{ trend.onLeave }}">
               <line x1="0" y1="20" x2="760" y2="20" stroke="#f1f1f2" stroke-width="1"></line>
               <line x1="0" y1="116" x2="760" y2="116" stroke="#f1f1f2" stroke-width="1"></line>
               <line x1="0" y1="206" x2="760" y2="206" stroke="#ececed" stroke-width="1"></line>
@@ -151,6 +151,14 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
               <path d="{{ trend.reachArea }}" fill="rgba(99,102,241,.10)" stroke="none"></path>
               <path d="{{ trend.reachLine }}" fill="none" stroke="#6366f1" stroke-width="2.2" vector-effect="non-scaling-stroke"></path>
             </svg>
+            <sc-if value="{{ trend.hasHover }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;top:14px;height:192px;left:{{ trend.hoverLeftPct }};width:0;border-left:1px dashed var(--text-faint);pointer-events:none;z-index:4"></div>
+              <div style="position:absolute;top:2px;left:{{ trend.hoverTipLeft }};transform:translateX(-50%);background:var(--text);color:var(--bg);border-radius:8px;padding:6px 9px;font-size:11px;line-height:1.55;white-space:nowrap;pointer-events:none;box-shadow:0 8px 20px -6px rgba(0,0,0,.55);z-index:6">
+                <div style="font-weight:700;margin-bottom:2px">{{ trend.hoverDate }}</div>
+                <div><span style="color:#818cf8">●</span> Reach {{ trend.hoverReach }}</div>
+                <div><span style="color:#c7d2fe">●</span> Plays {{ trend.hoverPlays }}</div>
+              </div>
+            </sc-if>
             <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-faint);margin-top:7px">
               <sc-for list="{{ trend.xLabels }}" as="xl" hint-placeholder-count="5"><span>{{ xl }}</span></sc-for>
             </div>
@@ -2489,6 +2497,19 @@ Hier ist das Skript:
     const xLabels=[]; const pts=Math.max(curR.length,1);
     for(let i=0;i<5;i++){ const daysAgo=Math.round((4-i)/4*(Math.max(pts,2)-1)); xLabels.push(this.fmtDate(now-daysAgo*dayMs)); }
     out.trend={ reachLine:rp.line, reachArea:rp.area, playsLine:pp.line, playsArea:pp.area, yTop:this.fmtK(cmax), yMid:this.fmtK(cmax/2), xLabels };
+    // interactive hover — same coordinate mapping as buildPath (pl=4,pr=4,pt=20,pb=26,ih=186,iw=752)
+    { const nH=curR.length; const HX=i=>4+(nH>1?(i/(nH-1))*752:0); const HY=v=>20+(1-(cmax?v/cmax:0))*186;
+      const hi=this.state.trendHoverI; const has=(hi!=null&&hi>=0&&hi<nH&&nH>1);
+      out.trend.hasHover=has;
+      out.trend.hoverX=has?+HX(hi).toFixed(1):0;
+      out.trend.hoverReach=has?this.fmtK(curR[hi]):'';
+      out.trend.hoverPlays=has?this.fmtK(curP[hi]||0):'';
+      out.trend.hoverDate=has?this.fmtDate(now-(nH-1-hi)*dayMs):'';
+      out.trend.hoverLeftPct=has?(HX(hi)/760*100).toFixed(2)+'%':'0%';
+      out.trend.hoverTipLeft=has?Math.min(90,Math.max(6,HX(hi)/760*100)).toFixed(2)+'%':'0%';
+      out.trend.onMove=(e)=>{ try{ const r=e.currentTarget.getBoundingClientRect(); if(!r.width)return; let f=(e.clientX-r.left)/r.width; f=Math.max(0,Math.min(1,f)); const idx=Math.round(f*(nH-1)); if(idx!==this.state.trendHoverI)this.setState({trendHoverI:idx}); }catch(_){} };
+      out.trend.onLeave=()=>{ if(this.state.trendHoverI!=null)this.setState({trendHoverI:null}); };
+    }
 
     // engagement mix
     const interactions=a.likes+a.comments+a.shares+a.saves;
