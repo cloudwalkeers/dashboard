@@ -382,8 +382,8 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
             <div style="display:flex;flex-direction:column;justify-content:space-between;padding:14px 0 30px;font-size:11px;color:var(--text-faint);text-align:right;width:30px;flex:none">
               <span>100%</span><span>75%</span><span>50%</span><span>25%</span><span>0</span>
             </div>
-            <div style="flex:1;min-width:0">
-              <svg width="100%" height="244" viewBox="0 0 520 244" preserveAspectRatio="none" style="display:block;overflow:visible">
+            <div style="flex:1;min-width:0;position:relative">
+              <svg width="100%" height="244" viewBox="0 0 520 244" preserveAspectRatio="none" style="display:block;overflow:visible" onMouseMove="{{ R.retOnMove }}" onMouseLeave="{{ R.retOnLeave }}">
                 <line x1="0" y1="14" x2="520" y2="14" stroke="#f1f1f2"></line>
                 <line x1="0" y1="61.5" x2="520" y2="61.5" stroke="#f1f1f2"></line>
                 <line x1="0" y1="109" x2="520" y2="109" stroke="#f1f1f2"></line>
@@ -394,6 +394,10 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
                 <line x1="{{ R.dropX }}" y1="14" x2="{{ R.dropX }}" y2="204" stroke="#dc2626" stroke-width="1.4" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"></line>
                 <circle cx="{{ R.dropX }}" cy="{{ R.dropY }}" r="4" fill="#dc2626" stroke="#fff" stroke-width="2"></circle>
               </svg>
+              <sc-if value="{{ R.retHasHover }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute;top:14px;height:190px;left:{{ R.retHoverLeftPct }};width:0;border-left:1px dashed var(--text-faint);pointer-events:none;z-index:4"></div>
+                <div style="position:absolute;top:4px;left:{{ R.retHoverTipLeft }};transform:translateX(-50%);background:var(--text);color:var(--bg);border-radius:8px;padding:5px 9px;font-size:11px;line-height:1.5;white-space:nowrap;pointer-events:none;box-shadow:0 8px 20px -6px rgba(0,0,0,.55);z-index:6"><span style="font-weight:700">{{ R.retHoverPct }}</span> watching at {{ R.retHoverTime }}</div>
+              </sc-if>
               <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-faint);margin-top:7px">
                 <span>0s</span><span>{{ R.q1Fmt }}</span><span>{{ R.midFmt }}</span><span>{{ R.q3Fmt }}</span><span>{{ R.lenFmt }}</span>
               </div>
@@ -1617,6 +1621,8 @@ class Component extends DCLogic {
     const r = reels.find(x=>x.id===this.state.sel) || reels[0];
     if(!r) return {};
     const rp = this.buildPath(r.ret,520,244,0,0,14,40,0,100);
+    const rN=(r.ret||[]).length, rhi=this.state.retHoverI, rHas=(rhi!=null&&rhi>=0&&rhi<rN);
+    const rHX=i=>(rN>1?i/(rN-1)*520:0), rHY=v=>14+(1-v/100)*190;
     const dropX = (r.dIdx/20)*520;
     const dropY = 14+(1-r.ret[r.dIdx]/100)*190;
     const heatSegs = r.ret.map(v=>({ style:{ flex:'1 1 0', background:this.heatColor(v), height:'100%' } }));
@@ -1665,6 +1671,12 @@ class Component extends DCLogic {
       retReal: !!r.retReal, retBadge: r.retReal?'MEASURED':'ESTIMATED',
       retBadgeStyle: r.retReal?{fontSize:'9px',fontWeight:'700',letterSpacing:'.06em',color:'#fff',background:'#16a34a',padding:'3px 8px',borderRadius:'99px'}:{fontSize:'9px',fontWeight:'700',letterSpacing:'.06em',color:'var(--text-3)',background:'var(--fill)',padding:'3px 8px',borderRadius:'99px'},
       retLine:rp.line, retArea:rp.area, dropX:+dropX.toFixed(1), dropY:+dropY.toFixed(1),
+      retHasHover:rHas,
+      retHoverX: rHas?+rHX(rhi).toFixed(1):0, retHoverY: rHas?+rHY(r.ret[rhi]).toFixed(1):0,
+      retHoverPct: rHas?this.pct(r.ret[rhi]):'', retHoverTime: rHas?this.fmtT((rhi/(rN-1))*r.len):'',
+      retHoverLeftPct: rHas?(rHX(rhi)/520*100).toFixed(2)+'%':'0%', retHoverTipLeft: rHas?Math.min(86,Math.max(9,rHX(rhi)/520*100)).toFixed(2)+'%':'0%',
+      retOnMove:(e)=>{ try{ const rc=e.currentTarget.getBoundingClientRect(); if(!rc.width)return; let f=(e.clientX-rc.left)/rc.width; f=Math.max(0,Math.min(1,f)); const idx=Math.round(f*(rN-1)); if(idx!==this.state.retHoverI)this.setState({retHoverI:idx}); }catch(_){} },
+      retOnLeave:()=>{ if(this.state.retHoverI!=null)this.setState({retHoverI:null}); },
       q1Fmt:this.fmtT(r.len*0.25), midFmt:this.fmtT(r.len*0.5), q3Fmt:this.fmtT(r.len*0.75),
       heatSegs, keyMoments, dropNote,
       engRateFmt:this.pct1(r.engRate), engRows, rates:ratesList,
