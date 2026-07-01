@@ -474,6 +474,16 @@ async function getData(force, demo) {
     try {
       const raw = await collectReels({ max: Number(process.env.MAX_REELS || 40) });
       const payload = toPayload(raw, { source: "live" });
+      // Prefer the reliable local extracted-frame cover over IG's CDN thumbnail URL
+      // (which can hotlink-block in the browser); falls back to the CDN cover.
+      try {
+        const stored = await import("./lib/store/stored.mjs");
+        if (stored.isConfigured()) {
+          const sc = (u) => { const m = String(u || "").match(/\/reels?\/([^/?#]+)/i); return m ? m[1] : null; };
+          const thumbs = await stored.localThumbs(payload.defs.map((d) => sc(d.permalink)));
+          payload.defs.forEach((d) => { const s = sc(d.permalink); if (s && thumbs[s]) d.thumb = thumbs[s]; });
+        }
+      } catch { /* keep the CDN cover */ }
       cache = { t: Date.now(), payload };
       // Persist the live metrics (one snapshot/reel/day) — best-effort, non-blocking.
       import("./lib/store/metrics.mjs")
