@@ -12,12 +12,14 @@ import { readFile } from "node:fs/promises";
 import { isConfigured, collectReels } from "./lib/graph.mjs";
 import { toPayload } from "./lib/transform.mjs";
 import { demoPayload } from "./lib/demo.mjs";
+import { loadToken, refreshIfNeeded } from "./lib/ig-token.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC = path.join(__dirname, "public");
 const ANALYSIS = path.join(__dirname, "analysis");
 
 loadEnv();
+loadToken(); // adopt the persisted/refreshed IG token so it survives past its 60-day expiry
 
 const PORT = Number(process.env.PORT || 5173);
 const CACHE_MS = 5 * 60 * 1000;
@@ -441,6 +443,16 @@ server.listen(PORT, () => {
   }
   console.log("");
 });
+
+// Background: keep the Instagram token alive (refresh well before the 60-day
+// expiry). Runs shortly after boot, then daily — hands-off, best-effort.
+(() => {
+  const run = () => refreshIfNeeded()
+    .then((r) => { if (r && r.refreshed) console.log("  [ig-token] refreshed — valid through " + r.expires); })
+    .catch(() => {});
+  setTimeout(run, 8000);
+  setInterval(run, 24 * 60 * 60 * 1000);
+})();
 
 // Background: keep clipper clip views fresh, hands-off (token-free yt-dlp).
 (async () => {
