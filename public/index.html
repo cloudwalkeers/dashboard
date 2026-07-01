@@ -368,7 +368,10 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
     <!-- retention -->
     <section style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-bottom:22px">
       <div style="margin-bottom:18px">
-        <h3 style="margin:0;font-size:15px;font-weight:650">Audience retention</h3>
+        <div style="display:flex;align-items:center;gap:9px">
+          <h3 style="margin:0;font-size:15px;font-weight:650">Audience retention</h3>
+          <span style="{{ R.retBadgeStyle }}">{{ R.retBadge }}</span>
+        </div>
         <p style="margin:4px 0 0;font-size:13px;color:var(--text-3)">{{ R.retSub }}</p>
       </div>
       <div style="display:grid;grid-template-columns:1.55fr 1fr;gap:28px;align-items:start">
@@ -1495,6 +1498,15 @@ class Component extends DCLogic {
     return p;
   }
 
+  // Real retention (from an insights screen recording): resample the stored 9-point
+  // curve to the 21 points the chart expects. Linear interpolation.
+  realRet(curve){
+    if(!Array.isArray(curve) || curve.length<2) return null;
+    const n=curve.length, out=[];
+    for(let i=0;i<=20;i++){ const x=i/20*(n-1), lo=Math.floor(x), hi=Math.min(n-1,lo+1), f=x-lo; out.push(Math.max(1,Math.min(100,Math.round(curve[lo]*(1-f)+curve[hi]*f)))); }
+    return out;
+  }
+
   sparkPath(series){
     let v=(series||[]).map(Number).filter(n=>isFinite(n));
     if(v.length<2) v=v.concat([0,0]).slice(0,2);
@@ -1514,7 +1526,9 @@ class Component extends DCLogic {
     const defs = payload.defs || [];
     const reels = defs.map(d => {
       const lenKnown = !!d.lenKnown && d.len>0;
-      const ret = this.synthRet(d.avgWatchSec, d.len, lenKnown);
+      const realCurve = this.realRet(d.retentionCurve);
+      const retReal = !!realCurve;
+      const ret = realCurve || this.synthRet(d.avgWatchSec, d.len, lenKnown);
       const eng = (d.likes||0)+(d.comments||0)+(d.shares||0)+(d.saves||0);
       const completion = ret[20];
       const avgWatch = d.avgWatchSec || (lenKnown ? d.len*this.mean(ret)/100 : 0);
@@ -1530,7 +1544,7 @@ class Component extends DCLogic {
         len: lenKnown?d.len:0, lenKnown,
         reach:d.reach||0, plays:d.plays||0, replays:d.replays||0,
         likes:d.likes||0, comments:d.comments||0, shares:d.shares||0, saves:d.saves||0, follows:d.follows||0,
-        looping:!!d.looping, ret, eng, engRate: d.reach? eng/d.reach*100 : 0,
+        looping:!!d.looping, ret, retReal, eng, engRate: d.reach? eng/d.reach*100 : 0,
         completion, avgWatch, hook, mid, dIdx, dropPct:dMax, dropAt, spark:sp.line,
         rates: d.rates || null,
         likeRate: d.rates?d.rates.like:null, saveRate: d.rates?d.rates.save:null, shareRate: d.rates?d.rates.share:null, commentRate: d.rates?d.rates.comment:null,
@@ -1635,7 +1649,7 @@ class Component extends DCLogic {
     let summary;
     if(dataSrc==='supabase'){
       const lr=(r.rates&&r.rates.like!=null)?this.pct1(r.rates.like):'—';
-      summary='This reel got '+this.fmtK(r.plays||r.reach)+' views, '+this.fmtK(r.likes)+' likes and '+this.fmtK(r.comments)+' comments — a '+lr+' like rate. Reach, saves and per‑second retention need the Graph API; the curve below is estimated from length + avg watch.';
+      summary='This reel got '+this.fmtK(r.plays||r.reach)+' views, '+this.fmtK(r.likes)+' likes and '+this.fmtK(r.comments)+' comments — a '+lr+' like rate. '+(r.retReal?'The curve below is your REAL audience retention, read from your Instagram insights recording.':'Per‑second retention needs the Graph API; the curve below is estimated from length + avg watch.');
     } else {
       summary='This reel reached '+this.fmtK(r.reach)+' accounts and held '+this.pct(r.hook)+' of viewers past the 3-second hook. '+(r.completion>=a.avgCompletion?('Strong finish — '+this.pct(r.completion)+' watched to the end, above your '+this.pct(a.avgCompletion)+' average.'):('The steepest drop comes around '+this.fmtT(r.dropAt)+', pulling completion to '+this.pct(r.completion)+'.'));
     }
@@ -1645,7 +1659,9 @@ class Component extends DCLogic {
       id:r.id, cap:r.cap, date:r.date, time:r.time||'', lenFmt:this.fmtT(r.len), permalink:r.permalink,
       linkText: linkReal?'Open on Instagram ↗':'', linkStyle: linkReal?{ alignSelf:'flex-start',marginTop:'14px',fontSize:'13px',fontWeight:'600',color:'#6366f1',textDecoration:'none' }:{ display:'none' },
       summary, kpiCards,
-      retSub:'Estimated from average watch time across the '+this.fmtT(r.len)+' video — the Graph API does not expose per-second retention.',
+      retSub: r.retReal ? ('Real audience retention, read from your Instagram insights recording — the actual drop-off across the '+this.fmtT(r.len)+' video.') : ('Estimated from average watch time across the '+this.fmtT(r.len)+' video — the Graph API does not expose per-second retention.'),
+      retReal: !!r.retReal, retBadge: r.retReal?'MEASURED':'ESTIMATED',
+      retBadgeStyle: r.retReal?{fontSize:'9px',fontWeight:'700',letterSpacing:'.06em',color:'#fff',background:'#16a34a',padding:'3px 8px',borderRadius:'99px'}:{fontSize:'9px',fontWeight:'700',letterSpacing:'.06em',color:'var(--text-3)',background:'var(--fill)',padding:'3px 8px',borderRadius:'99px'},
       retLine:rp.line, retArea:rp.area, dropX:+dropX.toFixed(1), dropY:+dropY.toFixed(1),
       q1Fmt:this.fmtT(r.len*0.25), midFmt:this.fmtT(r.len*0.5), q3Fmt:this.fmtT(r.len*0.75),
       heatSegs, keyMoments, dropNote,
