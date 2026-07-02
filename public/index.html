@@ -59,16 +59,16 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
   <div onClick="{{ labPopupClose }}" style="position:fixed;inset:0;background:rgba(0,0,0,.68);z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px">
     <div onClick="{{ stop }}" style="width:540px;max-width:94vw;max-height:86vh;overflow-y:auto;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:0 24px 70px rgba(0,0,0,.5);padding:20px 22px">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:3px">
-        <div style="font-weight:700;font-size:15.5px;line-height:1.3">Reels with {{ labPopupLabel }}</div>
+        <div style="font-weight:700;font-size:15.5px;line-height:1.3">Reels that have {{ labPopupLabel }}</div>
         <button onClick="{{ labPopupClose }}" style="background:var(--fill);border:none;border-radius:9px;width:30px;height:30px;font-size:17px;cursor:pointer;color:var(--text-2);font-family:inherit;flex:none">×</button>
       </div>
-      <div class="cc-mono" style="font-size:11px;color:var(--text-3);margin-bottom:15px">{{ labPopupCount }} reels · sorted by this outcome (best first)</div>
+      <div class="cc-mono" style="font-size:11px;color:var(--text-3);margin-bottom:15px">{{ labPopupCount }} reels that share this trait · sorted by the outcome — examples, not “winners”</div>
       <sc-if value="{{ labPopupLoading }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:var(--text-3);padding:12px 0">Loading…</div></sc-if>
       <div style="display:flex;flex-direction:column;gap:8px">
         <sc-for list="{{ labPopupReels }}" as="pr" hint-placeholder-count="4">
           <a href="{{ pr.permalink }}" target="_blank" style="display:flex;align-items:center;gap:11px;text-decoration:none;background:var(--surface-2);border:1px solid var(--line);border-radius:11px;padding:9px 11px">
             <sc-if value="{{ pr.hasThumb }}" hint-placeholder-val="{{ true }}"><img src="{{ pr.thumb }}" style="width:34px;height:46px;border-radius:6px;object-fit:cover;flex:none"/></sc-if>
-            <div style="flex:1;min-width:0"><div style="font-size:13px;color:var(--text);font-weight:550;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ pr.label }}</div><div class="cc-mono" style="font-size:11px;color:var(--text-3);margin-top:2px">{{ pr.plays }} views</div></div>
+            <div style="flex:1;min-width:0"><div style="font-size:13px;color:var(--text);font-weight:550;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ pr.label }}</div><div class="cc-mono" style="font-size:11px;color:var(--text-3);margin-top:2px">{{ pr.plays }} views{{ pr.sub }}</div></div>
             <div style="font-size:14.5px;font-weight:700;color:var(--cc);flex:none">{{ pr.metric }}</div>
           </a>
         </sc-for>
@@ -1228,6 +1228,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
           <button onClick="{{ LAB.setSaves }}" style="{{ LAB.segSaves }}">Saves</button>
           <button onClick="{{ LAB.setWatch }}" style="{{ LAB.segWatch }}">Watch</button>
           <button onClick="{{ LAB.setHook }}" style="{{ LAB.segHook }}" title="% still watching at 3s (real retention)">Hook</button>
+          <button onClick="{{ LAB.setStay }}" style="{{ LAB.segStay }}" title="stay rate = 100 − skip rate (fewer swipe-aways)">Stay</button>
         </div>
         <button onClick="{{ LAB.rebuild }}" style="{{ refreshBtnStyle }}">↻ Rebuild</button>
       </div>
@@ -1283,6 +1284,28 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
     <sc-if value="{{ LAB.empty }}" hint-placeholder-val="{{ false }}">
       <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:36px 24px;text-align:center;font-size:14px;color:var(--text-2)">No hypotheses yet — extract reels + add views, then hit Rebuild.</div>
     </sc-if>
+
+    <!-- ── granular retention: where each trait holds vs drops (real per-second curves) ── -->
+    <div class="cc-mono" style="font-size:10.5px;letter-spacing:.1em;color:var(--text-3);margin:34px 0 4px">RETENTION · where each trait holds vs drops · <span style="color:var(--text-faint)">real per-second curves · {{ LAB.retN }} reels</span></div>
+    <p style="margin:0 0 14px;font-size:12px;color:var(--text-3);line-height:1.55;max-width:680px">Each row contrasts reels that HAVE the trait against reels that don't — the 3‑second hook hold and the end completion. The <span style="color:var(--cc);font-weight:600">coloured line</span> is the average retention curve for reels with the trait; the <span style="color:var(--text-3);font-weight:600">grey line</span> is your overall average. Click a row to see those reels.</p>
+    <div style="display:inline-flex;background:var(--fill);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px;margin-bottom:13px">
+      <sc-for list="{{ LAB.retCats }}" as="ct" hint-placeholder-count="5"><button onClick="{{ ct.onClick }}" style="{{ ct.style }}">{{ ct.label }}</button></sc-for>
+    </div>
+    <sc-if value="{{ LAB.retLoading }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:var(--text-3);margin-bottom:16px">Reading your retention curves…</div></sc-if>
+    <sc-if value="{{ LAB.hasRet }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <sc-for list="{{ LAB.retRows }}" as="rr" hint-placeholder-count="6">
+        <div onClick="{{ rr.openReels }}" title="Show the reels with this trait" style="display:grid;grid-template-columns:1fr 128px 118px 118px 78px;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:11px 15px;cursor:pointer">
+          <div style="min-width:0"><div style="font-size:13.5px;font-weight:600;color:var(--text)">{{ rr.label }}</div><div class="cc-mono" style="font-size:10px;color:var(--text-3);margin-top:2px">{{ rr.n }} · {{ rr.dropTxt }}</div></div>
+          <svg width="120" height="44" viewBox="0 0 120 44" preserveAspectRatio="none" style="display:block"><path d="{{ rr.basePath }}" fill="none" stroke="var(--text-3)" stroke-width="1.2" stroke-opacity="0.5" vector-effect="non-scaling-stroke"></path><path d="{{ rr.curvePath }}" fill="none" stroke="var(--cc)" stroke-width="2" stroke-linejoin="round" vector-effect="non-scaling-stroke"></path></svg>
+          <div style="text-align:center" title="3-second hook hold vs reels without this trait"><span style="{{ rr.holdStyle }}">{{ rr.holdTxt }}</span></div>
+          <div style="text-align:center" title="completion vs reels without this trait"><span style="{{ rr.complStyle }}">{{ rr.complTxt }}</span></div>
+          <div style="text-align:right"><span style="{{ rr.sigStyle }}">{{ rr.sig }}</span></div>
+        </div>
+      </sc-for>
+    </div>
+    </sc-if>
+    <sc-if value="{{ LAB.retEmpty }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:var(--text-3);margin-bottom:8px">No clear retention differences yet — need more reels with real curves.</div></sc-if>
 
     <p style="margin:22px 0 0;font-size:11.5px;color:var(--text-3);line-height:1.55">Effect = rank‑biserial (−1…+1); sign = direction. Confidence is deliberately humble about sample size — a low % means “interesting but unproven,” even when the raw p‑value looks significant. “Supported” needs a real effect the bottom‑tier reels <strong>don't</strong> share. This is still correlation; the experiment above is what turns it into cause.</p>
   </main>
@@ -1744,9 +1767,10 @@ class Component extends DCLogic {
       labPopupCount: this.state.labReelPopup ? (this.state.labReelPopup.reels||[]).length : 0,
       labPopupReels: this.state.labReelPopup ? (this.state.labReelPopup.reels||[]).map((r)=>{
         const oc=this.state.labReelPopup.outcome||'rate';
+        const parts=[]; if(r.completion!=null) parts.push('kept '+r.completion+'% to the end'); if(r.skipRate!=null) parts.push(r.skipRate+'% skipped');
         return { label:r.label, thumb:r.thumb||'', hasThumb:!!r.thumb, permalink:r.permalink,
           metric: r.outcomeVal==null ? '—' : (oc==='likes'?this.fmtK(r.outcomeVal):(r.outcomeVal+'%')),
-          plays:this.fmtK(r.plays||0) };
+          plays:this.fmtK(r.plays||0), sub: parts.length? (' · '+parts.join(' · ')) : '' };
       }) : [],
       labPopupClose: ()=>this.setState({ labReelPopup:null })
     };
@@ -1961,12 +1985,21 @@ class Component extends DCLogic {
       .then(j=>{ const c=Object.assign({}, this.state.labInterpretByOutcome||{}); if(j&&!j.error&&j.text) c[outcome]=j.text; this.setState({ labInterpreting:false, labInterpretByOutcome:c }); })
       .catch(()=>this.setState({ labInterpreting:false }));
   }
-  loadLab(force){ if(this.state.labLoading) return; if(this.state.labLoaded && !force) return; this.labFetch(this.state.labOutcome||'rate'); }
+  labRetFetch(force){
+    if(this.state.labRetLoading) return;
+    if(this.state.labRetLoaded && !force) return;
+    this.setState({ labRetLoading:true });
+    fetch('/api/causal/retention')
+      .then(r=>r.json())
+      .then(j=>this.setState({ labRetLoading:false, labRetLoaded:true, labRetData:j, labRetError:(j&&j.error)||'' }))
+      .catch(e=>this.setState({ labRetLoading:false, labRetLoaded:true, labRetError:String(e) }));
+  }
+  loadLab(force){ this.labRetFetch(force); if(this.state.labLoading) return; if(this.state.labLoaded && !force) return; this.labFetch(this.state.labOutcome||'rate'); }
   labRebuild(){
     this.setState({ labRebuilding:true, labError:'' });
     fetch('/api/causal/rebuild',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ outcome:this.state.labOutcome||'rate' }) })
       .then(r=>r.json())
-      .then(j=>{ this.setState({ labRebuilding:false, labLoaded:true, labData: j.error?this.state.labData:j, labError:j.error||'', labInterpretByOutcome:{} }); if(!j.error) this.labInterpret(this.state.labOutcome||'rate'); })
+      .then(j=>{ this.setState({ labRebuilding:false, labLoaded:true, labData: j.error?this.state.labData:j, labError:j.error||'', labInterpretByOutcome:{} }); if(!j.error){ this.labInterpret(this.state.labOutcome||'rate'); this.labRetFetch(true); } })
       .catch(e=>this.setState({ labRebuilding:false, labError:String(e) }));
   }
   labOpenReels(feature,value,label){
@@ -1992,20 +2025,46 @@ class Component extends DCLogic {
       rowOpacity: h.status==='inconclusive'?'0.6':'1',
       openReels:()=>this.labOpenReels(h.feature,h.value,h.label||(h.feature+'='+h.value)),
     }));
+    // granular retention engine → rows with overlaid curves (real per-second data)
+    const _rd=s.labRetData||{}; const _rov=_rd.overall||null; const _retCat=s.labRetCat||'all';
+    const _catOf=(f)=>{ f=String(f||'');
+      if(f.indexOf('hook')===0||f==='opens_on_face') return 'hook';
+      if(['uses_screen_demo','has_ui_animation','text_overlay_density','visual_pace','has_diagram_or_data','talking_head_share','high_visual_intensity','opens_energy','has_burned_captions'].indexOf(f)>=0) return 'visual';
+      if(['topic','subject','length_bucket','format'].indexOf(f)>=0) return 'content';
+      return 'script'; };
+    const _catBtn=(c,lab)=>({ label:lab, onClick:()=>this.setState({ labRetCat:c }), style:{ padding:'5px 11px',borderRadius:'8px',fontSize:'11.5px',fontWeight:'600',cursor:'pointer',border:'none',fontFamily:'inherit',background:_retCat===c?'var(--text)':'transparent',color:_retCat===c?'var(--bg)':'var(--text-2)' } });
+    const _retSel=(_rd.rows||[]).filter(x=> Math.abs(x.hold3s_delta||0)>=2 || Math.abs(x.completion_delta||0)>=2).filter(x=> _retCat==='all' || _catOf(x.feature)===_retCat).slice(0,20);
+    const RET={ n:_rd.n||0, overallPath: _rov ? this.buildPath(_rov,300,96,3,3,8,10,0,100).line : '',
+      cats:[ _catBtn('all','All'), _catBtn('hook','Hooks'), _catBtn('visual','Visual'), _catBtn('script','Script'), _catBtn('content','Content') ],
+      rows:_retSel.map(x=>{
+        const hu=(x.hold3s_delta||0)>=0, cu=(x.completion_delta||0)>=0;
+        const sig=(x.hook_p!=null&&x.hook_p<0.05)||(x.completion_p!=null&&x.completion_p<0.05);
+        return { label:x.label, n:'n '+x.n,
+          holdTxt:(hu?'+':'')+x.hold3s_delta+' @3s', holdStyle:this.chip(hu),
+          complTxt:(cu?'+':'')+x.completion_delta+' end', complStyle:this.chip(cu),
+          sig: sig?'p<0.05':'directional', sigStyle:{ fontSize:'10px',fontWeight:'700',padding:'2px 8px',borderRadius:'999px',color: sig?'#fff':'var(--text-3)', background: sig?'#16a34a':'var(--fill)' },
+          dropTxt: (x.biggest_drop_at_pct!=null&&x.biggest_drop_loss>0) ? ('body drop @'+x.biggest_drop_at_pct+'%') : '',
+          curvePath: x.curve_with ? this.buildPath(x.curve_with,120,44,2,2,5,6,0,100).line : '',
+          basePath: _rov ? this.buildPath(_rov,120,44,2,2,5,6,0,100).line : '',
+          openReels:()=>this.labOpenReels(x.feature,x.value,x.label) };
+      }) };
     return {
       configured: s.labConfigured!==false,
       loading: !!s.labLoading, rebuilding: !!s.labRebuilding, error: s.labError||'',
       n: d.n||0, withViews: d.withViews||0, outcome,
-      outcomeNote: outcome==='save_rate' ? '· saves ÷ views' : outcome==='watch_through' ? '· % of the reel watched' : outcome==='hook_retention' ? '· % still watching at 3s (real retention)' : '· likes ÷ views (reach-controlled)',
-      segRate:this.ccSeg(outcome==='rate'), segSaves:this.ccSeg(outcome==='save_rate'), segWatch:this.ccSeg(outcome==='watch_through'), segHook:this.ccSeg(outcome==='hook_retention'),
-      setRate:()=>this.labFetch('rate'), setSaves:()=>this.labFetch('save_rate'), setWatch:()=>this.labFetch('watch_through'), setHook:()=>this.labFetch('hook_retention'), rebuild:()=>this.labRebuild(),
+      outcomeNote: outcome==='save_rate' ? '· saves ÷ views' : outcome==='watch_through' ? '· % of the reel watched' : outcome==='hook_retention' ? '· % still watching at 3s (real retention)' : outcome==='stay_rate' ? '· 100 − skip rate (fewer swipe-aways)' : '· likes ÷ views (reach-controlled)',
+      segRate:this.ccSeg(outcome==='rate'), segSaves:this.ccSeg(outcome==='save_rate'), segWatch:this.ccSeg(outcome==='watch_through'), segHook:this.ccSeg(outcome==='hook_retention'), segStay:this.ccSeg(outcome==='stay_rate'),
+      setRate:()=>this.labFetch('rate'), setSaves:()=>this.labFetch('save_rate'), setWatch:()=>this.labFetch('watch_through'), setHook:()=>this.labFetch('hook_retention'), setStay:()=>this.labFetch('stay_rate'), rebuild:()=>this.labRebuild(),
       hasExp: !!exp, expClaim: exp&&exp.claim, expDo: exp&&exp.instruction,
       expTest: exp&&exp.arms&&exp.arms.test, expControl: exp&&exp.arms&&exp.arms.control,
       hyps, hasHyps: hyps.length>0,
       empty: s.labLoaded && !s.labLoading && !hyps.length && s.labConfigured!==false,
       interpretText: (s.labInterpretByOutcome||{})[outcome]||'',
       hasInterpret: !!((s.labInterpretByOutcome||{})[outcome]),
-      interpreting: !!s.labInterpreting && !((s.labInterpretByOutcome||{})[outcome])
+      interpreting: !!s.labInterpreting && !((s.labInterpretByOutcome||{})[outcome]),
+      retLoading: !!s.labRetLoading && !s.labRetLoaded, retCats: RET.cats,
+      retN: RET.n, retRows: RET.rows, hasRet: RET.rows.length>0, overallPath: RET.overallPath,
+      retEmpty: !!s.labRetLoaded && !RET.rows.length && !s.labRetError, retError: s.labRetError||''
     };
   }
   // ── Clippers: command center (roster + assignments + per-platform views) ───

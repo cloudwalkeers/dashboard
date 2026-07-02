@@ -218,6 +218,16 @@ const server = http.createServer(async (req, res) => {
         return send(res, 200, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e), text: "" }));
       }
     }
+    // Lab: granular retention — how each feature affects the real per-second curve.
+    if (u.pathname === "/api/causal/retention" && req.method === "GET") {
+      const causal = await import("./lib/causal.mjs");
+      if (!causal.isConfigured()) return send(res, 200, ".json", JSON.stringify({ configured: false, rows: [], n: 0 }));
+      try {
+        return send(res, 200, ".json", JSON.stringify(await causal.retentionInsights({})));
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e), rows: [] }));
+      }
+    }
     // Lab: the reels that have a given feature value (for the click-through popup).
     if (u.pathname === "/api/causal/reels" && req.method === "GET") {
       const causal = await import("./lib/causal.mjs");
