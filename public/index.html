@@ -274,8 +274,9 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
         </div>
       </div>
       <div class="sg-scroll" style="overflow-x:auto">
-      <div style="display:grid;grid-template-columns:minmax(180px,1.4fr) 72px 72px 82px 110px 64px 58px 58px 58px 66px 54px 70px;gap:10px;padding:9px 20px;border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--text-3);font-weight:650;min-width:1060px">
+      <div style="display:grid;grid-template-columns:minmax(170px,1.3fr) 62px 72px 72px 82px 110px 64px 58px 58px 58px 66px 54px 70px;gap:10px;padding:9px 20px;border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--text-3);font-weight:650;min-width:1140px">
         <span>Reel</span>
+        <button style="{{ sortDateStyle }}" onClick="{{ sortDate }}" title="Sort by posting date (newest first)">Date {{ sortDateCaret }}</button>
         <button style="{{ sortReachStyle }}" onClick="{{ sortReach }}">Reach {{ sortReachCaret }}</button>
         <button style="{{ sortPlaysStyle }}" onClick="{{ sortPlays }}">Plays {{ sortPlaysCaret }}</button>
         <button style="{{ sortAvgWatchStyle }}" onClick="{{ sortAvgWatch }}">Avg watch {{ sortAvgWatchCaret }}</button>
@@ -289,7 +290,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
         <button style="{{ sortHookStyle }}" onClick="{{ sortHook }}" title="Sort by 3-second hold (real retention where measured)">Retention {{ sortHookCaret }}</button>
       </div>
       <sc-for list="{{ reels }}" as="r" hint-placeholder-count="8">
-        <div onClick="{{ r.open }}" style="display:grid;grid-template-columns:minmax(180px,1.4fr) 72px 72px 82px 110px 64px 58px 58px 58px 66px 54px 70px;gap:10px;padding:13px 20px;border-bottom:1px solid var(--line-2);align-items:center;cursor:pointer;transition:background .12s;min-width:1060px" style-hover="background:var(--surface-2)">
+        <div onClick="{{ r.open }}" style="display:grid;grid-template-columns:minmax(170px,1.3fr) 62px 72px 72px 82px 110px 64px 58px 58px 58px 66px 54px 70px;gap:10px;padding:13px 20px;border-bottom:1px solid var(--line-2);align-items:center;cursor:pointer;transition:background .12s;min-width:1140px" style-hover="background:var(--surface-2)">
           <div style="display:flex;align-items:center;gap:12px;min-width:0">
             <sc-if value="{{ r.hasThumb }}" hint-placeholder-val="{{ false }}">
               <img src="{{ r.thumb }}" style="width:38px;height:50px;border-radius:7px;flex:none;object-fit:cover;background:var(--fill)"/>
@@ -301,9 +302,10 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
             </sc-if>
             <div style="min-width:0">
               <div style="font-size:13.5px;font-weight:570;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.cap }}</div>
-              <div style="font-size:12px;color:var(--text-3);margin-top:2px">{{ r.date }} · {{ r.lenFmt }}</div>
+              <div style="font-size:12px;color:var(--text-3);margin-top:2px">{{ r.lenFmt }}</div>
             </div>
           </div>
+          <div style="text-align:right;font-size:12px;color:var(--text-2);font-weight:550">{{ r.dateFmt }}</div>
           <div style="text-align:right;font-size:13.5px;font-weight:560">{{ r.reachFmt }}</div>
           <div style="text-align:right;font-size:13.5px;font-weight:560">{{ r.playsFmt }}</div>
           <div style="text-align:right;font-size:13.5px;font-weight:560">{{ r.avgWatchFmt }}</div>
@@ -506,6 +508,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
         <sc-if value="{{ R.auditHas }}" hint-placeholder-val="{{ false }}"><span class="cc-mono" style="{{ R.auditScoreStyle }}">{{ R.auditScore }}</span></sc-if>
       </div>
       <sc-if value="{{ R.auditLoading }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:var(--text-3);padding:10px 0 4px">Auditing against the Lab…</div></sc-if>
+      <sc-if value="{{ R.auditEmpty }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:var(--text-2);line-height:1.55;background:var(--surface-2);border:1px dashed var(--line);border-radius:11px;padding:12px 15px;margin-top:10px">No audit yet — this reel isn't in the measurement DB (no stored transcript/frames). Extract it first, then the audit fills in automatically.</div></sc-if>
       <sc-if value="{{ R.auditHas }}" hint-placeholder-val="{{ false }}">
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:8px;margin-top:12px">
         <sc-for list="{{ R.auditRows }}" as="au" hint-placeholder-count="9">
@@ -1832,6 +1835,23 @@ class Component extends DCLogic {
     return out;
   }
 
+  // Full per-second retention for the detail chart — one value PER SECOND, one decimal,
+  // so the manually-recorded insights numbers show exactly (no 21-point resampling).
+  realRetFull(curve, durSec){
+    if(!Array.isArray(curve) || curve.length<2) return null;
+    const pairs = (typeof curve[0]==='object' && curve[0]!=null)
+      ? curve.map(x=>({t:+x.t, p:+x.p})).sort((a,b)=>a.t-b.t)
+      : curve.map((p,i,a)=>({t:(durSec||1)*i/(a.length-1), p:+p}));
+    const dur = Math.round(pairs[pairs.length-1].t || durSec || 1);
+    if(dur<2) return null;
+    const out=[];
+    for(let s=0;s<=dur;s++){ let lo=pairs[0],hi=pairs[pairs.length-1];
+      for(let k=0;k<pairs.length;k++){ if(pairs[k].t<=s)lo=pairs[k]; if(pairs[k].t>=s){hi=pairs[k];break;} }
+      const p = lo.t===hi.t ? lo.p : lo.p+(hi.p-lo.p)*((s-lo.t)/(hi.t-lo.t));
+      out.push(Math.max(0,Math.min(100,Math.round(p*10)/10))); }
+    return out;
+  }
+
   sparkPath(series){
     let v=(series||[]).map(Number).filter(n=>isFinite(n));
     if(v.length<2) v=v.concat([0,0]).slice(0,2);
@@ -1854,22 +1874,27 @@ class Component extends DCLogic {
       const realCurve = this.realRet(d.retentionCurve, d.len);
       const retReal = !!realCurve;
       const ret = realCurve || this.synthRet(d.avgWatchSec, d.len, lenKnown);
+      const retFull = retReal ? this.realRetFull(d.retentionCurve, d.len) : null; // exact per-second (manual insights data)
       const eng = (d.likes||0)+(d.comments||0)+(d.shares||0)+(d.saves||0);
       const completion = ret[20];
       const avgWatch = d.avgWatchSec || (lenKnown ? d.len*this.mean(ret)/100 : 0);
       const hookIdx = lenKnown ? Math.max(0,Math.min(20,Math.round((3/d.len)*20))) : 3;
-      const hook = ret[hookIdx];
+      const hook = retFull ? retFull[Math.min(3,retFull.length-1)] : ret[hookIdx]; // exact value AT 3s when we have per-second data
       const mid = ret[10];
-      let dIdx=1, dMax=-1; for(let i=1;i<=20;i++){ const dr=ret[i-1]-ret[i]; if(dr>dMax){ dMax=dr; dIdx=i; } }
-      const dropAt = lenKnown ? (dIdx/20)*d.len : 0;
+      const dBase = retFull || ret;
+      let dIdx=1, dMax=-1; for(let i=1;i<dBase.length;i++){ const dr=dBase[i-1]-dBase[i]; if(dr>dMax){ dMax=dr; dIdx=i; } }
+      const dropAt = retFull ? dIdx : (lenKnown ? (dIdx/20)*d.len : 0);
       const sp = this.buildPath(ret,72,28,2,2,4,4,0,100);
       return {
         id:d.id, cap:d.cap||'Untitled reel', permalink:d.permalink||'#',
+        // shortcode for analysis/audit lookups: live-path reels have a numeric media id,
+        // so prefer the permalink's /reel/<code>/ segment
+        code:(String(d.permalink||'').match(/\/(?:reel|p)\/([A-Za-z0-9_-]+)/)||[])[1] || d.id,
         ts:d.ts||Date.now(), date:d.date||this.fmtDate(d.ts||Date.now()), time:d.time||'',
         len: lenKnown?d.len:0, lenKnown,
         reach:d.reach||0, plays:d.plays||0, replays:d.replays||0,
         likes:d.likes||0, comments:d.comments||0, shares:d.shares||0, saves:d.saves||0, follows:d.follows||0,
-        looping:!!d.looping, ret, retReal, eng, engRate: d.reach? eng/d.reach*100 : 0,
+        looping:!!d.looping, ret, retFull, retReal, eng, engRate: d.reach? eng/d.reach*100 : 0,
         completion, avgWatch, hook, mid, dIdx, dropPct:dMax, dropAt, spark:sp.line,
         rates: d.rates || null,
         likeRate: d.rates?d.rates.like:null, saveRate: d.rates?d.rates.save:null, shareRate: d.rates?d.rates.share:null, commentRate: d.rates?d.rates.comment:null,
@@ -1901,9 +1926,16 @@ class Component extends DCLogic {
   // ── actions ─────────────────────────────────────────────────────────────
   setRange(r){ this.setState({ range:r }); }
   setSort(s){ this.setState({ sort:s }); }
-  openReel(id){ this.dvStop(); this.setState({ view:'detail', sel:id, dvCur:0, dvPlaying:false, dvSel:{}, dvView:'scrubber' }); if(typeof window!=='undefined') window.scrollTo(0,0); this.loadAnalysis(id); this.loadReelDrops(id); this.loadReelAudit(id); }
+  openReel(id, code){
+    const rr=((this.db&&this.db.reels)||[]).find(x=>x.id===id);
+    const sc=code||(rr&&rr.code)||id; // shortcode, not the numeric media id
+    this.dvStop();
+    this.setState({ view:'detail', sel:id, selCode:sc, dvCur:0, dvPlaying:false, dvSel:{}, dvView:'scrubber' });
+    if(typeof window!=='undefined') window.scrollTo(0,0);
+    this.loadAnalysis(sc); this.loadReelDrops(sc); this.loadReelAudit(sc);
+  }
   back(){ this.dvStop(); this.setState({ view:'overview', sel:null }); if(typeof window!=='undefined') window.scrollTo(0,0); }
-  refreshReel(id){ this.loadData(true,false); this.loadAnalysis(id,true); this.loadReelDrops(id,true); this.loadReelAudit(id,true); }
+  refreshReel(id){ const sc=this.state.selCode||id; this.loadData(true,false); this.loadAnalysis(sc,true); this.loadReelDrops(sc,true); this.loadReelAudit(sc,true); }
   loadReelAudit(id, force){
     if(!force && this.state.reelAuditFor===id && this.state.reelAudit) return;
     this.setState({ reelAuditLoading:true });
@@ -1932,10 +1964,10 @@ class Component extends DCLogic {
   }
   aiVals(){
     const blank={ has:false, empty:false, note:'', summary:'', hook:'', cta:'', frames:[], dropoff:[], suggestions:[], transcript:[], hasTranscript:false };
-    const a = (this.state.analysisFor===this.state.sel) ? this.state.analysis : null;
+    const a = (this.state.analysisFor===(this.state.selCode||this.state.sel)) ? this.state.analysis : null;
     if(this.state.analysisLoading && !a) return Object.assign(blank, { note:'loading…' });
     if(!a) return Object.assign(blank, { empty:true, note:'not generated',
-      cta:'No AI breakdown yet. Generate one with:  npm run analyze -- <reel.mp4> --id '+this.state.sel+'  — it extracts frames, transcribes the audio (OpenAI Whisper) and describes + analyses it (OpenAI vision).' });
+      cta:'No AI breakdown yet. Generate one with:  npm run analyze -- <reel.mp4> --id '+(this.state.selCode||this.state.sel)+'  — it extracts frames, transcribes the audio (OpenAI Whisper) and describes + analyses it (OpenAI vision).' });
     const A=a.analysis||{};
     const segs=(a.transcript&&a.transcript.segments)||[];
     return {
@@ -1956,12 +1988,14 @@ class Component extends DCLogic {
     const a = this.aggOf(reels);
     const r = reels.find(x=>x.id===this.state.sel) || reels[0];
     if(!r) return {};
-    const rp = this.buildPath(r.ret,520,244,0,0,14,40,0,100);
-    const rN=(r.ret||[]).length, rhi=this.state.retHoverI, rHas=(rhi!=null&&rhi>=0&&rhi<rN);
+    const rFull = (r.retFull && r.retFull.length>=2) ? r.retFull : r.ret;  // exact per-second when measured
+    const rp = this.buildPath(rFull,520,244,0,0,14,40,0,100);
+    const rN=rFull.length, rhi=this.state.retHoverI, rHas=(rhi!=null&&rhi>=0&&rhi<rN);
     const rHX=i=>(rN>1?i/(rN-1)*520:0), rHY=v=>14+(1-v/100)*190;
-    const dropX = (r.dIdx/20)*520;
-    const dropY = 14+(1-r.ret[r.dIdx]/100)*190;
-    const heatSegs = r.ret.map(v=>({ style:{ flex:'1 1 0', background:this.heatColor(v), height:'100%' } }));
+    let dIdxF=1, dMaxF=-1; for(let i=1;i<rN;i++){ const dr=rFull[i-1]-rFull[i]; if(dr>dMaxF){ dMaxF=dr; dIdxF=i; } }
+    const dropX = rHX(dIdxF);
+    const dropY = rHY(rFull[dIdxF]);
+    const heatSegs = rFull.map(v=>({ style:{ flex:'1 1 0', background:this.heatColor(v), height:'100%' } }));
     const mkChip = (cur,base)=>{ if(!base){ return { text:'—', style:this.chip(true) }; }
       const d=(cur-base)/base*100; const up=d>=0; return { text:(up?'▲ ':'▼ ')+Math.abs(Math.round(d))+'% vs avg', style:this.chip(up) }; };
     const kpiCards=[
@@ -2041,7 +2075,7 @@ class Component extends DCLogic {
       exportBtnStyle:{ display:'inline-flex',alignItems:'center',gap:'7px',padding:'8px 16px',borderRadius:'9px',border:'none',background:'var(--cc)',color:'var(--cc-on)',fontSize:'13px',fontWeight:'650',cursor:'pointer',fontFamily:'inherit' },
       miniBtnStyle:{ padding:'7px 12px',borderRadius:'8px',border:'1px solid var(--line)',background:'var(--surface)',color:'var(--text-2)',fontSize:'12.5px',fontWeight:'600',cursor:'pointer',fontFamily:'inherit' } };
     // reel audit (this reel vs the Lab's measured best practices)
-    const auData=(sdv.reelAuditFor===r.id)?sdv.reelAudit:null;
+    const auData=(sdv.reelAuditFor===(sdv.selCode||r.id))?sdv.reelAudit:null;
     const AV={ pass:['✓','#16a34a'], warn:['△','#e0a458'], fail:['✕','#dc2626'], info:['i','#64748b'] };
     const auditRows=((auData&&auData.checks)||[]).map(c=>{ const v=AV[c.verdict]||AV.info;
       return { icon:v[0], iconStyle:{ flex:'none', width:'20px', height:'20px', borderRadius:'6px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'11px', fontWeight:'800', color:'#fff', background:v[1], marginTop:'1px' }, label:c.label, value:c.value||'', why:c.why||'' }; });
@@ -2051,6 +2085,7 @@ class Component extends DCLogic {
       postedLine:'Posted '+r.date+(r.time?(' · '+r.time):'')+' · '+this.fmtT(r.len)+' long',
       dv:DV,
       auditHas: auditRows.length>0, auditLoading: !!sdv.reelAuditLoading && !auData, auditRows,
+      auditEmpty: !auditRows.length && !sdv.reelAuditLoading && sdv.reelAuditFor===(sdv.selCode||r.id),
       auditScore: auData&&auData.score ? (auData.score.pass+' / '+auData.score.total+' best practices') : '',
       auditScoreStyle:{ fontSize:'11px', fontWeight:'700', padding:'4px 10px', borderRadius:'999px', color:'#fff', background: auRatio>=0.75?'#16a34a':auRatio>=0.5?'#e0a458':'#dc2626' },
       linkText: linkReal?'Open on Instagram ↗':'', linkStyle: linkReal?{ alignSelf:'flex-start',marginTop:'14px',fontSize:'13px',fontWeight:'600',color:'#6366f1',textDecoration:'none' }:{ display:'none' },
@@ -2060,8 +2095,8 @@ class Component extends DCLogic {
       retBadgeStyle: r.retReal?{fontSize:'9px',fontWeight:'700',letterSpacing:'.06em',color:'#fff',background:'#16a34a',padding:'3px 8px',borderRadius:'99px'}:{fontSize:'9px',fontWeight:'700',letterSpacing:'.06em',color:'var(--text-3)',background:'var(--fill)',padding:'3px 8px',borderRadius:'99px'},
       retLine:rp.line, retArea:rp.area, dropX:+dropX.toFixed(1), dropY:+dropY.toFixed(1),
       retHasHover:rHas,
-      retHoverX: rHas?+rHX(rhi).toFixed(1):0, retHoverY: rHas?+rHY(r.ret[rhi]).toFixed(1):0,
-      retHoverPct: rHas?this.pct(r.ret[rhi]):'', retHoverTime: rHas?this.fmtT((rhi/(rN-1))*r.len):'',
+      retHoverX: rHas?+rHX(rhi).toFixed(1):0, retHoverY: rHas?+rHY(rFull[rhi]).toFixed(1):0,
+      retHoverPct: rHas?((Math.round(rFull[rhi]*10)/10)+'%'):'', retHoverTime: rHas?(r.retFull?this.fmtT(rhi):this.fmtT((rhi/(rN-1))*r.len)):'',
       retHoverLeftPct: rHas?(rHX(rhi)/520*100).toFixed(2)+'%':'0%', retHoverTipLeft: rHas?Math.min(86,Math.max(9,rHX(rhi)/520*100)).toFixed(2)+'%':'0%',
       retOnMove:(e)=>{ try{ const rc=e.currentTarget.getBoundingClientRect(); if(!rc.width)return; let f=(e.clientX-rc.left)/rc.width; f=Math.max(0,Math.min(1,f)); const idx=Math.round(f*(rN-1)); if(idx!==this.state.retHoverI)this.setState({retHoverI:idx}); }catch(_){} },
       retOnLeave:()=>{ if(this.state.retHoverI!=null)this.setState({retHoverI:null}); },
@@ -2743,7 +2778,7 @@ class Component extends DCLogic {
     });
   }
   ccFrames(){ return this._frameModel(this.state.ccResult); }
-  dvFrames(){ return this._frameModel((this.state.analysisFor===this.state.sel)?this.state.analysis:null); }
+  dvFrames(){ return this._frameModel((this.state.analysisFor===(this.state.selCode||this.state.sel))?this.state.analysis:null); }
   ccGo(i){ const m=this.ccFrames().length; if(!m) return; i=((i%m)+m)%m; this.setState({ ccCur:i }); }
   ccPrev(){ this.ccGo((this.state.ccCur||0)-1); }
   ccNext(){ this.ccGo((this.state.ccCur||0)+1); }
@@ -2766,7 +2801,7 @@ class Component extends DCLogic {
   }
   dvStop(){ if(this._dvTimer){ clearInterval(this._dvTimer); this._dvTimer=null; } if(this.state.dvPlaying) this.setState({ dvPlaying:false }); }
   toggleDvFrame(t){ const sel=Object.assign({}, this.state.dvSel); if(sel[t]) delete sel[t]; else sel[t]=true; this.setState({ dvSel:sel }); }
-  dvExport(){ const r=(this.state.analysisFor===this.state.sel)?this.state.analysis:null; return this._zipFrames(r, this.state.dvSel||{}, 'dvExporting'); }
+  dvExport(){ const r=(this.state.analysisFor===(this.state.selCode||this.state.sel))?this.state.analysis:null; return this._zipFrames(r, this.state.dvSel||{}, 'dvExporting'); }
   componentWillUnmount(){ if(this._ccTimer) clearInterval(this._ccTimer); if(this._dvTimer) clearInterval(this._dvTimer); clearTimeout(this._ccToast); }
   ccFlash(msg){ this.setState({ ccToast:msg }); clearTimeout(this._ccToast); this._ccToast=setTimeout(()=>this.setState({ ccToast:'' }),1500); }
   ccCopy(text,msg){ try{ navigator.clipboard.writeText(text||''); }catch(e){} this.ccFlash(msg||'Copied'); }
@@ -3217,11 +3252,11 @@ Hier ist das Skript:
     }
 
     // reels table (windowed + sorted)
-    const sk=({reach:'reach',plays:'plays',watch:'completion',awt:'avgWatch',eng:'engRate',like:'likeRate',save:'saveRate',share:'shareRate',comment:'commentRate',hook:'hook',skip:'skipRate'})[this.state.sort];
+    const sk=({reach:'reach',plays:'plays',watch:'completion',awt:'avgWatch',eng:'engRate',like:'likeRate',save:'saveRate',share:'shareRate',comment:'commentRate',hook:'hook',skip:'skipRate',date:'ts'})[this.state.sort];
     const sorted=[...cur].sort((x,y)=>(y[sk]||0)-(x[sk]||0));
     const rateFmt=v=> v==null?'—':((Math.round(v*10)/10)+'%');
     out.reels=sorted.map(r=>({
-      cap:r.cap, date:r.date, lenFmt:this.fmtT(r.len),
+      cap:r.cap, date:r.date, dateFmt:r.date, lenFmt:this.fmtT(r.len),
       reachFmt:this.fmtK(r.reach), playsFmt:this.fmtK(r.plays), avgWatchFmt:this.fmtT(r.avgWatch),
       completionFmt:this.pct(r.completion), engFmt:this.pct1(r.engRate), spark:r.spark,
       hookFmt:this.pct(r.hook), retReal:!!r.retReal,
@@ -3231,21 +3266,21 @@ Hier ist das Skript:
       likesFmt:this.fmtK(r.likes), commentsFmt:this.fmtK(r.comments),
       watchBarStyle:{ height:'100%', width:Math.max(4,Math.min(100,r.completion))+'%', background:'var(--accent)', borderRadius:'999px' },
       thumb:r.thumb||'', hasThumb:!!r.thumb,
-      open:()=>this.openReel(r.id)
+      open:()=>this.openReel(r.id, r.code)
     }));
 
     // sort header styling
     const sortHdr=key=>{ const on=this.state.sort===key; return { style:{ background:'none',border:'none',padding:'0',font:'inherit',cursor:'pointer',textAlign:'right',letterSpacing:'.04em',textTransform:'uppercase',fontSize:'11px',fontWeight:'650',color:on?'var(--text)':'var(--text-3)' }, caret:on?'▾':'' }; };
     const hr=sortHdr('reach'), hp=sortHdr('plays'), hw=sortHdr('watch'), he=sortHdr('eng'), ha=sortHdr('awt');
-    const hl=sortHdr('like'), hs=sortHdr('save'), hsh=sortHdr('share'), hc=sortHdr('comment'), hh=sortHdr('hook'), hsk=sortHdr('skip');
+    const hl=sortHdr('like'), hs=sortHdr('save'), hsh=sortHdr('share'), hc=sortHdr('comment'), hh=sortHdr('hook'), hsk=sortHdr('skip'), hdt=sortHdr('date');
     out.sortReach=()=>this.setSort('reach'); out.sortPlays=()=>this.setSort('plays'); out.sortWatch=()=>this.setSort('watch'); out.sortEng=()=>this.setSort('eng'); out.sortAvgWatch=()=>this.setSort('awt');
-    out.sortLike=()=>this.setSort('like'); out.sortSave=()=>this.setSort('save'); out.sortShare=()=>this.setSort('share'); out.sortComment=()=>this.setSort('comment'); out.sortHook=()=>this.setSort('hook'); out.sortSkip=()=>this.setSort('skip');
+    out.sortLike=()=>this.setSort('like'); out.sortSave=()=>this.setSort('save'); out.sortShare=()=>this.setSort('share'); out.sortComment=()=>this.setSort('comment'); out.sortHook=()=>this.setSort('hook'); out.sortSkip=()=>this.setSort('skip'); out.sortDate=()=>this.setSort('date');
     out.sortReachStyle=hr.style; out.sortReachCaret=hr.caret; out.sortPlaysStyle=hp.style; out.sortPlaysCaret=hp.caret;
     out.sortWatchStyle=hw.style; out.sortWatchCaret=hw.caret; out.sortEngStyle=he.style; out.sortEngCaret=he.caret;
     out.sortAvgWatchStyle=ha.style; out.sortAvgWatchCaret=ha.caret;
     out.sortLikeStyle=hl.style; out.sortLikeCaret=hl.caret; out.sortSaveStyle=hs.style; out.sortSaveCaret=hs.caret;
     out.sortShareStyle=hsh.style; out.sortShareCaret=hsh.caret; out.sortCommentStyle=hc.style; out.sortCommentCaret=hc.caret;
-    out.sortHookStyle=hh.style; out.sortHookCaret=hh.caret; out.sortSkipStyle=hsk.style; out.sortSkipCaret=hsk.caret;
+    out.sortHookStyle=hh.style; out.sortHookCaret=hh.caret; out.sortSkipStyle=hsk.style; out.sortSkipCaret=hsk.caret; out.sortDateStyle=hdt.style; out.sortDateCaret=hdt.caret;
 
     // range selector
     out.ranges=['7D','30D','90D'].map(rr=>({ r:rr, onClick:()=>this.setRange(rr), style:{ padding:'6px 12px',borderRadius:'8px',fontSize:'12.5px',fontWeight:'600',cursor:'pointer',border:'none',background:this.state.range===rr?'var(--text)':'transparent',color:this.state.range===rr?'var(--bg)':'var(--text-2)' } }));
