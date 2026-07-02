@@ -281,7 +281,8 @@ const server = http.createServer(async (req, res) => {
         const contentOnly = await predict.trainViewsModel({ withRetention: false });
         const withRet = await predict.trainViewsModel({ withRetention: true });
         const full = await predict.trainViewsModel({ withRetention: true, withEngagement: true });
-        return send(res, 200, ".json", JSON.stringify({ configured: true, n: full.n, meta: full.meta, contentR2: contentOnly.looR2, retentionR2: withRet.looR2, fullR2: full.looR2, medianErrorPct: full.medianErrorPct, drivers: full.drivers, note: full.note }));
+        const skip = await predict.trainSkipModel();
+        return send(res, 200, ".json", JSON.stringify({ configured: true, n: full.n, meta: full.meta, contentR2: contentOnly.looR2, retentionR2: withRet.looR2, fullR2: full.looR2, medianErrorPct: full.medianErrorPct, drivers: full.drivers, skip, note: full.note }));
       } catch (e) {
         return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
       }

@@ -274,7 +274,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
         </div>
       </div>
       <div class="sg-scroll" style="overflow-x:auto">
-      <div style="display:grid;grid-template-columns:minmax(180px,1.4fr) 72px 72px 82px 110px 64px 58px 58px 58px 66px 70px;gap:10px;padding:9px 20px;border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--text-3);font-weight:650;min-width:1000px">
+      <div style="display:grid;grid-template-columns:minmax(180px,1.4fr) 72px 72px 82px 110px 64px 58px 58px 58px 66px 54px 70px;gap:10px;padding:9px 20px;border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--text-3);font-weight:650;min-width:1060px">
         <span>Reel</span>
         <button style="{{ sortReachStyle }}" onClick="{{ sortReach }}">Reach {{ sortReachCaret }}</button>
         <button style="{{ sortPlaysStyle }}" onClick="{{ sortPlays }}">Plays {{ sortPlaysCaret }}</button>
@@ -285,10 +285,11 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
         <button style="{{ sortSaveStyle }}" onClick="{{ sortSave }}">Save {{ sortSaveCaret }}</button>
         <button style="{{ sortShareStyle }}" onClick="{{ sortShare }}">Share {{ sortShareCaret }}</button>
         <button style="{{ sortCommentStyle }}" onClick="{{ sortComment }}">Comm. {{ sortCommentCaret }}</button>
+        <button style="{{ sortSkipStyle }}" onClick="{{ sortSkip }}" title="% who swiped away (real, from your insights) — lower is better">Skip {{ sortSkipCaret }}</button>
         <button style="{{ sortHookStyle }}" onClick="{{ sortHook }}" title="Sort by 3-second hold (real retention where measured)">Retention {{ sortHookCaret }}</button>
       </div>
       <sc-for list="{{ reels }}" as="r" hint-placeholder-count="8">
-        <div onClick="{{ r.open }}" style="display:grid;grid-template-columns:minmax(180px,1.4fr) 72px 72px 82px 110px 64px 58px 58px 58px 66px 70px;gap:10px;padding:13px 20px;border-bottom:1px solid var(--line-2);align-items:center;cursor:pointer;transition:background .12s;min-width:1000px" style-hover="background:var(--surface-2)">
+        <div onClick="{{ r.open }}" style="display:grid;grid-template-columns:minmax(180px,1.4fr) 72px 72px 82px 110px 64px 58px 58px 58px 66px 54px 70px;gap:10px;padding:13px 20px;border-bottom:1px solid var(--line-2);align-items:center;cursor:pointer;transition:background .12s;min-width:1060px" style-hover="background:var(--surface-2)">
           <div style="display:flex;align-items:center;gap:12px;min-width:0">
             <sc-if value="{{ r.hasThumb }}" hint-placeholder-val="{{ false }}">
               <img src="{{ r.thumb }}" style="width:38px;height:50px;border-radius:7px;flex:none;object-fit:cover;background:var(--fill)"/>
@@ -315,6 +316,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
           <div style="text-align:right;font-size:13px;font-weight:540;color:var(--text-2)">{{ r.saveRateFmt }}</div>
           <div style="text-align:right;font-size:13px;font-weight:540;color:var(--text-2)">{{ r.shareRateFmt }}</div>
           <div style="text-align:right"><div style="font-size:13px;font-weight:570">{{ r.commentsFmt }}</div><div style="font-size:10.5px;color:var(--text-3);margin-top:1px">{{ r.commentRateFmt }}</div></div>
+          <div style="text-align:right;font-size:13px;font-weight:540;color:var(--text-2)">{{ r.skipRateFmt }}</div>
           <div style="text-align:right">
             <div style="{{ r.hookStyle }}">{{ r.hookFmt }}</div>
             <svg width="72" height="15" viewBox="0 0 72 28" preserveAspectRatio="none" style="display:block;margin-left:auto;margin-top:2px">
@@ -1331,6 +1333,21 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
       </div>
     </sc-if>
 
+    <!-- skip-rate model: what makes them swipe in the first instant -->
+    <sc-if value="{{ LAB.hasSkipModel }}" hint-placeholder-val="{{ false }}">
+      <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--text-3);margin:20px 0 6px">WHAT MAKES THEM SWIPE · <span style="color:var(--text-faint)">skip‑rate model · LOO R² {{ LAB.skipR2 }} · n {{ LAB.skipN }} · effect in skip‑rate points · <span style="color:#16a34a">green = fewer skips</span></span></div>
+      <div style="font-size:12px;color:var(--text-3);line-height:1.5;margin-bottom:10px;max-width:680px">{{ LAB.skipVerdict }}</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <sc-for list="{{ LAB.skipDrivers }}" as="sd" hint-placeholder-count="6">
+          <div style="display:grid;grid-template-columns:220px 1fr 92px;gap:12px;align-items:center">
+            <div style="font-size:12.5px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ sd.label }}</div>
+            <div style="height:10px;background:var(--fill);border-radius:5px;position:relative;overflow:hidden"><div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--line)"></div><div style="{{ sd.barStyle }}"></div></div>
+            <div style="text-align:right;font-size:11px;font-weight:700;color:{{ sd.color }}">{{ sd.coefTxt }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
     <!-- ── 3 · view predictor: does held attention convert to views ── -->
     <sc-if value="{{ LAB.hasPredict }}" hint-placeholder-val="{{ true }}">
     <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px 22px;box-shadow:var(--shadow);margin:34px 0 0">
@@ -2181,6 +2198,15 @@ class Component extends DCLogic {
         const base='What you control up front — format, opening structure (first cut, demo timing), hook script (question/number/du), CTA, tool named, posting time — predicts R² '+c.toFixed(2)+'. Adding how the first seconds actually held (+ skip rate) lifts it to '+r.toFixed(2)+(e!=null?'; adding after‑the‑fact engagement quality reaches '+e.toFixed(2):'')+'.';
         return base+((r-c)>=0.15?' The biggest lever you control in advance is still the first seconds — everything past that is quality you can only read after posting.':' Up‑front choices carry a real share of what’s predictable here.'); })(),
       drivers:_drv.slice(0,9).map(d=>{ const pos=d.coef>=0; const w=Math.round(Math.abs(d.coef)/_pmax*50); return { label:this._predLabel(d.feature), coefTxt:(pos?'+':'')+d.coef, color:pos?'#16a34a':'#dc2626', barStyle:{ position:'absolute', top:'0', height:'100%', width:w+'%', background:pos?'#16a34a':'#dc2626', opacity:'0.72', ...(pos?{ left:'50%', borderRadius:'0 5px 5px 0' }:{ right:'50%', borderRadius:'5px 0 0 5px' }) } }; }) };
+    // skip-rate model → what makes them swipe (served with /api/predict)
+    const _sk=_pd.skip||{}; const _skd=(_sk.drivers||[]).slice(0,7);
+    const _skmax=Math.max(0.1,..._skd.map(d=>Math.abs(d.coef)));
+    const SKIP={ has: _skd.length>0 && _sk.looR2!=null,
+      r2:(_sk.looR2!=null?_sk.looR2.toFixed(2):'—'), n:_sk.n||0,
+      verdict:(_sk.looR2!=null?(_sk.looR2>=0.1?('Measured content explains R² '+_sk.looR2.toFixed(2)+' of who swipes away — the rest is thumbnail and feed context we can’t see. Effects below are per trait, all else equal.'):'Content barely predicts the swipe (R² '+_sk.looR2.toFixed(2)+') — the decision is mostly thumbnail/feed context we can’t measure. Treat directions as weak leads.'):''),
+      drivers:_skd.map(d=>{ const good=d.coef<0; const w=Math.round(Math.abs(d.coef)/_skmax*50);
+        return { label:this._predLabel(d.feature), coefTxt:(d.coef>0?'+':'')+d.coef+'pp', color:good?'#16a34a':'#dc2626',
+          barStyle:{ position:'absolute', top:'0', height:'100%', width:w+'%', background:good?'#16a34a':'#dc2626', opacity:'0.72', ...(good?{ left:'50%', borderRadius:'0 5px 5px 0' }:{ right:'50%', borderRadius:'5px 0 0 5px' }) } }; }) };
     // attention model → headline accuracy, per-second drivers, residual reels
     const _ad=s.labAttData||{}; const _acv=_ad.cv||{};
     const _adrv=(_ad.contentDrivers||[]).slice(0,9);
@@ -2222,6 +2248,7 @@ class Component extends DCLogic {
       dropCliffs: DROPS.cliffs,
       hasPredict: PRED.has, predVerdict: PRED.verdict, predContentR2: PRED.contentR2, predRetR2: PRED.retR2, predFullR2: PRED.fullR2,
       predGrowth: PRED.growth, predMaturity: PRED.maturity, predDrivers: PRED.drivers,
+      hasSkipModel: SKIP.has, skipR2: SKIP.r2, skipN: SKIP.n, skipVerdict: SKIP.verdict, skipDrivers: SKIP.drivers,
       retrain:()=>this.labRetrain(), retrainLabel: s.labRebuilding?'Retraining…':'↻ Retrain',
       attLoading: !!s.labAttLoading && !s.labAttLoaded,
       hasAtt: ATT.has, attError: s.labAttError||'',
@@ -2880,7 +2907,7 @@ Hier ist das Skript:
     }
 
     // reels table (windowed + sorted)
-    const sk=({reach:'reach',plays:'plays',watch:'completion',awt:'avgWatch',eng:'engRate',like:'likeRate',save:'saveRate',share:'shareRate',comment:'commentRate',hook:'hook'})[this.state.sort];
+    const sk=({reach:'reach',plays:'plays',watch:'completion',awt:'avgWatch',eng:'engRate',like:'likeRate',save:'saveRate',share:'shareRate',comment:'commentRate',hook:'hook',skip:'skipRate'})[this.state.sort];
     const sorted=[...cur].sort((x,y)=>(y[sk]||0)-(x[sk]||0));
     const rateFmt=v=> v==null?'—':((Math.round(v*10)/10)+'%');
     out.reels=sorted.map(r=>({
@@ -2890,7 +2917,7 @@ Hier ist das Skript:
       hookFmt:this.pct(r.hook), retReal:!!r.retReal,
       hookStyle:{ fontSize:'13px', fontWeight:'600', color: r.retReal?'var(--text)':'var(--text-faint)' },
       sparkStroke: r.retReal?'#6366f1':'#cbd0da',
-      likeRateFmt:rateFmt(r.likeRate), saveRateFmt:rateFmt(r.saveRate), shareRateFmt:rateFmt(r.shareRate), commentRateFmt:rateFmt(r.commentRate),
+      likeRateFmt:rateFmt(r.likeRate), saveRateFmt:rateFmt(r.saveRate), shareRateFmt:rateFmt(r.shareRate), commentRateFmt:rateFmt(r.commentRate), skipRateFmt:rateFmt(r.skipRate),
       likesFmt:this.fmtK(r.likes), commentsFmt:this.fmtK(r.comments),
       watchBarStyle:{ height:'100%', width:Math.max(4,Math.min(100,r.completion))+'%', background:'var(--accent)', borderRadius:'999px' },
       thumb:r.thumb||'', hasThumb:!!r.thumb,
@@ -2900,15 +2927,15 @@ Hier ist das Skript:
     // sort header styling
     const sortHdr=key=>{ const on=this.state.sort===key; return { style:{ background:'none',border:'none',padding:'0',font:'inherit',cursor:'pointer',textAlign:'right',letterSpacing:'.04em',textTransform:'uppercase',fontSize:'11px',fontWeight:'650',color:on?'var(--text)':'var(--text-3)' }, caret:on?'▾':'' }; };
     const hr=sortHdr('reach'), hp=sortHdr('plays'), hw=sortHdr('watch'), he=sortHdr('eng'), ha=sortHdr('awt');
-    const hl=sortHdr('like'), hs=sortHdr('save'), hsh=sortHdr('share'), hc=sortHdr('comment'), hh=sortHdr('hook');
+    const hl=sortHdr('like'), hs=sortHdr('save'), hsh=sortHdr('share'), hc=sortHdr('comment'), hh=sortHdr('hook'), hsk=sortHdr('skip');
     out.sortReach=()=>this.setSort('reach'); out.sortPlays=()=>this.setSort('plays'); out.sortWatch=()=>this.setSort('watch'); out.sortEng=()=>this.setSort('eng'); out.sortAvgWatch=()=>this.setSort('awt');
-    out.sortLike=()=>this.setSort('like'); out.sortSave=()=>this.setSort('save'); out.sortShare=()=>this.setSort('share'); out.sortComment=()=>this.setSort('comment'); out.sortHook=()=>this.setSort('hook');
+    out.sortLike=()=>this.setSort('like'); out.sortSave=()=>this.setSort('save'); out.sortShare=()=>this.setSort('share'); out.sortComment=()=>this.setSort('comment'); out.sortHook=()=>this.setSort('hook'); out.sortSkip=()=>this.setSort('skip');
     out.sortReachStyle=hr.style; out.sortReachCaret=hr.caret; out.sortPlaysStyle=hp.style; out.sortPlaysCaret=hp.caret;
     out.sortWatchStyle=hw.style; out.sortWatchCaret=hw.caret; out.sortEngStyle=he.style; out.sortEngCaret=he.caret;
     out.sortAvgWatchStyle=ha.style; out.sortAvgWatchCaret=ha.caret;
     out.sortLikeStyle=hl.style; out.sortLikeCaret=hl.caret; out.sortSaveStyle=hs.style; out.sortSaveCaret=hs.caret;
     out.sortShareStyle=hsh.style; out.sortShareCaret=hsh.caret; out.sortCommentStyle=hc.style; out.sortCommentCaret=hc.caret;
-    out.sortHookStyle=hh.style; out.sortHookCaret=hh.caret;
+    out.sortHookStyle=hh.style; out.sortHookCaret=hh.caret; out.sortSkipStyle=hsk.style; out.sortSkipCaret=hsk.caret;
 
     // range selector
     out.ranges=['7D','30D','90D'].map(rr=>({ r:rr, onClick:()=>this.setRange(rr), style:{ padding:'6px 12px',borderRadius:'8px',fontSize:'12.5px',fontWeight:'600',cursor:'pointer',border:'none',background:this.state.range===rr?'var(--text)':'transparent',color:this.state.range===rr?'var(--bg)':'var(--text-2)' } }));
