@@ -1265,6 +1265,9 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
     <div style="display:flex;align-items:center;gap:9px;font-size:13px;color:var(--text-3);margin-bottom:22px"><span style="display:inline-block;width:13px;height:13px;border:2px solid var(--line);border-top-color:var(--cc);border-radius:50%;animation:spin .7s linear infinite"></span> Reading the ledger…</div>
     </sc-if>
 
+    <div style="display:inline-flex;background:var(--fill);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px;margin-bottom:12px">
+      <sc-for list="{{ LAB.ledgerCats }}" as="lc" hint-placeholder-count="5"><button onClick="{{ lc.onClick }}" style="{{ lc.style }}">{{ lc.label }}</button></sc-for>
+    </div>
     <div class="cc-mono" style="font-size:10.5px;letter-spacing:.1em;color:var(--text-3);margin-bottom:12px">HYPOTHESIS LEDGER · contrasted on {{ LAB.outcome }} · <span style="color:var(--text-faint)">click a row to see its reels</span></div>
     <sc-if value="{{ LAB.hasHyps }}" hint-placeholder-val="{{ true }}">
     <div style="display:flex;flex-direction:column;gap:8px">
@@ -2013,7 +2016,15 @@ class Component extends DCLogic {
     const s=this.state, d=s.labData||{}, outcome=d.outcome||s.labOutcome||'rate';
     const STAT={ supported:'#16a34a', weak:'#e0a458', inconclusive:'var(--text-3)', refuted:'#dc2626' };
     const exp=d.experiment;
-    const hyps=(d.hypotheses||[]).map(h=>({
+    const _catOf=(f)=>{ f=String(f||'');
+      if(f.indexOf('hook')===0||f==='opens_on_face') return 'hook';
+      if(['uses_screen_demo','has_ui_animation','text_overlay_density','visual_pace','has_diagram_or_data','talking_head_share','high_visual_intensity','opens_energy','has_burned_captions'].indexOf(f)>=0) return 'visual';
+      if(['topic','subject','length_bucket','format'].indexOf(f)>=0) return 'content';
+      return 'script'; };
+    const _ledgerCat = s.labLedgerCat||'all';
+    const _ledgerBtn=(c,lab)=>({ label:lab, onClick:()=>this.setState({ labLedgerCat:c }), style:{ padding:'5px 12px',borderRadius:'8px',fontSize:'11.5px',fontWeight:'600',cursor:'pointer',border:'none',fontFamily:'inherit',background:_ledgerCat===c?'var(--text)':'transparent',color:_ledgerCat===c?'var(--bg)':'var(--text-2)' } });
+    const ledgerCats=[ _ledgerBtn('all','All'), _ledgerBtn('hook','Hooks'), _ledgerBtn('visual','Visual'), _ledgerBtn('script','Script'), _ledgerBtn('content','Content') ];
+    const hyps=(d.hypotheses||[]).filter(h=> _ledgerCat==='all' || _catOf(h.feature)===_ledgerCat).map(h=>({
       label:h.label||(h.feature+'='+h.value),
       effect:(h.effect>0?'+':'')+h.effect,
       n:h.n_with+' / '+h.n_without,
@@ -2027,11 +2038,6 @@ class Component extends DCLogic {
     }));
     // granular retention engine → rows with overlaid curves (real per-second data)
     const _rd=s.labRetData||{}; const _rov=_rd.overall||null; const _retCat=s.labRetCat||'all';
-    const _catOf=(f)=>{ f=String(f||'');
-      if(f.indexOf('hook')===0||f==='opens_on_face') return 'hook';
-      if(['uses_screen_demo','has_ui_animation','text_overlay_density','visual_pace','has_diagram_or_data','talking_head_share','high_visual_intensity','opens_energy','has_burned_captions'].indexOf(f)>=0) return 'visual';
-      if(['topic','subject','length_bucket','format'].indexOf(f)>=0) return 'content';
-      return 'script'; };
     const _catBtn=(c,lab)=>({ label:lab, onClick:()=>this.setState({ labRetCat:c }), style:{ padding:'5px 11px',borderRadius:'8px',fontSize:'11.5px',fontWeight:'600',cursor:'pointer',border:'none',fontFamily:'inherit',background:_retCat===c?'var(--text)':'transparent',color:_retCat===c?'var(--bg)':'var(--text-2)' } });
     const _retSel=(_rd.rows||[]).filter(x=> Math.abs(x.hold3s_delta||0)>=2 || Math.abs(x.completion_delta||0)>=2).filter(x=> _retCat==='all' || _catOf(x.feature)===_retCat).slice(0,20);
     const RET={ n:_rd.n||0, overallPath: _rov ? this.buildPath(_rov,300,96,3,3,8,10,0,100).line : '',
@@ -2057,7 +2063,7 @@ class Component extends DCLogic {
       setRate:()=>this.labFetch('rate'), setSaves:()=>this.labFetch('save_rate'), setWatch:()=>this.labFetch('watch_through'), setHook:()=>this.labFetch('hook_retention'), setStay:()=>this.labFetch('stay_rate'), rebuild:()=>this.labRebuild(),
       hasExp: !!exp, expClaim: exp&&exp.claim, expDo: exp&&exp.instruction,
       expTest: exp&&exp.arms&&exp.arms.test, expControl: exp&&exp.arms&&exp.arms.control,
-      hyps, hasHyps: hyps.length>0,
+      hyps, hasHyps: hyps.length>0, ledgerCats,
       empty: s.labLoaded && !s.labLoading && !hyps.length && s.labConfigured!==false,
       interpretText: (s.labInterpretByOutcome||{})[outcome]||'',
       hasInterpret: !!((s.labInterpretByOutcome||{})[outcome]),
