@@ -254,6 +254,23 @@ const server = http.createServer(async (req, res) => {
       }
     }
 
+    // Lab: the attention model — gradient-boosted trees on the per-SECOND dataset
+    // (exact retention × frame track × transcript), cross-validated by reel. Answers
+    // "what on screen/said at a moment holds or loses viewers", with feature importance.
+    if (u.pathname === "/api/attention" && req.method === "GET") {
+      const att = await import("./lib/attention.mjs");
+      if (!att.isConfigured()) return send(res, 200, ".json", JSON.stringify({ configured: false }));
+      try {
+        const now = Date.now();
+        if (!global.__attCache || now - global.__attCache.at > 30 * 60 * 1000 || u.searchParams.get("force")) {
+          global.__attCache = { at: now, data: await att.trainAttentionModel({}) };
+        }
+        return send(res, 200, ".json", JSON.stringify(global.__attCache.data));
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
+
     // Lab: multivariate predictor / robust mode — what drives VIEWS, controlled for each
     // other + reel maturity, honestly cross-validated (leave-one-out). Content-only vs
     // +retention R² shows how much of views is the hook, not the topic.
