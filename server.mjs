@@ -241,6 +241,19 @@ const server = http.createServer(async (req, res) => {
       }
     }
 
+    // Lab: second-by-second drop analysis — per-reel death moments (?shortcode=) or the
+    // cross-reel patterns (hook survival, mid-video cliffs, which cuts cost retention).
+    if (u.pathname === "/api/drops" && req.method === "GET") {
+      const drops = await import("./lib/drops.mjs");
+      if (!drops.isConfigured()) return send(res, 200, ".json", JSON.stringify({ configured: false }));
+      try {
+        const sc = u.searchParams.get("shortcode");
+        return send(res, 200, ".json", JSON.stringify(sc ? (await drops.reelDrops(sc)) || { moments: [] } : await drops.dropPatterns()));
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
+
     // Animation storyboard: a script -> per-beat visual plan + Claude Design prompts.
     if (u.pathname === "/api/animate" && req.method === "POST") {
       const body = await readJson(req);

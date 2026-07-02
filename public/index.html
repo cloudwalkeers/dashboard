@@ -1311,6 +1311,40 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
     <sc-if value="{{ LAB.retEmpty }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:var(--text-3);margin-bottom:8px">No clear retention differences yet — need more reels with real curves.</div></sc-if>
 
     <p style="margin:22px 0 0;font-size:11.5px;color:var(--text-3);line-height:1.55">Effect = rank‑biserial (−1…+1); sign = direction. Confidence is deliberately humble about sample size — a low % means “interesting but unproven,” even when the raw p‑value looks significant. “Supported” needs a real effect the bottom‑tier reels <strong>don't</strong> share. This is still correlation; the experiment above is what turns it into cause.</p>
+
+    <!-- ── drop-off / death moments: where viewers actually leave + which cuts cost retention ── -->
+    <div class="cc-mono" style="font-size:10.5px;letter-spacing:.1em;color:var(--text-3);margin:40px 0 4px">DROP‑OFF · your death moments · <span style="color:var(--text-faint)">exact per‑second retention × what's on screen</span></div>
+    <p style="margin:0 0 14px;font-size:12px;color:var(--text-3);line-height:1.55;max-width:680px">The 0–3s scroll‑off is universal. What's actionable is the <strong>second wave</strong> — the biggest drop after the hook — and which visual CUTS cost more retention than the reel's own natural decline.</p>
+    <sc-if value="{{ LAB.dropsLoading }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:var(--text-3);margin-bottom:16px">Finding your death moments…</div></sc-if>
+    <sc-if value="{{ LAB.hasDrops }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px">
+        <div style="flex:1;min-width:150px;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:12px 15px"><div class="cc-mono" style="font-size:9.5px;letter-spacing:.06em;color:var(--text-3);margin-bottom:4px">AVG HOOK SURVIVAL @3s</div><div style="font-size:22px;font-weight:700;color:var(--text)">{{ LAB.dropHook }}%</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">still watching after the scroll‑off</div></div>
+        <div style="flex:1;min-width:150px;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:12px 15px"><div class="cc-mono" style="font-size:9.5px;letter-spacing:.06em;color:var(--text-3);margin-bottom:4px">BIGGEST POST‑HOOK CLIFF</div><div style="font-size:22px;font-weight:700;color:var(--text)">{{ LAB.dropWhen }}</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">where most reels take their next hit</div></div>
+      </div>
+      <sc-if value="{{ LAB.hasCuts }}" hint-placeholder-val="{{ false }}">
+        <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--text-3);margin:4px 0 9px">WHICH CUTS COST RETENTION · <span style="color:var(--text-faint)">excess drop beyond the natural decline</span></div>
+        <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:20px">
+          <sc-for list="{{ LAB.dropCuts }}" as="cu" hint-placeholder-count="5">
+            <div style="display:grid;grid-template-columns:1fr 66px 118px;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:10px 15px">
+              <div style="font-size:13px;font-weight:600;color:var(--text)">{{ cu.transition }}</div>
+              <div class="cc-mono" style="font-size:10.5px;color:var(--text-3)">{{ cu.meta }}</div>
+              <div style="text-align:right"><span style="font-size:12px;font-weight:700;color:#dc2626">{{ cu.excessTxt }}</span></div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ LAB.cutsPending }}" hint-placeholder-val="{{ false }}"><div style="font-size:12px;color:var(--text-3);margin:2px 0 20px">⏳ Scene‑cut costs appear once the structured visual backfill finishes.</div></sc-if>
+      <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--text-3);margin:4px 0 9px">STEEPEST POST‑HOOK CLIFFS · <span style="color:var(--text-faint)">click to open the reel</span></div>
+      <div style="display:flex;flex-direction:column;gap:7px">
+        <sc-for list="{{ LAB.dropCliffs }}" as="cl" hint-placeholder-count="6">
+          <div onClick="{{ cl.open }}" style="display:grid;grid-template-columns:1fr 58px 60px;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:10px 15px;cursor:pointer">
+            <div style="min-width:0;font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ cl.label }}</div>
+            <div class="cc-mono" style="font-size:10.5px;color:var(--text-3);text-align:center">{{ cl.meta }}</div>
+            <div style="text-align:right"><span style="font-size:12.5px;font-weight:700;color:#dc2626">{{ cl.dropTxt }}</span></div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
   </main>
   </sc-if>
 
@@ -1997,7 +2031,16 @@ class Component extends DCLogic {
       .then(j=>this.setState({ labRetLoading:false, labRetLoaded:true, labRetData:j, labRetError:(j&&j.error)||'' }))
       .catch(e=>this.setState({ labRetLoading:false, labRetLoaded:true, labRetError:String(e) }));
   }
-  loadLab(force){ this.labRetFetch(force); if(this.state.labLoading) return; if(this.state.labLoaded && !force) return; this.labFetch(this.state.labOutcome||'rate'); }
+  labDropsFetch(force){
+    if(this.state.labDropsLoading) return;
+    if(this.state.labDropsLoaded && !force) return;
+    this.setState({ labDropsLoading:true });
+    fetch('/api/drops')
+      .then(r=>r.json())
+      .then(j=>this.setState({ labDropsLoading:false, labDropsLoaded:true, labDropsData:j, labDropsError:(j&&j.error)||'' }))
+      .catch(e=>this.setState({ labDropsLoading:false, labDropsLoaded:true, labDropsError:String(e) }));
+  }
+  loadLab(force){ this.labRetFetch(force); this.labDropsFetch(force); if(this.state.labLoading) return; if(this.state.labLoaded && !force) return; this.labFetch(this.state.labOutcome||'rate'); }
   labRebuild(){
     this.setState({ labRebuilding:true, labError:'' });
     fetch('/api/causal/rebuild',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ outcome:this.state.labOutcome||'rate' }) })
@@ -2054,6 +2097,12 @@ class Component extends DCLogic {
           basePath: _rov ? this.buildPath(_rov,120,44,2,2,5,6,0,100).line : '',
           openReels:()=>this.labOpenReels(x.feature,x.value,x.label) };
       }) };
+    // second-by-second drop analysis → hook survival, costly cuts, steepest post-hook cliffs
+    const _dd=s.labDropsData||{}; const _mb=_dd.midCliffBuckets||{};
+    const _whenTop=Object.entries(_mb).sort((a,b)=>b[1]-a[1])[0];
+    const DROPS={ hook:(_dd.avgHookRetention!=null?_dd.avgHookRetention:null), when:(_whenTop&&_whenTop[1]>0?_whenTop[0]:'—'),
+      cuts:(_dd.costlyCuts||[]).filter(c=>c.avgExcessDrop>0).slice(0,6).map(c=>({ transition:c.transition, meta:'n '+c.n, excessTxt:'−'+c.avgExcessDrop+' pts' })),
+      cliffs:(_dd.worstCliffs||[]).map(c=>({ label:c.shortcode+' · '+(c.scene||'—'), meta:'@'+c.sec+'s', dropTxt:'−'+c.dropPts, open:()=>{ if(typeof window!=='undefined') window.open('https://www.instagram.com/reel/'+c.shortcode+'/','_blank'); } })) };
     return {
       configured: s.labConfigured!==false,
       loading: !!s.labLoading, rebuilding: !!s.labRebuilding, error: s.labError||'',
@@ -2070,7 +2119,12 @@ class Component extends DCLogic {
       interpreting: !!s.labInterpreting && !((s.labInterpretByOutcome||{})[outcome]),
       retLoading: !!s.labRetLoading && !s.labRetLoaded, retCats: RET.cats,
       retN: RET.n, retRows: RET.rows, hasRet: RET.rows.length>0, overallPath: RET.overallPath,
-      retEmpty: !!s.labRetLoaded && !RET.rows.length && !s.labRetError, retError: s.labRetError||''
+      retEmpty: !!s.labRetLoaded && !RET.rows.length && !s.labRetError, retError: s.labRetError||'',
+      dropsLoading: !!s.labDropsLoading && !s.labDropsLoaded,
+      hasDrops: !!s.labDropsLoaded && !s.labDropsError && DROPS.hook!=null,
+      dropHook: DROPS.hook, dropWhen: DROPS.when,
+      dropCuts: DROPS.cuts, hasCuts: DROPS.cuts.length>0, cutsPending: DROPS.hook!=null && DROPS.cuts.length===0,
+      dropCliffs: DROPS.cliffs
     };
   }
   // ── Clippers: command center (roster + assignments + per-platform views) ───
