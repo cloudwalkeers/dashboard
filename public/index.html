@@ -1348,6 +1348,55 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
       </div>
     </sc-if>
 
+    <!-- hooks: the opening lines themselves, measured -->
+    <sc-if value="{{ LAB.hasHooks }}" hint-placeholder-val="{{ false }}">
+      <div class="cc-mono" style="font-size:10.5px;letter-spacing:.1em;color:var(--text-3);margin:30px 0 4px">HOOKS · your opening lines, measured · <span style="color:var(--text-faint)">what is SAID in the first 3.5s · {{ LAB.hookN }} reels</span></div>
+      <p style="margin:0 0 12px;font-size:12px;color:var(--text-3);line-height:1.55;max-width:680px">Deterministic patterns (regex on the spoken opener — no AI opinions) contrasted on the two things a hook controls: the <strong>swipe</strong> and the <strong>3‑second hold</strong>. Descriptive averages at small n — where they agree with the models above, trust them.</p>
+      <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:18px">
+        <sc-for list="{{ LAB.hookRows }}" as="hp" hint-placeholder-count="5">
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) 64px 128px 132px;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:10px 15px">
+            <div style="font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ hp.label }}</div>
+            <div class="cc-mono" style="font-size:10.5px;color:var(--text-3)">{{ hp.meta }}</div>
+            <div style="text-align:right"><span style="{{ hp.skipStyle }}">{{ hp.skipTxt }}</span></div>
+            <div style="text-align:right"><span style="{{ hp.holdStyle }}">{{ hp.holdTxt }}</span></div>
+          </div>
+        </sc-for>
+      </div>
+      <sc-if value="{{ LAB.hasTopics }}" hint-placeholder-val="{{ false }}">
+        <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--text-3);margin:2px 0 8px">TOPICS · <span style="color:var(--text-faint)">keyword‑detected, descriptive only — topic hurt the predictor when ablated (thin cells) · ⚠ = under 5 reels, read as anecdote</span></div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:18px">
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) 48px 96px 72px 84px;gap:12px;padding:0 15px" class="cc-mono"><span style="font-size:9px;color:var(--text-faint)">TOPIC</span><span style="font-size:9px;color:var(--text-faint)">N</span><span style="font-size:9px;color:var(--text-faint);text-align:right">MED VIEWS</span><span style="font-size:9px;color:var(--text-faint);text-align:right">SKIP</span><span style="font-size:9px;color:var(--text-faint);text-align:right">HOLD @3s</span></div>
+          <sc-for list="{{ LAB.hookTopics }}" as="tp" hint-placeholder-count="5">
+            <div style="display:grid;grid-template-columns:minmax(0,1fr) 48px 96px 72px 84px;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:9px 15px">
+              <div style="font-size:13px;font-weight:600;color:var(--text)">{{ tp.label }}</div>
+              <div class="cc-mono" style="font-size:10.5px;color:var(--text-3)">{{ tp.meta }}</div>
+              <div style="text-align:right;font-size:13px;font-weight:650;color:var(--text)">{{ tp.viewsTxt }}</div>
+              <div style="text-align:right;font-size:12px;color:var(--text-2)">{{ tp.skipTxt }}</div>
+              <div style="text-align:right;font-size:12px;color:var(--text-2)">{{ tp.holdTxt }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <div style="flex:1;min-width:280px">
+          <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:#16a34a;margin-bottom:8px">OPENERS THAT HELD · lowest skip · <span style="color:var(--text-faint)">click to open</span></div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <sc-for list="{{ LAB.hookBest }}" as="hb" hint-placeholder-count="4">
+              <div onClick="{{ hb.open }}" style="background:var(--fill);border:1px solid var(--line);border-radius:9px;padding:9px 12px;cursor:pointer"><div style="font-size:12px;color:var(--text);line-height:1.45;font-style:italic">{{ hb.text }}</div><div class="cc-mono" style="font-size:9.5px;color:var(--text-3);margin-top:3px">{{ hb.meta }}</div></div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="flex:1;min-width:280px">
+          <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:#dc2626;margin-bottom:8px">OPENERS THAT GOT SWIPED · highest skip · <span style="color:var(--text-faint)">click to open</span></div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <sc-for list="{{ LAB.hookWorst }}" as="hw" hint-placeholder-count="4">
+              <div onClick="{{ hw.open }}" style="background:var(--fill);border:1px solid var(--line);border-radius:9px;padding:9px 12px;cursor:pointer"><div style="font-size:12px;color:var(--text);line-height:1.45;font-style:italic">{{ hw.text }}</div><div class="cc-mono" style="font-size:9.5px;color:var(--text-3);margin-top:3px">{{ hw.meta }}</div></div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
     <!-- ── 3 · view predictor: does held attention convert to views ── -->
     <sc-if value="{{ LAB.hasPredict }}" hint-placeholder-val="{{ true }}">
     <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px 22px;box-shadow:var(--shadow);margin:34px 0 0">
@@ -2116,14 +2165,23 @@ class Component extends DCLogic {
     const map={ sec_since_cut:'scene running stale (secs since last cut)', speech_wps:'fast, continuous speech', app_on_screen:'an app / UI on screen', says_number:'saying a concrete number', scene_talking_head:'face‑only (no demo on screen)', cut_now:'a scene cut this second', caption:'subtitle visible', says_du:'addressing the viewer (du/dich)', big_text:'big text banner', is_question:'asking a question', silence:'silence / no narration', scene_screen_demo:'a screen demo', scene_overlay_on_face:'UI overlaid on your face', scene_animation:'an animation', scene_text_card:'a text card', scene_b_roll:'b‑roll footage', act_typing:'text typing out on screen', act_scrolling:'scrolling', act_transition:'a visual transition', act_speaking:'you speaking', person_visible:'you visible on screen' };
     return map[f]||f.replace(/_/g,' ');
   }
+  labHooksFetch(force){
+    if(this.state.labHooksLoading) return;
+    if(this.state.labHooksLoaded && !force) return;
+    this.setState({ labHooksLoading:true });
+    fetch('/api/hooks')
+      .then(r=>r.json())
+      .then(j=>this.setState({ labHooksLoading:false, labHooksLoaded:true, labHooksData:j }))
+      .catch(()=>this.setState({ labHooksLoading:false, labHooksLoaded:true }));
+  }
   labRetrain(){
     if(this.state.labRebuilding) return;
     this.setState({ labRebuilding:true });
     fetch('/api/causal/rebuild',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({}) })
       .catch(()=>{})
-      .then(()=>{ this.setState({ labRebuilding:false }); this.labAttFetch(true); this.labDropsFetch(true); this.labPredFetch(true); });
+      .then(()=>{ this.setState({ labRebuilding:false }); this.labAttFetch(true); this.labDropsFetch(true); this.labPredFetch(true); this.labHooksFetch(true); });
   }
-  loadLab(force){ this.labAttFetch(force); this.labDropsFetch(force); this.labPredFetch(force); }
+  loadLab(force){ this.labAttFetch(force); this.labDropsFetch(force); this.labPredFetch(force); this.labHooksFetch(force); }
   labRebuild(){
     this.setState({ labRebuilding:true, labError:'' });
     fetch('/api/causal/rebuild',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ outcome:this.state.labOutcome||'rate' }) })
@@ -2224,6 +2282,19 @@ class Component extends DCLogic {
           barStyle:{ position:'absolute', top:'0', height:'100%', width:w+'%', background:holds?'#16a34a':'#dc2626', opacity:'0.72', ...(holds?{ left:'50%', borderRadius:'0 5px 5px 0' }:{ right:'50%', borderRadius:'5px 0 0 5px' }) } }; }),
       bad:_resid.slice(0,3).filter(r=>r.avgExcessHazardPp>0.3).map(r=>({ label:r.shortcode, valTxt:'+'+r.avgExcessHazardPp+'pp/s', open:_openIg(r.shortcode) })),
       good:_resid.slice(-3).reverse().filter(r=>r.avgExcessHazardPp<-0.3).map(r=>({ label:r.shortcode, valTxt:r.avgExcessHazardPp+'pp/s', open:_openIg(r.shortcode) })) };
+    // hook patterns + the actual best/worst opening lines
+    const _hk=s.labHooksData||{}; const _hp=(_hk.patterns||[]);
+    const _hr=(_hk.reels||[]).filter(r=>r.skip!=null);
+    const _dedup=(arr)=>{ const seen=new Set(); return arr.filter(r=>{ const k=(r.text||'').slice(0,40); if(seen.has(k))return false; seen.add(k); return true; }); };
+    const _opener=(r)=>({ text:'“'+(r.text||'').slice(0,92)+((r.text||'').length>92?'…':'')+'”', meta:'skip '+r.skip+'% · hold '+(r.hold3!=null?r.hold3+'%':'—')+' @3s · '+this.fmtK(r.views)+' views', open:_openIg(r.shortcode) });
+    const HOOKS={ has: !!s.labHooksLoaded && _hp.length>0, n:_hk.n||0,
+      rows:_hp.map(p=>({ label:p.label, meta:'n '+p.n+' / '+p.nWithout,
+        skipTxt:(p.skipDelta!=null?((p.skipDelta>0?'+':'')+p.skipDelta+'pp skips'):'—'), skipStyle:{fontSize:'11.5px',fontWeight:'700',color:(p.skipDelta!=null&&p.skipDelta<0)?'#16a34a':'#dc2626'},
+        holdTxt:(p.holdDelta!=null?((p.holdDelta>0?'+':'')+p.holdDelta+'pp hold @3s'):'—'), holdStyle:{fontSize:'11.5px',fontWeight:'700',color:(p.holdDelta!=null&&p.holdDelta>0)?'#16a34a':'#dc2626'} })),
+      best:_dedup(_hr.slice(0,8)).slice(0,4).map(_opener),
+      worst:_dedup(_hr.slice().reverse().slice(0,8)).slice(0,4).map(_opener),
+      topics:(_hk.topics||[]).map(t=>({ label:(t.key==='other'?'Other / mixed':t.key.charAt(0).toUpperCase()+t.key.slice(1))+(t.thin?' ⚠':''), meta:'n '+t.n,
+        viewsTxt:(t.medViews!=null?this.fmtK(t.medViews):'—'), skipTxt:(t.skip!=null?Math.round(t.skip)+'%':'—'), holdTxt:(t.hold!=null?Math.round(t.hold)+'%':'—') })) };
     return {
       configured: s.labConfigured!==false,
       loading: !!s.labLoading, rebuilding: !!s.labRebuilding, error: s.labError||'',
@@ -2249,6 +2320,8 @@ class Component extends DCLogic {
       hasPredict: PRED.has, predVerdict: PRED.verdict, predContentR2: PRED.contentR2, predRetR2: PRED.retR2, predFullR2: PRED.fullR2,
       predGrowth: PRED.growth, predMaturity: PRED.maturity, predDrivers: PRED.drivers,
       hasSkipModel: SKIP.has, skipR2: SKIP.r2, skipN: SKIP.n, skipVerdict: SKIP.verdict, skipDrivers: SKIP.drivers,
+      hasHooks: HOOKS.has, hookN: HOOKS.n, hookRows: HOOKS.rows, hookBest: HOOKS.best, hookWorst: HOOKS.worst,
+      hasTopics: HOOKS.topics.length>1, hookTopics: HOOKS.topics,
       retrain:()=>this.labRetrain(), retrainLabel: s.labRebuilding?'Retraining…':'↻ Retrain',
       attLoading: !!s.labAttLoading && !s.labAttLoaded,
       hasAtt: ATT.has, attError: s.labAttError||'',

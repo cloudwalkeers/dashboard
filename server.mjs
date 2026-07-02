@@ -271,6 +271,18 @@ const server = http.createServer(async (req, res) => {
       }
     }
 
+    // Lab: hook analysis — the spoken opening line, classified deterministically (regex)
+    // and contrasted on skip rate + 3s hold; includes every reel's opener verbatim.
+    if (u.pathname === "/api/hooks" && req.method === "GET") {
+      const hooks = await import("./lib/hooks.mjs");
+      if (!hooks.isConfigured()) return send(res, 200, ".json", JSON.stringify({ configured: false }));
+      try {
+        return send(res, 200, ".json", JSON.stringify(await hooks.hookAnalysis()));
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
+
     // Lab: multivariate predictor / robust mode — what drives VIEWS, controlled for each
     // other + reel maturity, honestly cross-validated (leave-one-out). Content-only vs
     // +retention R² shows how much of views is the hook, not the topic.
