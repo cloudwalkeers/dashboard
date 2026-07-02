@@ -2018,7 +2018,7 @@ class Component extends DCLogic {
     const exp=d.experiment;
     const _catOf=(f)=>{ f=String(f||'');
       if(f.indexOf('hook')===0||f==='opens_on_face') return 'hook';
-      if(['uses_screen_demo','has_ui_animation','text_overlay_density','visual_pace','has_diagram_or_data','talking_head_share','high_visual_intensity','opens_energy','has_burned_captions'].indexOf(f)>=0) return 'visual';
+      if(['uses_screen_demo','has_ui_animation','text_overlay_density','visual_pace','has_diagram_or_data','talking_head_share','high_visual_intensity','opens_energy','has_burned_captions','person_presence','screen_demo_level','scene_variety','motion_style','caption_style','has_big_hook_text','primary_app'].indexOf(f)>=0) return 'visual';
       if(['topic','subject','length_bucket','format'].indexOf(f)>=0) return 'content';
       return 'script'; };
     const _ledgerCat = s.labLedgerCat||'all';
