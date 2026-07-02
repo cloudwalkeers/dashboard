@@ -1239,6 +1239,33 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
     <sc-if value="{{ LAB.error }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:#dc2626;margin-bottom:16px">{{ LAB.error }}</div></sc-if>
     <sc-if value="{{ LAB.loading }}" hint-placeholder-val="{{ true }}"><div style="font-size:13.5px;color:var(--text-3);margin-bottom:16px">Crunching the contrast…</div></sc-if>
 
+    <!-- ── view predictor / robust mode: what drives VIEWS (multivariate · CV'd · maturity-controlled) ── -->
+    <sc-if value="{{ LAB.hasPredict }}" hint-placeholder-val="{{ true }}">
+    <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px 22px;box-shadow:var(--shadow);margin-bottom:26px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+        <span class="cc-mono" style="font-size:10px;letter-spacing:.1em;color:var(--cc)">VIEW PREDICTOR · ROBUST</span>
+        <span style="font-size:10.5px;color:var(--text-faint)">multivariate · leave‑one‑out CV · maturity‑controlled</span>
+      </div>
+      <div style="font-size:13.5px;line-height:1.6;color:var(--text-2);margin-bottom:16px">{{ LAB.predVerdict }}</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px">
+        <div style="flex:1;min-width:150px;background:var(--fill);border:1px solid var(--line);border-radius:11px;padding:12px 15px"><div class="cc-mono" style="font-size:9.5px;color:var(--text-3);margin-bottom:5px">CONTENT ALONE</div><div style="font-size:20px;font-weight:700;color:var(--text)">{{ LAB.predContentR2 }}</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">out‑of‑sample R²</div></div>
+        <div style="flex:1;min-width:150px;background:var(--cc-soft);border:1px solid var(--cc);border-radius:11px;padding:12px 15px"><div class="cc-mono" style="font-size:9.5px;color:var(--cc);margin-bottom:5px">+ RETENTION</div><div style="font-size:20px;font-weight:700;color:var(--text)">{{ LAB.predRetR2 }}</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">out‑of‑sample R²</div></div>
+        <div style="flex:1;min-width:130px;background:var(--fill);border:1px solid var(--line);border-radius:11px;padding:12px 15px"><div class="cc-mono" style="font-size:9.5px;color:var(--text-3);margin-bottom:5px">VIEW GROWTH</div><div style="font-size:20px;font-weight:700;color:var(--text)">{{ LAB.predGrowth }}</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">{{ LAB.predMaturity }}</div></div>
+      </div>
+      <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--text-3);margin:2px 0 10px">WHAT MOVES VIEWS · <span style="color:var(--text-faint)">standardized effect, each controlled for the rest</span></div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <sc-for list="{{ LAB.predDrivers }}" as="dr" hint-placeholder-count="8">
+          <div style="display:grid;grid-template-columns:186px 1fr 50px;gap:12px;align-items:center">
+            <div style="font-size:12.5px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ dr.label }}</div>
+            <div style="height:10px;background:var(--fill);border-radius:5px;position:relative;overflow:hidden"><div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--line)"></div><div style="{{ dr.barStyle }}"></div></div>
+            <div style="text-align:right;font-size:11px;font-weight:700;color:{{ dr.color }}">{{ dr.coefTxt }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <p style="margin:14px 0 0;font-size:11px;color:var(--text-3);line-height:1.55">R² is out‑of‑sample (leave‑one‑out): 0 = no better than guessing your average, 1 = perfect. Low content‑alone R² means the topic/format matters far less than whether the first seconds <em>hold</em> — so optimise the hook, not the subject. 7 too‑fresh reels are excluded so unsettled view counts don't skew it.</p>
+    </div>
+    </sc-if>
+
     <sc-if value="{{ LAB.hasExp }}" hint-placeholder-val="{{ false }}">
     <div class="sg-panel" style="position:relative;overflow:hidden;background:var(--surface);border:1px solid var(--cc);border-radius:16px;padding:22px 22px 22px 26px;box-shadow:var(--shadow);margin-bottom:26px">
       <div style="position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--cc)"></div>
@@ -2040,7 +2067,22 @@ class Component extends DCLogic {
       .then(j=>this.setState({ labDropsLoading:false, labDropsLoaded:true, labDropsData:j, labDropsError:(j&&j.error)||'' }))
       .catch(e=>this.setState({ labDropsLoading:false, labDropsLoaded:true, labDropsError:String(e) }));
   }
-  loadLab(force){ this.labRetFetch(force); this.labDropsFetch(force); if(this.state.labLoading) return; if(this.state.labLoaded && !force) return; this.labFetch(this.state.labOutcome||'rate'); }
+  labPredFetch(force){
+    if(this.state.labPredLoading) return;
+    if(this.state.labPredLoaded && !force) return;
+    this.setState({ labPredLoading:true });
+    fetch('/api/predict')
+      .then(r=>r.json())
+      .then(j=>this.setState({ labPredLoading:false, labPredLoaded:true, labPredData:j, labPredError:(j&&j.error)||'' }))
+      .catch(e=>this.setState({ labPredLoading:false, labPredLoaded:true, labPredError:String(e) }));
+  }
+  _predLabel(f){
+    const map={ hook_ret:'3s hook retention', completion:'completion rate', dur_z:'duration', has_ui_animation:'UI animation on screen', has_diagram_or_data:'diagram / data on screen', step_by_step:'step‑by‑step structure', hook_has_number:'a number in the hook', shows_result_early:'result shown early', opens_on_face:'opens on your face', uses_screen_demo:'a screen demo', names_specific_tool:'names a specific tool', benefit_driven:'benefit‑driven', high_visual_intensity:'high visual intensity', person_presence:'on‑camera presence', screen_demo_level:'screen‑demo level', motion_style:'motion style' };
+    if(map[f]) return map[f];
+    if(f.indexOf('=')>=0){ const p=f.split('='); return p[0].replace(/_/g,' ')+': '+p[1].replace(/_/g,' '); }
+    return f.replace(/_/g,' ');
+  }
+  loadLab(force){ this.labRetFetch(force); this.labDropsFetch(force); this.labPredFetch(force); if(this.state.labLoading) return; if(this.state.labLoaded && !force) return; this.labFetch(this.state.labOutcome||'rate'); }
   labRebuild(){
     this.setState({ labRebuilding:true, labError:'' });
     fetch('/api/causal/rebuild',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ outcome:this.state.labOutcome||'rate' }) })
@@ -2103,6 +2145,15 @@ class Component extends DCLogic {
     const DROPS={ hook:(_dd.avgHookRetention!=null?_dd.avgHookRetention:null), when:(_whenTop&&_whenTop[1]>0?_whenTop[0]:'—'),
       cuts:(_dd.costlyCuts||[]).filter(c=>c.avgExcessDrop>0).slice(0,6).map(c=>({ transition:c.transition, meta:'n '+c.n, excessTxt:'−'+c.avgExcessDrop+' pts' })),
       cliffs:(_dd.worstCliffs||[]).map(c=>({ label:c.shortcode+' · '+(c.scene||'—'), meta:'@'+c.sec+'s', dropTxt:'−'+c.dropPts, open:()=>{ if(typeof window!=='undefined') window.open('https://www.instagram.com/reel/'+c.shortcode+'/','_blank'); } })) };
+    // view predictor / robust mode → accuracy contrast + controlled drivers
+    const _pd=s.labPredData||{}; const _drv=_pd.drivers||[]; const _pmax=Math.max(0.01,...(_drv.map(d=>Math.abs(d.coef))));
+    const _pdMeta=_pd.meta||null;
+    const PRED={ has: !!s.labPredLoaded && !s.labPredError && _drv.length>0,
+      contentR2:(_pd.contentR2!=null?(_pd.contentR2).toFixed(2):'—'), retR2:(_pd.retentionR2!=null?(_pd.retentionR2).toFixed(2):'—'),
+      growth:(_pdMeta?((_pdMeta.weeklyGrowthPct>0?'+':'')+_pdMeta.weeklyGrowthPct+'%/wk'):'—'),
+      maturity:(_pdMeta?(_pd.n+' reels · '+_pdMeta.nImmature+' too fresh'):''),
+      verdict:(()=>{ const c=_pd.contentR2, r=_pd.retentionR2; if(c==null||r==null) return 'Training the view model…'; if((r-c)>=0.07) return 'Your views are driven by RETENTION, not the topic. Knowing the content alone barely predicts views (R² '+c.toFixed(2)+'); adding how well the hook holds lifts it to '+r.toFixed(2)+'. The lever is the first few seconds, not the subject.'; if(r<0.15) return 'At this sample size neither content nor retention strongly predicts views (R² '+Math.max(c,r).toFixed(2)+') — virality is still high‑variance. Treat drivers below as leads, not laws.'; return 'Retention explains part of your views (R² '+r.toFixed(2)+' vs '+c.toFixed(2)+' for content alone). The hook matters more than the topic.'; })(),
+      drivers:_drv.slice(0,9).map(d=>{ const pos=d.coef>=0; const w=Math.round(Math.abs(d.coef)/_pmax*50); return { label:this._predLabel(d.feature), coefTxt:(pos?'+':'')+d.coef, color:pos?'#16a34a':'#dc2626', barStyle:{ position:'absolute', top:'0', height:'100%', width:w+'%', background:pos?'#16a34a':'#dc2626', opacity:'0.72', ...(pos?{ left:'50%', borderRadius:'0 5px 5px 0' }:{ right:'50%', borderRadius:'5px 0 0 5px' }) } }; }) };
     return {
       configured: s.labConfigured!==false,
       loading: !!s.labLoading, rebuilding: !!s.labRebuilding, error: s.labError||'',
@@ -2124,7 +2175,9 @@ class Component extends DCLogic {
       hasDrops: !!s.labDropsLoaded && !s.labDropsError && DROPS.hook!=null,
       dropHook: DROPS.hook, dropWhen: DROPS.when,
       dropCuts: DROPS.cuts, hasCuts: DROPS.cuts.length>0, cutsPending: DROPS.hook!=null && DROPS.cuts.length===0,
-      dropCliffs: DROPS.cliffs
+      dropCliffs: DROPS.cliffs,
+      hasPredict: PRED.has, predVerdict: PRED.verdict, predContentR2: PRED.contentR2, predRetR2: PRED.retR2,
+      predGrowth: PRED.growth, predMaturity: PRED.maturity, predDrivers: PRED.drivers
     };
   }
   // ── Clippers: command center (roster + assignments + per-platform views) ───

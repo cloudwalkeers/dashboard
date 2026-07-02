@@ -254,6 +254,21 @@ const server = http.createServer(async (req, res) => {
       }
     }
 
+    // Lab: multivariate predictor / robust mode — what drives VIEWS, controlled for each
+    // other + reel maturity, honestly cross-validated (leave-one-out). Content-only vs
+    // +retention R² shows how much of views is the hook, not the topic.
+    if (u.pathname === "/api/predict" && req.method === "GET") {
+      const predict = await import("./lib/predict.mjs");
+      if (!predict.isConfigured()) return send(res, 200, ".json", JSON.stringify({ configured: false }));
+      try {
+        const withRet = await predict.trainViewsModel({ withRetention: true });
+        const contentOnly = await predict.trainViewsModel({ withRetention: false });
+        return send(res, 200, ".json", JSON.stringify({ configured: true, n: withRet.n, meta: withRet.meta, contentR2: contentOnly.looR2, retentionR2: withRet.looR2, medianErrorPct: withRet.medianErrorPct, drivers: withRet.drivers, note: withRet.note }));
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
+
     // Animation storyboard: a script -> per-beat visual plan + Claude Design prompts.
     if (u.pathname === "/api/animate" && req.method === "POST") {
       const body = await readJson(req);
