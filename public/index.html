@@ -1244,7 +1244,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:6px">
       <div>
         <h1 style="margin:0;font-size:24px;font-weight:800;letter-spacing:-.03em">Lab</h1>
-        <p style="margin:6px 0 0;font-size:13.5px;color:var(--text-2);max-width:700px">One pipeline, measured end to end: <strong>1</strong> what's on screen each second and whether it holds viewers → <strong>2</strong> the exact moments they leave → <strong>3</strong> whether held attention converts to views. Trained on your frames + your exact retention, cross‑validated by reel. No LLM opinions.</p>
+        <p style="margin:6px 0 0;font-size:13.5px;color:var(--text-2);max-width:720px">One pipeline, measured end to end: <strong>1</strong> what's on screen each second and whether it holds viewers → <strong>2</strong> the exact moments they leave → <strong>3</strong> what your opening lines do → <strong>4</strong> whether held attention converts to views. Trained on your frames + your exact retention, cross‑validated by reel. No LLM opinions.</p>
       </div>
       <button onClick="{{ LAB.retrain }}" style="{{ refreshBtnStyle }}">{{ LAB.retrainLabel }}</button>
     </div>
@@ -1256,7 +1256,8 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
 
     <!-- ── 1 · attention model: what on screen/said holds or loses viewers, per second ── -->
     <sc-if value="{{ LAB.hasAtt }}" hint-placeholder-val="{{ true }}">
-    <div style="background:var(--surface);border:1px solid var(--cc);border-radius:16px;padding:20px 22px;box-shadow:var(--shadow);margin-bottom:26px">
+    <div style="position:relative;overflow:hidden;background:var(--surface);border:1px solid var(--cc);border-radius:16px;padding:20px 22px 20px 26px;box-shadow:var(--shadow);margin-bottom:26px">
+      <div style="position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--cc)"></div>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
         <span class="cc-mono" style="font-size:10px;letter-spacing:.1em;color:var(--cc)">1 · ATTENTION MODEL</span>
         <span style="font-size:10.5px;color:var(--text-faint)">gradient‑boosted trees · per‑second drop rate · cross‑validated by reel</span>
@@ -1300,33 +1301,40 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
     </sc-if>
 
     <!-- ── 2 · death moments: where viewers actually leave + which cuts cost retention ── -->
-    <div class="cc-mono" style="font-size:10.5px;letter-spacing:.1em;color:var(--text-3);margin:40px 0 4px">2 · DEATH MOMENTS · where viewers actually leave · <span style="color:var(--text-faint)">exact per‑second retention × what's on screen</span></div>
-    <p style="margin:0 0 14px;font-size:12px;color:var(--text-3);line-height:1.55;max-width:680px">The 0–3s scroll‑off is universal. What's actionable is the <strong>second wave</strong> — the biggest drop after the hook — and which visual CUTS cost more retention than the reel's own natural decline. Every reel's own death moments are on its detail page.</p>
+    <div style="position:relative;overflow:hidden;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px 22px 22px 26px;box-shadow:var(--shadow);margin-bottom:26px">
+      <div style="position:absolute;left:0;top:0;bottom:0;width:4px;background:#dc2626"></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+        <span class="cc-mono" style="font-size:10px;letter-spacing:.1em;color:#dc2626">2 · DEATH MOMENTS</span>
+        <span style="font-size:10.5px;color:var(--text-faint)">where viewers actually leave · exact per‑second retention × what's on screen</span>
+      </div>
+      <p style="margin:0 0 16px;font-size:13.5px;line-height:1.6;color:var(--text-2);max-width:720px">The 0–3s scroll‑off is universal. What's actionable is the <strong>second wave</strong> — the biggest drop after the hook — and which visual CUTS cost more retention than the reel's own natural decline. Every reel's own death moments are on its detail page.</p>
     <sc-if value="{{ LAB.dropsLoading }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:var(--text-3);margin-bottom:16px">Finding your death moments…</div></sc-if>
     <sc-if value="{{ LAB.hasDrops }}" hint-placeholder-val="{{ true }}">
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px">
-        <div style="flex:1;min-width:150px;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:12px 15px"><div class="cc-mono" style="font-size:9.5px;letter-spacing:.06em;color:var(--text-3);margin-bottom:4px">AVG HOOK SURVIVAL @3s</div><div style="font-size:22px;font-weight:700;color:var(--text)">{{ LAB.dropHook }}%</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">still watching after the scroll‑off</div></div>
-        <div style="flex:1;min-width:150px;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:12px 15px"><div class="cc-mono" style="font-size:9.5px;letter-spacing:.06em;color:var(--text-3);margin-bottom:4px">BIGGEST POST‑HOOK CLIFF</div><div style="font-size:22px;font-weight:700;color:var(--text)">{{ LAB.dropWhen }}</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">where most reels take their next hit</div></div>
+        <div style="flex:1;min-width:150px;background:rgba(220,38,38,.07);border:1px solid rgba(220,38,38,.35);border-radius:11px;padding:12px 15px"><div class="cc-mono" style="font-size:9.5px;letter-spacing:.06em;color:#dc2626;margin-bottom:4px">AVG HOOK SURVIVAL @3s</div><div style="font-size:22px;font-weight:700;color:var(--text)">{{ LAB.dropHook }}%</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">still watching after the scroll‑off</div></div>
+        <div style="flex:1;min-width:150px;background:var(--fill);border:1px solid var(--line);border-radius:11px;padding:12px 15px"><div class="cc-mono" style="font-size:9.5px;letter-spacing:.06em;color:var(--text-3);margin-bottom:4px">BIGGEST POST‑HOOK CLIFF</div><div style="font-size:22px;font-weight:700;color:var(--text)">{{ LAB.dropWhen }}</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">where most reels take their next hit</div></div>
       </div>
       <sc-if value="{{ LAB.hasCuts }}" hint-placeholder-val="{{ false }}">
-        <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--text-3);margin:4px 0 9px">WHICH CUTS COST RETENTION · <span style="color:var(--text-faint)">n = how often the cut appears across your reels · −pts = extra retention lost across it vs the reel's own trend</span></div>
+        <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--text-3);margin:4px 0 9px"><span style="display:inline-block;width:7px;height:7px;border-radius:2px;background:#dc2626;margin-right:7px"></span>WHICH CUTS COST RETENTION · <span style="color:var(--text-faint)">n = how often the cut appears · −pts = extra retention lost vs the reel's own trend</span></div>
         <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:20px">
           <sc-for list="{{ LAB.dropCuts }}" as="cu" hint-placeholder-count="5">
-            <div style="display:grid;grid-template-columns:1fr 66px 118px;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:10px 15px">
-              <div style="font-size:13px;font-weight:600;color:var(--text)">{{ cu.transition }}</div>
+            <div style="display:grid;grid-template-columns:minmax(0,1fr) 52px 110px 80px;gap:12px;align-items:center;background:var(--fill);border:1px solid var(--line);border-radius:11px;padding:10px 15px">
+              <div style="font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ cu.transition }}</div>
               <div class="cc-mono" style="font-size:10.5px;color:var(--text-3)">{{ cu.meta }}</div>
+              <div style="height:8px;background:var(--surface);border-radius:4px;overflow:hidden"><div style="{{ cu.barStyle }}"></div></div>
               <div style="text-align:right"><span style="font-size:12px;font-weight:700;color:#dc2626">{{ cu.excessTxt }}</span></div>
             </div>
           </sc-for>
         </div>
       </sc-if>
       <sc-if value="{{ LAB.cutsPending }}" hint-placeholder-val="{{ false }}"><div style="font-size:12px;color:var(--text-3);margin:2px 0 20px">⏳ Scene‑cut costs appear once the structured visual backfill finishes.</div></sc-if>
-      <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--text-3);margin:4px 0 9px">STEEPEST POST‑HOOK CLIFFS · <span style="color:var(--text-faint)">click to open the reel</span></div>
+      <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--text-3);margin:4px 0 9px"><span style="display:inline-block;width:7px;height:7px;border-radius:2px;background:#dc2626;margin-right:7px"></span>STEEPEST POST‑HOOK CLIFFS · <span style="color:var(--text-faint)">click to open the reel</span></div>
       <div style="display:flex;flex-direction:column;gap:7px">
         <sc-for list="{{ LAB.dropCliffs }}" as="cl" hint-placeholder-count="6">
-          <div onClick="{{ cl.open }}" style="display:grid;grid-template-columns:1fr 58px 60px;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:10px 15px;cursor:pointer">
+          <div onClick="{{ cl.open }}" style="display:grid;grid-template-columns:minmax(0,1fr) 44px 110px 52px;gap:12px;align-items:center;background:var(--fill);border:1px solid var(--line);border-radius:11px;padding:10px 15px;cursor:pointer">
             <div style="min-width:0;font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ cl.label }}</div>
             <div class="cc-mono" style="font-size:10.5px;color:var(--text-3);text-align:center">{{ cl.meta }}</div>
+            <div style="height:8px;background:var(--surface);border-radius:4px;overflow:hidden"><div style="{{ cl.barStyle }}"></div></div>
             <div style="text-align:right"><span style="font-size:12.5px;font-weight:700;color:#dc2626">{{ cl.dropTxt }}</span></div>
           </div>
         </sc-for>
@@ -1335,7 +1343,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
 
     <!-- skip-rate model: what makes them swipe in the first instant -->
     <sc-if value="{{ LAB.hasSkipModel }}" hint-placeholder-val="{{ false }}">
-      <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--text-3);margin:20px 0 6px">WHAT MAKES THEM SWIPE · <span style="color:var(--text-faint)">skip‑rate model · LOO R² {{ LAB.skipR2 }} · n {{ LAB.skipN }} · effect in skip‑rate points · <span style="color:#16a34a">green = fewer skips</span></span></div>
+      <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--text-3);margin:20px 0 6px"><span style="display:inline-block;width:7px;height:7px;border-radius:2px;background:#dc2626;margin-right:7px"></span>WHAT MAKES THEM SWIPE · <span style="color:var(--text-faint)">skip‑rate model · LOO R² {{ LAB.skipR2 }} · n {{ LAB.skipN }} · effect in skip‑rate points · <span style="color:#16a34a">green = fewer skips</span></span></div>
       <div style="font-size:12px;color:var(--text-3);line-height:1.5;margin-bottom:10px;max-width:680px">{{ LAB.skipVerdict }}</div>
       <div style="display:flex;flex-direction:column;gap:6px">
         <sc-for list="{{ LAB.skipDrivers }}" as="sd" hint-placeholder-count="6">
@@ -1347,14 +1355,20 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
         </sc-for>
       </div>
     </sc-if>
+    </div>
 
-    <!-- hooks: the opening lines themselves, measured -->
+    <!-- ── 3 · hooks: the opening lines themselves, measured ── -->
     <sc-if value="{{ LAB.hasHooks }}" hint-placeholder-val="{{ false }}">
-      <div class="cc-mono" style="font-size:10.5px;letter-spacing:.1em;color:var(--text-3);margin:30px 0 4px">HOOKS · your opening lines, measured · <span style="color:var(--text-faint)">what is SAID in the first 3.5s · {{ LAB.hookN }} reels</span></div>
-      <p style="margin:0 0 12px;font-size:12px;color:var(--text-3);line-height:1.55;max-width:680px">Deterministic patterns (regex on the spoken opener — no AI opinions) contrasted on the two things a hook controls: the <strong>swipe</strong> and the <strong>3‑second hold</strong>. Descriptive averages at small n — where they agree with the models above, trust them.</p>
+    <div style="position:relative;overflow:hidden;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px 22px 22px 26px;box-shadow:var(--shadow);margin-bottom:26px">
+      <div style="position:absolute;left:0;top:0;bottom:0;width:4px;background:#e0a458"></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+        <span class="cc-mono" style="font-size:10px;letter-spacing:.1em;color:#e0a458">3 · HOOKS</span>
+        <span style="font-size:10.5px;color:var(--text-faint)">your opening lines, measured · what is SAID in the first 3.5s · {{ LAB.hookN }} reels</span>
+      </div>
+      <p style="margin:0 0 14px;font-size:13.5px;line-height:1.6;color:var(--text-2);max-width:720px">Deterministic patterns (regex on the spoken opener — no AI opinions) contrasted on the two things a hook controls: the <strong>swipe</strong> and the <strong>3‑second hold</strong>. Descriptive averages at small n — where they agree with the models above, trust them.</p>
       <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:18px">
         <sc-for list="{{ LAB.hookRows }}" as="hp" hint-placeholder-count="5">
-          <div style="display:grid;grid-template-columns:minmax(0,1fr) 64px 128px 132px;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:10px 15px">
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) 64px 128px 132px;gap:12px;align-items:center;background:var(--fill);border:1px solid var(--line);border-radius:11px;padding:10px 15px">
             <div style="font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ hp.label }}</div>
             <div class="cc-mono" style="font-size:10.5px;color:var(--text-3)">{{ hp.meta }}</div>
             <div style="text-align:right"><span style="{{ hp.skipStyle }}">{{ hp.skipTxt }}</span></div>
@@ -1363,11 +1377,11 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
         </sc-for>
       </div>
       <sc-if value="{{ LAB.hasTopics }}" hint-placeholder-val="{{ false }}">
-        <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--text-3);margin:2px 0 8px">TOPICS · <span style="color:var(--text-faint)">keyword‑detected, descriptive only — topic hurt the predictor when ablated (thin cells) · ⚠ = under 5 reels, read as anecdote</span></div>
+        <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--text-3);margin:2px 0 8px"><span style="display:inline-block;width:7px;height:7px;border-radius:2px;background:#e0a458;margin-right:7px"></span>TOPICS · <span style="color:var(--text-faint)">keyword‑detected, descriptive only — topic hurt the predictor when ablated (thin cells) · ⚠ = under 5 reels, read as anecdote</span></div>
         <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:18px">
           <div style="display:grid;grid-template-columns:minmax(0,1fr) 48px 96px 72px 84px;gap:12px;padding:0 15px" class="cc-mono"><span style="font-size:9px;color:var(--text-faint)">TOPIC</span><span style="font-size:9px;color:var(--text-faint)">N</span><span style="font-size:9px;color:var(--text-faint);text-align:right">MED VIEWS</span><span style="font-size:9px;color:var(--text-faint);text-align:right">SKIP</span><span style="font-size:9px;color:var(--text-faint);text-align:right">HOLD @3s</span></div>
           <sc-for list="{{ LAB.hookTopics }}" as="tp" hint-placeholder-count="5">
-            <div style="display:grid;grid-template-columns:minmax(0,1fr) 48px 96px 72px 84px;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:9px 15px">
+            <div style="display:grid;grid-template-columns:minmax(0,1fr) 48px 96px 72px 84px;gap:12px;align-items:center;background:var(--fill);border:1px solid var(--line);border-radius:11px;padding:9px 15px">
               <div style="font-size:13px;font-weight:600;color:var(--text)">{{ tp.label }}</div>
               <div class="cc-mono" style="font-size:10.5px;color:var(--text-3)">{{ tp.meta }}</div>
               <div style="text-align:right;font-size:13px;font-weight:650;color:var(--text)">{{ tp.viewsTxt }}</div>
@@ -1395,13 +1409,15 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
           </div>
         </div>
       </div>
+    </div>
     </sc-if>
 
-    <!-- ── 3 · view predictor: does held attention convert to views ── -->
+    <!-- ── 4 · view predictor: does held attention convert to views ── -->
     <sc-if value="{{ LAB.hasPredict }}" hint-placeholder-val="{{ true }}">
-    <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px 22px;box-shadow:var(--shadow);margin:34px 0 0">
+    <div style="position:relative;overflow:hidden;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px 22px 20px 26px;box-shadow:var(--shadow);margin:0">
+      <div style="position:absolute;left:0;top:0;bottom:0;width:4px;background:#16a34a"></div>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
-        <span class="cc-mono" style="font-size:10px;letter-spacing:.1em;color:var(--cc)">3 · VIEW PREDICTOR</span>
+        <span class="cc-mono" style="font-size:10px;letter-spacing:.1em;color:#16a34a">4 · VIEW PREDICTOR</span>
         <span style="font-size:10.5px;color:var(--text-faint)">content → retention → engagement, stacked · leave‑one‑out CV · maturity‑controlled</span>
       </div>
       <div style="font-size:13.5px;line-height:1.6;color:var(--text-2);margin-bottom:16px">{{ LAB.predVerdict }}</div>
@@ -2241,9 +2257,13 @@ class Component extends DCLogic {
     // second-by-second drop analysis → hook survival, costly cuts, steepest post-hook cliffs
     const _dd=s.labDropsData||{}; const _mb=_dd.midCliffBuckets||{};
     const _whenTop=Object.entries(_mb).sort((a,b)=>b[1]-a[1])[0];
+    const _cutsArr=(_dd.costlyCuts||[]).filter(c=>c.avgExcessDrop>0).slice(0,6);
+    const _cutMax=Math.max(0.1,..._cutsArr.map(c=>c.avgExcessDrop));
+    const _clArr=(_dd.worstCliffs||[]); const _clMax=Math.max(1,..._clArr.map(c=>c.dropPts));
+    const _redBar=(frac)=>({ height:'100%', width:Math.max(4,Math.round(frac*100))+'%', background:'#dc2626', opacity:'0.72', borderRadius:'4px' });
     const DROPS={ hook:(_dd.avgHookRetention!=null?_dd.avgHookRetention:null), when:(_whenTop&&_whenTop[1]>0?_whenTop[0]:'—'),
-      cuts:(_dd.costlyCuts||[]).filter(c=>c.avgExcessDrop>0).slice(0,6).map(c=>({ transition:c.transition, meta:'n '+c.n, excessTxt:'−'+c.avgExcessDrop+' pts' })),
-      cliffs:(_dd.worstCliffs||[]).map(c=>({ label:c.shortcode+' · '+(c.scene||'—'), meta:'@'+c.sec+'s', dropTxt:'−'+c.dropPts, open:()=>{ if(typeof window!=='undefined') window.open('https://www.instagram.com/reel/'+c.shortcode+'/','_blank'); } })) };
+      cuts:_cutsArr.map(c=>({ transition:c.transition, meta:'n '+c.n, excessTxt:'−'+c.avgExcessDrop+' pts', barStyle:_redBar(c.avgExcessDrop/_cutMax) })),
+      cliffs:_clArr.map(c=>({ label:c.shortcode+' · '+(c.scene||'—'), meta:'@'+c.sec+'s', dropTxt:'−'+c.dropPts, barStyle:_redBar(c.dropPts/_clMax), open:()=>{ if(typeof window!=='undefined') window.open('https://www.instagram.com/reel/'+c.shortcode+'/','_blank'); } })) };
     // view predictor / robust mode → accuracy contrast + controlled drivers
     const _pd=s.labPredData||{}; const _drv=_pd.drivers||[]; const _pmax=Math.max(0.01,...(_drv.map(d=>Math.abs(d.coef))));
     const _pdMeta=_pd.meta||null;
