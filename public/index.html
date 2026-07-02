@@ -1242,128 +1242,64 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:6px">
       <div>
         <h1 style="margin:0;font-size:24px;font-weight:800;letter-spacing:-.03em">Lab</h1>
-        <p style="margin:6px 0 0;font-size:13.5px;color:var(--text-2);max-width:660px">What actually moves the needle — found by contrasting your winners <strong>and</strong> losers, with honest confidence. Most patterns stay “inconclusive” until there's more data; that's the point, not a bug. The only way to prove a cause is to run the experiment.</p>
+        <p style="margin:6px 0 0;font-size:13.5px;color:var(--text-2);max-width:700px">One pipeline, measured end to end: <strong>1</strong> what's on screen each second and whether it holds viewers → <strong>2</strong> the exact moments they leave → <strong>3</strong> whether held attention converts to views. Trained on your frames + your exact retention, cross‑validated by reel. No LLM opinions.</p>
       </div>
-      <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
-        <div style="display:inline-flex;background:var(--fill);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px">
-          <button onClick="{{ LAB.setRate }}" style="{{ LAB.segRate }}">Likes</button>
-          <button onClick="{{ LAB.setSaves }}" style="{{ LAB.segSaves }}">Saves</button>
-          <button onClick="{{ LAB.setWatch }}" style="{{ LAB.segWatch }}">Watch</button>
-          <button onClick="{{ LAB.setHook }}" style="{{ LAB.segHook }}" title="% still watching at 3s (real retention)">Hook</button>
-          <button onClick="{{ LAB.setStay }}" style="{{ LAB.segStay }}" title="stay rate = 100 − skip rate (fewer swipe-aways)">Stay</button>
-        </div>
-        <button onClick="{{ LAB.rebuild }}" style="{{ refreshBtnStyle }}">↻ Rebuild</button>
-      </div>
+      <button onClick="{{ LAB.retrain }}" style="{{ refreshBtnStyle }}">{{ LAB.retrainLabel }}</button>
     </div>
 
-    <div class="cc-mono" style="font-size:11.5px;color:var(--text-3);margin:14px 0 22px">{{ LAB.n }} reels · {{ LAB.withViews }} with views · outcome: {{ LAB.outcome }} {{ LAB.outcomeNote }}</div>
+    <div class="cc-mono" style="font-size:11.5px;color:var(--text-3);margin:14px 0 22px">{{ LAB.attSeconds }} per‑second observations · {{ LAB.attReels }} reels · group cross‑validation (no reel in both train &amp; test)</div>
 
-    <sc-if value="{{ LAB.error }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:#dc2626;margin-bottom:16px">{{ LAB.error }}</div></sc-if>
-    <sc-if value="{{ LAB.loading }}" hint-placeholder-val="{{ true }}"><div style="font-size:13.5px;color:var(--text-3);margin-bottom:16px">Crunching the contrast…</div></sc-if>
+    <sc-if value="{{ LAB.attError }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:#dc2626;margin-bottom:16px">{{ LAB.attError }}</div></sc-if>
+    <sc-if value="{{ LAB.attLoading }}" hint-placeholder-val="{{ true }}"><div style="font-size:13.5px;color:var(--text-3);margin-bottom:16px">Training the attention model on your per‑second data…</div></sc-if>
 
-    <!-- ── view predictor / robust mode: what drives VIEWS (multivariate · CV'd · maturity-controlled) ── -->
-    <sc-if value="{{ LAB.hasPredict }}" hint-placeholder-val="{{ true }}">
-    <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px 22px;box-shadow:var(--shadow);margin-bottom:26px">
+    <!-- ── 1 · attention model: what on screen/said holds or loses viewers, per second ── -->
+    <sc-if value="{{ LAB.hasAtt }}" hint-placeholder-val="{{ true }}">
+    <div style="background:var(--surface);border:1px solid var(--cc);border-radius:16px;padding:20px 22px;box-shadow:var(--shadow);margin-bottom:26px">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
-        <span class="cc-mono" style="font-size:10px;letter-spacing:.1em;color:var(--cc)">VIEW PREDICTOR · ROBUST</span>
-        <span style="font-size:10.5px;color:var(--text-faint)">multivariate · leave‑one‑out CV · maturity‑controlled</span>
+        <span class="cc-mono" style="font-size:10px;letter-spacing:.1em;color:var(--cc)">1 · ATTENTION MODEL</span>
+        <span style="font-size:10.5px;color:var(--text-faint)">gradient‑boosted trees · per‑second drop rate · cross‑validated by reel</span>
       </div>
-      <div style="font-size:13.5px;line-height:1.6;color:var(--text-2);margin-bottom:16px">{{ LAB.predVerdict }}</div>
+      <div style="font-size:13.5px;line-height:1.6;color:var(--text-2);margin-bottom:16px">{{ LAB.attVerdict }}</div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px">
-        <div style="flex:1;min-width:150px;background:var(--fill);border:1px solid var(--line);border-radius:11px;padding:12px 15px"><div class="cc-mono" style="font-size:9.5px;color:var(--text-3);margin-bottom:5px">CONTENT ALONE</div><div style="font-size:20px;font-weight:700;color:var(--text)">{{ LAB.predContentR2 }}</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">out‑of‑sample R²</div></div>
-        <div style="flex:1;min-width:150px;background:var(--cc-soft);border:1px solid var(--cc);border-radius:11px;padding:12px 15px"><div class="cc-mono" style="font-size:9.5px;color:var(--cc);margin-bottom:5px">+ RETENTION</div><div style="font-size:20px;font-weight:700;color:var(--text)">{{ LAB.predRetR2 }}</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">out‑of‑sample R²</div></div>
-        <div style="flex:1;min-width:130px;background:var(--fill);border:1px solid var(--line);border-radius:11px;padding:12px 15px"><div class="cc-mono" style="font-size:9.5px;color:var(--text-3);margin-bottom:5px">VIEW GROWTH</div><div style="font-size:20px;font-weight:700;color:var(--text)">{{ LAB.predGrowth }}</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">{{ LAB.predMaturity }}</div></div>
+        <div style="flex:1;min-width:150px;background:var(--cc-soft);border:1px solid var(--cc);border-radius:11px;padding:12px 15px"><div class="cc-mono" style="font-size:9.5px;color:var(--cc);margin-bottom:5px">MODEL ACCURACY</div><div style="font-size:20px;font-weight:700;color:var(--text)">{{ LAB.attCvFull }}</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">out‑of‑sample R² on per‑second loss</div></div>
+        <div style="flex:1;min-width:150px;background:var(--fill);border:1px solid var(--line);border-radius:11px;padding:12px 15px"><div class="cc-mono" style="font-size:9.5px;color:var(--text-3);margin-bottom:5px">TIME‑DECAY ALONE</div><div style="font-size:20px;font-weight:700;color:var(--text)">{{ LAB.attCvPos }}</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">knowing only the timestamp · content adds {{ LAB.attLift }}</div></div>
+        <div style="flex:1;min-width:130px;background:var(--fill);border:1px solid var(--line);border-radius:11px;padding:12px 15px"><div class="cc-mono" style="font-size:9.5px;color:var(--text-3);margin-bottom:5px">AVG LOSS RATE</div><div style="font-size:20px;font-weight:700;color:var(--text)">{{ LAB.attHazard }}%/s</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">of remaining viewers, each second</div></div>
       </div>
-      <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--text-3);margin:2px 0 10px">WHAT MOVES VIEWS · <span style="color:var(--text-faint)">standardized effect, each controlled for the rest</span></div>
+      <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--text-3);margin:2px 0 10px">WHAT HOLDS vs LOSES VIEWERS · <span style="color:#16a34a">green holds</span> · <span style="color:#dc2626">red bleeds</span> · <span style="color:var(--text-faint)">effect on the per‑second drop rate, all else equal</span></div>
       <div style="display:flex;flex-direction:column;gap:6px">
-        <sc-for list="{{ LAB.predDrivers }}" as="dr" hint-placeholder-count="8">
-          <div style="display:grid;grid-template-columns:186px 1fr 50px;gap:12px;align-items:center">
-            <div style="font-size:12.5px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ dr.label }}</div>
-            <div style="height:10px;background:var(--fill);border-radius:5px;position:relative;overflow:hidden"><div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--line)"></div><div style="{{ dr.barStyle }}"></div></div>
-            <div style="text-align:right;font-size:11px;font-weight:700;color:{{ dr.color }}">{{ dr.coefTxt }}</div>
+        <sc-for list="{{ LAB.attDrivers }}" as="ad" hint-placeholder-count="8">
+          <div style="display:grid;grid-template-columns:220px 1fr 92px;gap:12px;align-items:center">
+            <div style="min-width:0"><div style="font-size:12.5px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ ad.label }}</div><div class="cc-mono" style="font-size:9.5px;color:var(--text-faint)">{{ ad.meta }}</div></div>
+            <div style="height:10px;background:var(--fill);border-radius:5px;position:relative;overflow:hidden"><div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--line)"></div><div style="{{ ad.barStyle }}"></div></div>
+            <div style="text-align:right;font-size:11px;font-weight:700;color:{{ ad.color }}">{{ ad.effTxt }}</div>
           </div>
         </sc-for>
       </div>
-      <p style="margin:14px 0 0;font-size:11px;color:var(--text-3);line-height:1.55">R² is out‑of‑sample (leave‑one‑out): 0 = no better than guessing your average, 1 = perfect. Low content‑alone R² means the topic/format matters far less than whether the first seconds <em>hold</em> — so optimise the hook, not the subject. 7 too‑fresh reels are excluded so unsettled view counts don't skew it.</p>
-    </div>
-    </sc-if>
-
-    <sc-if value="{{ LAB.hasExp }}" hint-placeholder-val="{{ false }}">
-    <div class="sg-panel" style="position:relative;overflow:hidden;background:var(--surface);border:1px solid var(--cc);border-radius:16px;padding:22px 22px 22px 26px;box-shadow:var(--shadow);margin-bottom:26px">
-      <div style="position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--cc)"></div>
-      <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px;flex-wrap:wrap">
-        <span style="font-size:16px">🧪</span><div style="font-weight:700;font-size:15px">Run this next</div>
-        <span class="cc-mono" style="font-size:9.5px;color:var(--cc);background:var(--cc-soft);padding:3px 8px;border-radius:99px;letter-spacing:.05em">THE ONLY WAY TO PROVE CAUSE</span>
-      </div>
-      <div style="font-size:13.5px;line-height:1.55;color:var(--text-2);margin-bottom:14px">{{ LAB.expClaim }}</div>
-      <div style="background:var(--surface-2);border:1px solid var(--line);border-radius:11px;padding:14px 16px;font-size:13.5px;line-height:1.6;color:var(--text)">{{ LAB.expDo }}</div>
-      <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
-        <div style="flex:1;min-width:170px;background:var(--cc-soft);border:1px solid var(--line);border-radius:9px;padding:10px 13px"><div class="cc-mono" style="font-size:9.5px;color:var(--cc);margin-bottom:4px;letter-spacing:.06em">TEST ARM</div><div style="font-size:12.5px;color:var(--text)">{{ LAB.expTest }}</div></div>
-        <div style="flex:1;min-width:170px;background:var(--fill);border:1px solid var(--line);border-radius:9px;padding:10px 13px"><div class="cc-mono" style="font-size:9.5px;color:var(--text-3);margin-bottom:4px;letter-spacing:.06em">CONTROL ARM</div><div style="font-size:12.5px;color:var(--text)">{{ LAB.expControl }}</div></div>
-      </div>
-    </div>
-    </sc-if>
-
-    <sc-if value="{{ LAB.hasInterpret }}" hint-placeholder-val="{{ false }}">
-    <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:19px 22px;margin-bottom:24px">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:11px"><span style="font-size:15px">🧠</span><div style="font-weight:700;font-size:14.5px">What this means</div><span class="cc-mono" style="font-size:9px;color:var(--cc);background:var(--cc-soft);padding:3px 8px;border-radius:99px;letter-spacing:.04em">AI · gpt-5.5</span></div>
-      <div style="font-size:13.5px;line-height:1.7;color:var(--text-2);white-space:pre-wrap">{{ LAB.interpretText }}</div>
-    </div>
-    </sc-if>
-    <sc-if value="{{ LAB.interpreting }}" hint-placeholder-val="{{ false }}">
-    <div style="display:flex;align-items:center;gap:9px;font-size:13px;color:var(--text-3);margin-bottom:22px"><span style="display:inline-block;width:13px;height:13px;border:2px solid var(--line);border-top-color:var(--cc);border-radius:50%;animation:spin .7s linear infinite"></span> Reading the ledger…</div>
-    </sc-if>
-
-    <div style="display:inline-flex;background:var(--fill);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px;margin-bottom:12px">
-      <sc-for list="{{ LAB.ledgerCats }}" as="lc" hint-placeholder-count="5"><button onClick="{{ lc.onClick }}" style="{{ lc.style }}">{{ lc.label }}</button></sc-for>
-    </div>
-    <div class="cc-mono" style="font-size:10.5px;letter-spacing:.1em;color:var(--text-3);margin-bottom:12px">HYPOTHESIS LEDGER · contrasted on {{ LAB.outcome }} · <span style="color:var(--text-faint)">click a row to see its reels</span></div>
-    <sc-if value="{{ LAB.hasHyps }}" hint-placeholder-val="{{ true }}">
-    <div style="display:flex;flex-direction:column;gap:8px">
-      <sc-for list="{{ LAB.hyps }}" as="hy" hint-placeholder-count="6">
-        <div onClick="{{ hy.openReels }}" title="Show the reels with this feature" style="display:grid;grid-template-columns:1fr 64px 132px 104px;gap:14px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 16px;opacity:{{ hy.rowOpacity }};cursor:pointer">
-          <div style="min-width:0">
-            <div style="font-size:13.5px;font-weight:600;color:var(--text)">{{ hy.label }}</div>
-            <sc-if value="{{ hy.shared }}" hint-placeholder-val="{{ false }}"><div style="font-size:11px;color:#e0a458;margin-top:2px">⚠ also common in your flops — probably not a real edge</div></sc-if>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">
+        <div style="flex:1;min-width:230px">
+          <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:#dc2626;margin-bottom:8px">BLEEDING MORE THAN CONTENT PREDICTS · <span style="color:var(--text-faint)">something unmeasured is hurting</span></div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <sc-for list="{{ LAB.attBad }}" as="ab" hint-placeholder-count="3">
+              <div onClick="{{ ab.open }}" style="display:flex;justify-content:space-between;gap:10px;background:var(--fill);border:1px solid var(--line);border-radius:9px;padding:8px 12px;cursor:pointer"><span style="font-size:12px;color:var(--text)">{{ ab.label }}</span><span style="font-size:11.5px;font-weight:700;color:#dc2626">{{ ab.valTxt }}</span></div>
+            </sc-for>
           </div>
-          <div style="text-align:right;font-size:13px;font-weight:700;color:var(--text-2)">{{ hy.effect }}</div>
-          <div><div style="height:6px;background:var(--fill);border-radius:999px;overflow:hidden"><div style="{{ hy.confBarStyle }}"></div></div><div class="cc-mono" style="font-size:10px;color:var(--text-3);margin-top:4px">{{ hy.conf }}% conf · n {{ hy.n }}</div></div>
-          <div style="text-align:right"><span style="{{ hy.statusStyle }}">{{ hy.status }}</span></div>
         </div>
-      </sc-for>
-    </div>
-    </sc-if>
-    <sc-if value="{{ LAB.empty }}" hint-placeholder-val="{{ false }}">
-      <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:36px 24px;text-align:center;font-size:14px;color:var(--text-2)">No hypotheses yet — extract reels + add views, then hit Rebuild.</div>
-    </sc-if>
-
-    <!-- ── granular retention: where each trait holds vs drops (real per-second curves) ── -->
-    <div class="cc-mono" style="font-size:10.5px;letter-spacing:.1em;color:var(--text-3);margin:34px 0 4px">RETENTION · where each trait holds vs drops · <span style="color:var(--text-faint)">real per-second curves · {{ LAB.retN }} reels</span></div>
-    <p style="margin:0 0 14px;font-size:12px;color:var(--text-3);line-height:1.55;max-width:680px">Each row contrasts reels that HAVE the trait against reels that don't — the 3‑second hook hold and the end completion. The <span style="color:var(--cc);font-weight:600">coloured line</span> is the average retention curve for reels with the trait; the <span style="color:var(--text-3);font-weight:600">grey line</span> is your overall average. Click a row to see those reels.</p>
-    <div style="display:inline-flex;background:var(--fill);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px;margin-bottom:13px">
-      <sc-for list="{{ LAB.retCats }}" as="ct" hint-placeholder-count="5"><button onClick="{{ ct.onClick }}" style="{{ ct.style }}">{{ ct.label }}</button></sc-for>
-    </div>
-    <sc-if value="{{ LAB.retLoading }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:var(--text-3);margin-bottom:16px">Reading your retention curves…</div></sc-if>
-    <sc-if value="{{ LAB.hasRet }}" hint-placeholder-val="{{ true }}">
-    <div style="display:flex;flex-direction:column;gap:8px">
-      <sc-for list="{{ LAB.retRows }}" as="rr" hint-placeholder-count="6">
-        <div onClick="{{ rr.openReels }}" title="Show the reels with this trait" style="display:grid;grid-template-columns:1fr 128px 118px 118px 78px;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:11px 15px;cursor:pointer">
-          <div style="min-width:0"><div style="font-size:13.5px;font-weight:600;color:var(--text)">{{ rr.label }}</div><div class="cc-mono" style="font-size:10px;color:var(--text-3);margin-top:2px">{{ rr.n }} · {{ rr.dropTxt }}</div></div>
-          <svg width="120" height="44" viewBox="0 0 120 44" preserveAspectRatio="none" style="display:block"><path d="{{ rr.basePath }}" fill="none" stroke="var(--text-3)" stroke-width="1.2" stroke-opacity="0.5" vector-effect="non-scaling-stroke"></path><path d="{{ rr.curvePath }}" fill="none" stroke="var(--cc)" stroke-width="2" stroke-linejoin="round" vector-effect="non-scaling-stroke"></path></svg>
-          <div style="text-align:center" title="3-second hook hold vs reels without this trait"><span style="{{ rr.holdStyle }}">{{ rr.holdTxt }}</span></div>
-          <div style="text-align:center" title="completion vs reels without this trait"><span style="{{ rr.complStyle }}">{{ rr.complTxt }}</span></div>
-          <div style="text-align:right"><span style="{{ rr.sigStyle }}">{{ rr.sig }}</span></div>
+        <div style="flex:1;min-width:230px">
+          <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:#16a34a;margin-bottom:8px">HOLDING BETTER THAN PREDICTED · <span style="color:var(--text-faint)">rewatch to find the hidden edge</span></div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <sc-for list="{{ LAB.attGood }}" as="ag" hint-placeholder-count="3">
+              <div onClick="{{ ag.open }}" style="display:flex;justify-content:space-between;gap:10px;background:var(--fill);border:1px solid var(--line);border-radius:9px;padding:8px 12px;cursor:pointer"><span style="font-size:12px;color:var(--text)">{{ ag.label }}</span><span style="font-size:11.5px;font-weight:700;color:#16a34a">{{ ag.valTxt }}</span></div>
+            </sc-for>
+          </div>
         </div>
-      </sc-for>
+      </div>
+      <p style="margin:14px 0 0;font-size:11px;color:var(--text-3);line-height:1.55">Per‑second effects compound: at your average loss rate, 30 seconds keeps ~18% of viewers — hold one green edge of −0.7pp/s over that stretch and ~22% survive, a quarter more audience. The two lists flag reels where something the model can't see (delivery, topic, audio) is helping or hurting — those are worth rewatching.</p>
     </div>
     </sc-if>
-    <sc-if value="{{ LAB.retEmpty }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:var(--text-3);margin-bottom:8px">No clear retention differences yet — need more reels with real curves.</div></sc-if>
 
-    <p style="margin:22px 0 0;font-size:11.5px;color:var(--text-3);line-height:1.55">Effect = rank‑biserial (−1…+1); sign = direction. Confidence is deliberately humble about sample size — a low % means “interesting but unproven,” even when the raw p‑value looks significant. “Supported” needs a real effect the bottom‑tier reels <strong>don't</strong> share. This is still correlation; the experiment above is what turns it into cause.</p>
-
-    <!-- ── drop-off / death moments: where viewers actually leave + which cuts cost retention ── -->
-    <div class="cc-mono" style="font-size:10.5px;letter-spacing:.1em;color:var(--text-3);margin:40px 0 4px">DROP‑OFF · your death moments · <span style="color:var(--text-faint)">exact per‑second retention × what's on screen</span></div>
-    <p style="margin:0 0 14px;font-size:12px;color:var(--text-3);line-height:1.55;max-width:680px">The 0–3s scroll‑off is universal. What's actionable is the <strong>second wave</strong> — the biggest drop after the hook — and which visual CUTS cost more retention than the reel's own natural decline.</p>
+    <!-- ── 2 · death moments: where viewers actually leave + which cuts cost retention ── -->
+    <div class="cc-mono" style="font-size:10.5px;letter-spacing:.1em;color:var(--text-3);margin:40px 0 4px">2 · DEATH MOMENTS · where viewers actually leave · <span style="color:var(--text-faint)">exact per‑second retention × what's on screen</span></div>
+    <p style="margin:0 0 14px;font-size:12px;color:var(--text-3);line-height:1.55;max-width:680px">The 0–3s scroll‑off is universal. What's actionable is the <strong>second wave</strong> — the biggest drop after the hook — and which visual CUTS cost more retention than the reel's own natural decline. Every reel's own death moments are on its detail page.</p>
     <sc-if value="{{ LAB.dropsLoading }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:var(--text-3);margin-bottom:16px">Finding your death moments…</div></sc-if>
     <sc-if value="{{ LAB.hasDrops }}" hint-placeholder-val="{{ true }}">
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px">
@@ -1394,6 +1330,35 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
         </sc-for>
       </div>
     </sc-if>
+
+    <!-- ── 3 · view predictor: does held attention convert to views ── -->
+    <sc-if value="{{ LAB.hasPredict }}" hint-placeholder-val="{{ true }}">
+    <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px 22px;box-shadow:var(--shadow);margin:34px 0 0">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+        <span class="cc-mono" style="font-size:10px;letter-spacing:.1em;color:var(--cc)">3 · VIEW PREDICTOR</span>
+        <span style="font-size:10.5px;color:var(--text-faint)">does held attention convert to views · leave‑one‑out CV · maturity‑controlled</span>
+      </div>
+      <div style="font-size:13.5px;line-height:1.6;color:var(--text-2);margin-bottom:16px">{{ LAB.predVerdict }}</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px">
+        <div style="flex:1;min-width:150px;background:var(--fill);border:1px solid var(--line);border-radius:11px;padding:12px 15px"><div class="cc-mono" style="font-size:9.5px;color:var(--text-3);margin-bottom:5px">CONTENT ALONE</div><div style="font-size:20px;font-weight:700;color:var(--text)">{{ LAB.predContentR2 }}</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">out‑of‑sample R²</div></div>
+        <div style="flex:1;min-width:150px;background:var(--cc-soft);border:1px solid var(--cc);border-radius:11px;padding:12px 15px"><div class="cc-mono" style="font-size:9.5px;color:var(--cc);margin-bottom:5px">+ RETENTION</div><div style="font-size:20px;font-weight:700;color:var(--text)">{{ LAB.predRetR2 }}</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">out‑of‑sample R²</div></div>
+        <div style="flex:1;min-width:130px;background:var(--fill);border:1px solid var(--line);border-radius:11px;padding:12px 15px"><div class="cc-mono" style="font-size:9.5px;color:var(--text-3);margin-bottom:5px">VIEW GROWTH</div><div style="font-size:20px;font-weight:700;color:var(--text)">{{ LAB.predGrowth }}</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">{{ LAB.predMaturity }}</div></div>
+      </div>
+      <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--text-3);margin:2px 0 10px">WHAT MOVES VIEWS · <span style="color:var(--text-faint)">standardized effect, each controlled for the rest</span></div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <sc-for list="{{ LAB.predDrivers }}" as="dr" hint-placeholder-count="8">
+          <div style="display:grid;grid-template-columns:186px 1fr 50px;gap:12px;align-items:center">
+            <div style="font-size:12.5px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ dr.label }}</div>
+            <div style="height:10px;background:var(--fill);border-radius:5px;position:relative;overflow:hidden"><div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--line)"></div><div style="{{ dr.barStyle }}"></div></div>
+            <div style="text-align:right;font-size:11px;font-weight:700;color:{{ dr.color }}">{{ dr.coefTxt }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <p style="margin:14px 0 0;font-size:11px;color:var(--text-3);line-height:1.55">R² is out‑of‑sample (leave‑one‑out): 0 = no better than guessing your average, 1 = perfect. Low content‑alone R² means the format matters far less than whether the first seconds <em>hold</em> — so optimise the hook, not the subject. Too‑fresh reels are excluded so unsettled view counts don't skew it.</p>
+    </div>
+    </sc-if>
+
+    <p style="margin:24px 0 0;font-size:11.5px;color:var(--text-3);line-height:1.55">Everything above is measured and honestly cross‑validated — strong enough to rank what to try next, not to prove cause. The proof is changing ONE lever in a new reel (e.g. cut the stale scene at its predicted death moment) and watching its curve beat the model's prediction.</p>
   </main>
   </sc-if>
 
@@ -2120,7 +2085,27 @@ class Component extends DCLogic {
     if(f.indexOf('=')>=0){ const p=f.split('='); return p[0].replace(/_/g,' ')+': '+p[1].replace(/_/g,' '); }
     return f.replace(/_/g,' ');
   }
-  loadLab(force){ this.labRetFetch(force); this.labDropsFetch(force); this.labPredFetch(force); if(this.state.labLoading) return; if(this.state.labLoaded && !force) return; this.labFetch(this.state.labOutcome||'rate'); }
+  labAttFetch(force){
+    if(this.state.labAttLoading) return;
+    if(this.state.labAttLoaded && !force) return;
+    this.setState({ labAttLoading:true });
+    fetch('/api/attention'+(force?'?force=1':''))
+      .then(r=>r.json())
+      .then(j=>this.setState({ labAttLoading:false, labAttLoaded:true, labAttData:j, labAttError:(j&&j.error)||'' }))
+      .catch(e=>this.setState({ labAttLoading:false, labAttLoaded:true, labAttError:String(e) }));
+  }
+  _attLabel(f){
+    const map={ sec_since_cut:'scene running stale (secs since last cut)', speech_wps:'fast, continuous speech', app_on_screen:'an app / UI on screen', says_number:'saying a concrete number', scene_talking_head:'face‑only (no demo on screen)', cut_now:'a scene cut this second', caption:'subtitle visible', says_du:'addressing the viewer (du/dich)', big_text:'big text banner', is_question:'asking a question', silence:'silence / no narration', scene_screen_demo:'a screen demo', scene_overlay_on_face:'UI overlaid on your face', scene_animation:'an animation', scene_text_card:'a text card', scene_b_roll:'b‑roll footage', act_typing:'text typing out on screen', act_scrolling:'scrolling', act_transition:'a visual transition', act_speaking:'you speaking', person_visible:'you visible on screen' };
+    return map[f]||f.replace(/_/g,' ');
+  }
+  labRetrain(){
+    if(this.state.labRebuilding) return;
+    this.setState({ labRebuilding:true });
+    fetch('/api/causal/rebuild',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({}) })
+      .catch(()=>{})
+      .then(()=>{ this.setState({ labRebuilding:false }); this.labAttFetch(true); this.labDropsFetch(true); this.labPredFetch(true); });
+  }
+  loadLab(force){ this.labAttFetch(force); this.labDropsFetch(force); this.labPredFetch(force); }
   labRebuild(){
     this.setState({ labRebuilding:true, labError:'' });
     fetch('/api/causal/rebuild',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ outcome:this.state.labOutcome||'rate' }) })
@@ -2192,6 +2177,23 @@ class Component extends DCLogic {
       maturity:(_pdMeta?(_pd.n+' reels · '+_pdMeta.nImmature+' too fresh'):''),
       verdict:(()=>{ const c=_pd.contentR2, r=_pd.retentionR2; if(c==null||r==null) return 'Training the view model…'; if((r-c)>=0.07) return 'Your views are driven by RETENTION, not the topic. Knowing the content alone barely predicts views (R² '+c.toFixed(2)+'); adding how well the hook holds lifts it to '+r.toFixed(2)+'. The lever is the first few seconds, not the subject.'; if(r<0.15) return 'At this sample size neither content nor retention strongly predicts views (R² '+Math.max(c,r).toFixed(2)+') — virality is still high‑variance. Treat drivers below as leads, not laws.'; return 'Retention explains part of your views (R² '+r.toFixed(2)+' vs '+c.toFixed(2)+' for content alone). The hook matters more than the topic.'; })(),
       drivers:_drv.slice(0,9).map(d=>{ const pos=d.coef>=0; const w=Math.round(Math.abs(d.coef)/_pmax*50); return { label:this._predLabel(d.feature), coefTxt:(pos?'+':'')+d.coef, color:pos?'#16a34a':'#dc2626', barStyle:{ position:'absolute', top:'0', height:'100%', width:w+'%', background:pos?'#16a34a':'#dc2626', opacity:'0.72', ...(pos?{ left:'50%', borderRadius:'0 5px 5px 0' }:{ right:'50%', borderRadius:'5px 0 0 5px' }) } }; }) };
+    // attention model → headline accuracy, per-second drivers, residual reels
+    const _ad=s.labAttData||{}; const _acv=_ad.cv||{};
+    const _adrv=(_ad.contentDrivers||[]).slice(0,9);
+    const _amax=Math.max(0.1,..._adrv.map(d=>Math.abs(d.effectPp)));
+    const _resid=(_ad.reelResiduals||[]);
+    const _openIg=(sc)=>()=>{ if(typeof window!=='undefined') window.open('https://www.instagram.com/reel/'+sc+'/','_blank'); };
+    const ATT={ has: !!s.labAttLoaded && !s.labAttError && (_ad.nSeconds||0)>0,
+      seconds:_ad.nSeconds||'—', reels:_ad.nReels||'—',
+      cvFull:(_acv.full!=null?_acv.full.toFixed(2):'—'), cvPos:(_acv.positionOnly!=null?_acv.positionOnly.toFixed(2):'—'),
+      lift:(_acv.contentLift!=null?((_acv.contentLift>=0?'+':'')+_acv.contentLift.toFixed(2)):'—'),
+      hazard:(_ad.avgHazardPct!=null?_ad.avgHazardPct:'—'),
+      verdict:(_acv.full!=null?('Second‑to‑second, the model explains R² '+_acv.full.toFixed(2)+' of your audience loss out‑of‑sample. The universal time‑decay curve alone explains '+(_acv.positionOnly!=null?_acv.positionOnly.toFixed(2):'—')+' — your on‑screen choices add the rest. The green levers below measurably slow the bleed, each estimated with everything else held equal.'):'Training…'),
+      drivers:_adrv.map(d=>{ const holds=d.effectPp<0; const w=Math.round(Math.abs(d.effectPp)/_amax*50);
+        return { label:this._attLabel(d.feature), meta:'model weight '+d.importancePct+'%', effTxt:(d.effectPp>0?'+':'')+d.effectPp+'pp/s', color:holds?'#16a34a':'#dc2626',
+          barStyle:{ position:'absolute', top:'0', height:'100%', width:w+'%', background:holds?'#16a34a':'#dc2626', opacity:'0.72', ...(holds?{ left:'50%', borderRadius:'0 5px 5px 0' }:{ right:'50%', borderRadius:'5px 0 0 5px' }) } }; }),
+      bad:_resid.slice(0,3).filter(r=>r.avgExcessHazardPp>0.3).map(r=>({ label:r.shortcode, valTxt:'+'+r.avgExcessHazardPp+'pp/s', open:_openIg(r.shortcode) })),
+      good:_resid.slice(-3).reverse().filter(r=>r.avgExcessHazardPp<-0.3).map(r=>({ label:r.shortcode, valTxt:r.avgExcessHazardPp+'pp/s', open:_openIg(r.shortcode) })) };
     return {
       configured: s.labConfigured!==false,
       loading: !!s.labLoading, rebuilding: !!s.labRebuilding, error: s.labError||'',
@@ -2215,7 +2217,12 @@ class Component extends DCLogic {
       dropCuts: DROPS.cuts, hasCuts: DROPS.cuts.length>0, cutsPending: DROPS.hook!=null && DROPS.cuts.length===0,
       dropCliffs: DROPS.cliffs,
       hasPredict: PRED.has, predVerdict: PRED.verdict, predContentR2: PRED.contentR2, predRetR2: PRED.retR2,
-      predGrowth: PRED.growth, predMaturity: PRED.maturity, predDrivers: PRED.drivers
+      predGrowth: PRED.growth, predMaturity: PRED.maturity, predDrivers: PRED.drivers,
+      retrain:()=>this.labRetrain(), retrainLabel: s.labRebuilding?'Retraining…':'↻ Retrain',
+      attLoading: !!s.labAttLoading && !s.labAttLoaded,
+      hasAtt: ATT.has, attError: s.labAttError||'',
+      attSeconds: ATT.seconds, attReels: ATT.reels, attCvFull: ATT.cvFull, attCvPos: ATT.cvPos, attLift: ATT.lift, attHazard: ATT.hazard,
+      attVerdict: ATT.verdict, attDrivers: ATT.drivers, attBad: ATT.bad, attGood: ATT.good
     };
   }
   // ── Clippers: command center (roster + assignments + per-platform views) ───
