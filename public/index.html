@@ -351,7 +351,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
       <div style="flex:1;min-width:0;display:flex;flex-direction:column">
         <span style="font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--text-3);font-weight:650">Instagram Reel</span>
         <h1 style="margin:8px 0 10px;font-size:25px;font-weight:680;letter-spacing:-.02em;line-height:1.2">{{ R.cap }}</h1>
-        <div style="font-size:13.5px;color:var(--text-2);margin-bottom:16px">Posted {{ R.date }} · {{ R.time }} · {{ R.lenFmt }} long</div>
+        <div style="font-size:13.5px;color:var(--text-2);margin-bottom:16px">{{ R.postedLine }}</div>
         <div style="font-size:14px;color:var(--text-2);line-height:1.55;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:13px 15px">{{ R.summary }}</div>
         <div style="flex:1"></div>
         <a href="{{ R.permalink }}" target="_blank" rel="noopener" style="{{ R.linkStyle }}">{{ R.linkText }}</a>
@@ -496,6 +496,31 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
       <div style="margin-top:15px;font-size:11.5px;color:var(--text-faint)">Skip &amp; repost rates + Higher/Lower benchmarks are read from your Instagram insights recordings (the Graph API doesn't expose them).</div>
     </section>
 
+    <!-- reel audit: this reel's measured elements vs the Lab's proven practices -->
+    <section style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-top:22px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;flex-wrap:wrap;gap:10px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <h3 style="margin:0;font-size:15px;font-weight:650">Reel audit</h3>
+          <span style="font-size:12px;color:var(--text-3)">every element checked against your Lab's measured best practices</span>
+        </div>
+        <sc-if value="{{ R.auditHas }}" hint-placeholder-val="{{ false }}"><span class="cc-mono" style="{{ R.auditScoreStyle }}">{{ R.auditScore }}</span></sc-if>
+      </div>
+      <sc-if value="{{ R.auditLoading }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:var(--text-3);padding:10px 0 4px">Auditing against the Lab…</div></sc-if>
+      <sc-if value="{{ R.auditHas }}" hint-placeholder-val="{{ false }}">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:8px;margin-top:12px">
+        <sc-for list="{{ R.auditRows }}" as="au" hint-placeholder-count="9">
+          <div style="display:flex;gap:10px;align-items:flex-start;background:var(--fill);border:1px solid var(--line);border-radius:10px;padding:10px 12px">
+            <span style="{{ au.iconStyle }}">{{ au.icon }}</span>
+            <div style="min-width:0;flex:1">
+              <div style="display:flex;justify-content:space-between;gap:8px"><span style="font-size:12.5px;font-weight:600;color:var(--text)">{{ au.label }}</span><span class="cc-mono" style="font-size:10.5px;color:var(--text-2);white-space:nowrap">{{ au.value }}</span></div>
+              <div style="font-size:11px;color:var(--text-3);line-height:1.45;margin-top:2px">{{ au.why }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      </sc-if>
+    </section>
+
     <!-- AI breakdown (frame-by-frame visuals + transcript + analysis) -->
     <section style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-top:22px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
@@ -508,17 +533,146 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
       <sc-if value="{{ R.ai.has }}" hint-placeholder-val="{{ false }}">
         <div>
           <p style="margin:2px 0 14px;font-size:14px;color:var(--text-2);line-height:1.55">{{ R.ai.summary }}</p>
-          <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:16px">
-            <sc-for list="{{ R.ai.frames }}" as="fr" hint-placeholder-count="6">
-              <div style="flex:none;width:104px">
-                <img src="{{ fr.src }}" style="width:104px;height:150px;object-fit:cover;border-radius:8px;border:1px solid var(--line);display:block"/>
-                <div style="font-size:10.5px;color:var(--text-3);margin:4px 0 2px;font-weight:600">{{ fr.t }}</div>
-                <div style="font-size:11px;color:var(--text-2);line-height:1.35">{{ fr.visual }}</div>
-                <sc-if value="{{ fr.motion }}" hint-placeholder-val="{{ false }}"><div style="font-size:10.5px;color:var(--text-3);line-height:1.35;margin-top:3px">🎞 {{ fr.motion }}</div></sc-if>
-                <sc-if value="{{ fr.written }}" hint-placeholder-val="{{ false }}"><div style="font-size:10.5px;color:var(--accent);line-height:1.35;margin-top:3px">📝 {{ fr.written }}</div></sc-if>
+          <sc-if value="{{ R.dv.hasFrames }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-bottom:20px">
+            <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;flex-wrap:wrap">
+              <div style="display:inline-flex;background:var(--fill);border:1px solid var(--line);border-radius:11px;padding:3px;gap:2px">
+                <button onClick="{{ R.dv.viewScrub }}" style="{{ R.dv.segScrub }}">Scrubber</button>
+                <button onClick="{{ R.dv.viewGrid }}" style="{{ R.dv.segGrid }}">Grid</button>
               </div>
-            </sc-for>
+              <sc-if value="{{ R.dv.isScrubber }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;align-items:center;gap:6px">
+                <button onClick="{{ R.dv.prev }}" style="width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-size:14px;color:var(--text)">‹</button>
+                <button onClick="{{ R.dv.togglePlay }}" style="width:38px;height:38px;border-radius:10px;border:none;background:var(--cc);color:var(--cc-on);cursor:pointer;font-size:12px">{{ R.dv.playIcon }}</button>
+                <button onClick="{{ R.dv.next }}" style="width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-size:14px;color:var(--text)">›</button>
+              </div>
+              <button onClick="{{ R.dv.toggleZones }}" style="{{ R.dv.zonesBtn }}">Safe zones</button>
+              <div class="cc-mono" style="font-size:12px;color:var(--text-2)">{{ R.dv.counter }}</div>
+              </sc-if>
+              <div style="flex:1"></div>
+              <button onClick="{{ R.dv.doExport }}" style="{{ R.dv.exportBtnStyle }}">{{ R.dv.exportLabel }}</button>
+            </div>
+
+            <sc-if value="{{ R.dv.isScrubber }}" hint-placeholder-val="{{ true }}">
+            <div>
+              <div style="display:flex;gap:26px;align-items:flex-start;flex-wrap:wrap">
+                <div style="flex:none;width:300px">
+                  <div style="position:relative;width:300px;height:533px;border-radius:18px;overflow:hidden;background:var(--fill);box-shadow:0 22px 50px -22px rgba(34,30,68,.42),0 0 0 1px var(--line)">
+                    <img src="{{ R.dv.curFrame.src }}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"/>
+                    <sc-if value="{{ R.dv.showZones }}" hint-placeholder-val="{{ false }}">
+                      <div style="position:absolute;left:0;right:0;top:45%;border-top:1.5px dashed rgba(91,80,230,.7)"></div>
+                      <div class="cc-mono" style="position:absolute;left:10px;top:calc(45% - 20px);font-size:9px;color:#fff;background:rgba(91,80,230,.85);padding:2px 6px;border-radius:5px">VISUAL · 45%</div>
+                      <div class="cc-mono" style="position:absolute;left:10px;top:calc(45% + 8px);font-size:9px;color:#fff;background:rgba(20,18,40,.6);padding:2px 6px;border-radius:5px">CREATOR · 55%</div>
+                    </sc-if>
+                    <div class="cc-mono" style="position:absolute;top:13px;left:13px;font-size:11px;font-weight:600;color:#fff;background:rgba(20,18,40,.55);padding:4px 9px;border-radius:7px">{{ R.dv.curTime }}</div>
+                    <div class="cc-mono" style="position:absolute;top:13px;right:13px;font-size:10px;font-weight:700;color:#fff;padding:4px 9px;border-radius:7px;background:{{ R.dv.curFrame.intColor }}">Stufe {{ R.dv.curFrame.intensity }}</div>
+                    <sc-if value="{{ R.dv.curFrame.spoken }}" hint-placeholder-val="{{ false }}">
+                      <div style="position:absolute;bottom:22px;left:16px;right:16px;text-align:center"><span style="font-weight:800;font-size:14px;line-height:1.3;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.6)">{{ R.dv.curFrame.spoken }}</span></div>
+                    </sc-if>
+                  </div>
+                </div>
+                <div style="flex:1;min-width:270px;display:flex;flex-direction:column;gap:16px">
+                  <div style="background:var(--fill);border:1px solid var(--line);border-radius:14px;padding:18px 20px">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:13px">
+                      <div class="cc-mono" style="font-size:12px;color:var(--text-3)">FRAME {{ R.dv.counter }}</div>
+                      <div style="width:1px;height:13px;background:var(--line)"></div>
+                      <div style="font-size:12px;font-weight:600;color:{{ R.dv.curFrame.intColor }}">{{ R.dv.curFrame.intLabel }}</div>
+                    </div>
+                    <div style="font-size:14px;line-height:1.55;color:var(--text-2);margin-bottom:13px">{{ R.dv.curFrame.d }}</div>
+                    <sc-if value="{{ R.dv.curFrame.motion }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px;color:var(--text-3);margin-bottom:13px">🎞 {{ R.dv.curFrame.motion }}</div></sc-if>
+                    <sc-if value="{{ R.dv.curFrame.spoken }}" hint-placeholder-val="{{ false }}">
+                    <div style="border-left:2.5px solid var(--cc);padding:2px 0 2px 14px;margin-bottom:11px">
+                      <div class="cc-mono" style="font-size:10px;color:var(--text-3);letter-spacing:.1em;margin-bottom:5px">GESPROCHEN</div>
+                      <div style="font-size:13.5px;line-height:1.5;color:var(--text);font-weight:500">{{ R.dv.curFrame.spoken }}</div>
+                    </div>
+                    </sc-if>
+                    <sc-if value="{{ R.dv.curFrame.written }}" hint-placeholder-val="{{ false }}">
+                    <div style="border-left:2.5px solid var(--line);padding:2px 0 2px 14px">
+                      <div class="cc-mono" style="font-size:10px;color:var(--text-3);letter-spacing:.1em;margin-bottom:5px">ON-SCREEN TEXT</div>
+                      <div style="font-size:12.5px;line-height:1.5;color:var(--text-2)">{{ R.dv.curFrame.written }}</div>
+                    </div>
+                    </sc-if>
+                  </div>
+                  <div>
+                    <div class="cc-mono" style="font-size:11px;color:var(--text-3);letter-spacing:.1em;margin-bottom:10px">UP NEXT →</div>
+                    <div style="display:flex;gap:11px">
+                      <sc-for list="{{ R.dv.upNext }}" as="dun" hint-placeholder-count="3">
+                        <button onClick="{{ dun.go }}" style="flex:none;border:none;background:transparent;cursor:pointer;padding:0">
+                          <div style="position:relative;width:84px;height:149px;border-radius:12px;overflow:hidden;box-shadow:0 10px 22px -12px rgba(34,30,68,.4)">
+                            <img src="{{ dun.src }}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"/>
+                            <div class="cc-mono" style="position:absolute;top:7px;left:7px;font-size:9px;font-weight:600;color:#fff;background:rgba(20,18,40,.5);padding:2px 6px;border-radius:5px">{{ dun.timeStr }}</div>
+                            <div style="position:absolute;bottom:0;left:0;right:0;height:5px;background:{{ dun.intColor }}"></div>
+                          </div>
+                        </button>
+                      </sc-for>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="margin-top:22px;background:var(--fill);border:1px solid var(--line);border-radius:14px;padding:16px 18px">
+                <div style="position:relative;height:34px;display:flex;align-items:center">
+                  <div style="position:absolute;left:0;right:0;height:6px;border-radius:99px;background:var(--surface)"></div>
+                  <div style="position:absolute;left:0;height:6px;border-radius:99px;background:linear-gradient(90deg,var(--cc-2),var(--cc));width:{{ R.dv.pct }}"></div>
+                  <div style="position:absolute;left:{{ R.dv.pct }};top:50%;width:18px;height:18px;margin-left:-9px;border-radius:50%;background:var(--surface);border:3px solid var(--cc);box-shadow:0 2px 8px rgba(91,80,230,.45);transform:translateY(-50%)"></div>
+                  <input type="range" min="0" max="{{ R.dv.maxIdx }}" value="{{ R.dv.cur }}" onInput="{{ R.dv.onScrub }}" style="position:absolute;left:0;width:100%;height:34px;margin:0;opacity:0;cursor:pointer"/>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;margin-bottom:12px">
+                  <span class="cc-mono" style="font-size:11px;color:var(--text-3)">0s</span>
+                  <span class="cc-mono" style="font-size:11px;color:var(--cc);font-weight:600">{{ R.dv.curTime }}</span>
+                  <span class="cc-mono" style="font-size:11px;color:var(--text-3)">{{ R.dv.totalTime }}</span>
+                </div>
+                <div class="cc-mono" style="font-size:10px;color:var(--text-3);letter-spacing:.1em;margin-bottom:8px">VISUAL-RHYTHMUS · geschätzt</div>
+                <div style="display:flex;align-items:flex-end;gap:3px;height:52px">
+                  <sc-for list="{{ R.dv.frames2 }}" as="dfr" hint-placeholder-count="20">
+                    <button onClick="{{ dfr.go }}" title="{{ dfr.timeStr }}" style="flex:1;border:none;padding:0;cursor:pointer;background:transparent;display:flex;align-items:flex-end;height:100%">
+                      <div style="width:100%;border-radius:3px 3px 0 0;height:{{ dfr.barH }};background:{{ dfr.intColor }};opacity:{{ dfr.barOpacity }};transition:.18s"></div>
+                    </button>
+                  </sc-for>
+                </div>
+              </div>
+
+              <div style="margin-top:16px">
+                <div class="cc-mono" style="font-size:10px;color:var(--text-3);letter-spacing:.1em;margin-bottom:10px">FILMSTRIP</div>
+                <div class="sg-scroll" style="display:flex;gap:9px;overflow-x:auto;padding:4px 2px 12px">
+                  <sc-for list="{{ R.dv.frames2 }}" as="dfr" hint-placeholder-count="20">
+                    <button onClick="{{ dfr.go }}" style="flex:none;border:none;padding:0;cursor:pointer;background:transparent">
+                      <div style="position:relative;width:58px;height:103px;border-radius:9px;overflow:hidden;{{ dfr.thumbRing }};transition:.15s">
+                        <img src="{{ dfr.src }}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"/>
+                        <div class="cc-mono" style="position:absolute;top:4px;left:4px;font-size:8px;font-weight:600;color:#fff;background:rgba(20,18,40,.5);padding:1px 5px;border-radius:4px">{{ dfr.timeStr }}</div>
+                        <div style="position:absolute;bottom:0;left:0;right:0;height:5px;background:{{ dfr.intColor }}"></div>
+                      </div>
+                    </button>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+            </sc-if>
+
+            <sc-if value="{{ R.dv.isGrid }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+              <button onClick="{{ R.dv.selectAll }}" style="{{ R.dv.miniBtnStyle }}">Select all</button>
+              <button onClick="{{ R.dv.clearSel }}" style="{{ R.dv.miniBtnStyle }}">Clear</button>
+              <span style="font-size:12px;color:var(--text-3)">{{ R.dv.selCount }} selected · click to toggle, then Download</span>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(176px,1fr));gap:16px">
+              <sc-for list="{{ R.dv.frames2 }}" as="dfr" hint-placeholder-count="10">
+                <div onClick="{{ dfr.toggle }}" style="{{ dfr.cardStyle }}">
+                  <div style="position:relative;background:var(--fill)">
+                    <img src="{{ dfr.src }}" style="width:100%;aspect-ratio:9/16;object-fit:cover;display:block"/>
+                    <div class="cc-mono" style="position:absolute;top:9px;left:9px;font-size:10px;font-weight:600;color:#fff;background:rgba(20,18,40,.55);padding:3px 8px;border-radius:6px">{{ dfr.timeStr }}</div>
+                    <span style="{{ dfr.checkStyle }}">{{ dfr.check }}</span>
+                    <div style="position:absolute;bottom:0;left:0;right:0;height:5px;background:{{ dfr.intColor }}"></div>
+                  </div>
+                  <div style="padding:11px 12px">
+                    <div style="font-size:12px;line-height:1.5;color:var(--text-2)">{{ dfr.d }}</div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+            </sc-if>
           </div>
+          </sc-if>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
             <div>
               <div style="font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--text-3);font-weight:650;margin-bottom:8px">Hook &amp; drop-off</div>
@@ -1747,9 +1901,17 @@ class Component extends DCLogic {
   // ── actions ─────────────────────────────────────────────────────────────
   setRange(r){ this.setState({ range:r }); }
   setSort(s){ this.setState({ sort:s }); }
-  openReel(id){ this.setState({ view:'detail', sel:id }); if(typeof window!=='undefined') window.scrollTo(0,0); this.loadAnalysis(id); this.loadReelDrops(id); }
-  back(){ this.setState({ view:'overview', sel:null }); if(typeof window!=='undefined') window.scrollTo(0,0); }
-  refreshReel(id){ this.loadData(true,false); this.loadAnalysis(id,true); this.loadReelDrops(id,true); }
+  openReel(id){ this.dvStop(); this.setState({ view:'detail', sel:id, dvCur:0, dvPlaying:false, dvSel:{}, dvView:'scrubber' }); if(typeof window!=='undefined') window.scrollTo(0,0); this.loadAnalysis(id); this.loadReelDrops(id); this.loadReelAudit(id); }
+  back(){ this.dvStop(); this.setState({ view:'overview', sel:null }); if(typeof window!=='undefined') window.scrollTo(0,0); }
+  refreshReel(id){ this.loadData(true,false); this.loadAnalysis(id,true); this.loadReelDrops(id,true); this.loadReelAudit(id,true); }
+  loadReelAudit(id, force){
+    if(!force && this.state.reelAuditFor===id && this.state.reelAudit) return;
+    this.setState({ reelAuditLoading:true });
+    fetch('/api/audit?shortcode='+encodeURIComponent(id))
+      .then(r=> r.ok ? r.json() : null)
+      .then(j=> this.setState({ reelAudit:(j&&j.checks&&j.checks.length)?j:null, reelAuditFor:id, reelAuditLoading:false }))
+      .catch(()=> this.setState({ reelAudit:null, reelAuditFor:id, reelAuditLoading:false }));
+  }
   loadReelDrops(id, force){
     if(!force && this.state.reelDropsFor===id && this.state.reelDrops) return;
     this.setState({ reelDropsLoading:true });
@@ -1849,8 +2011,48 @@ class Component extends DCLogic {
     const deaths = dMoments.map(m=>({ tTxt:this.fmtT(m.sec), dropTxt:'−'+m.dropPts+' pts', range:(m.from)+'% → '+(m.to)+'%',
       onScreen:m.onScreen||'', transition:(m.cut&&m.transition)?('✂ '+m.transition):'', said:m.said?('“'+m.said+'”'):'' }));
     const linkReal = r.permalink && r.permalink!=='#';
+    // detail frame viewer (Studio-style scrubber/grid over this reel's extracted frames)
+    const sdv=this.state;
+    const dvBase=this.dvFrames();
+    const dvN=dvBase.length, dvMax=Math.max(0,dvN-1), dvCur=Math.min(sdv.dvCur||0, dvMax);
+    const dvSel=sdv.dvSel||{};
+    const dvFrames2=dvBase.map(f=>({ ...f, check:dvSel[f.t]?'✓':'',
+      barH:(8+f.intensity*11)+'px', barOpacity:f.i===dvCur?'1':'0.5',
+      thumbRing:f.i===dvCur?'box-shadow:0 0 0 2.5px var(--cc),0 6px 14px -6px rgba(91,80,230,.5);transform:translateY(-2px)':'box-shadow:0 0 0 1px var(--line)',
+      cardStyle:{ background:'var(--surface)', border:'2px solid '+(dvSel[f.t]?'var(--cc)':'var(--line)'), borderRadius:'14px', overflow:'hidden', boxShadow:'var(--shadow)', cursor:'pointer' },
+      checkStyle:{ position:'absolute', top:'8px', right:'8px', width:'22px', height:'22px', borderRadius:'50%', border:'2px solid #fff', background:dvSel[f.t]?'var(--cc)':'rgba(0,0,0,.35)', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'12px', fontWeight:'700' },
+      go:()=>this.dvGo(f.i), toggle:()=>this.toggleDvFrame(f.t) }));
+    const dcf=dvBase[dvCur]||{};
+    const dvSelCount=Object.keys(dvSel).length;
+    const DV={ hasFrames:dvN>0,
+      isScrubber:sdv.dvView!=='grid', isGrid:sdv.dvView==='grid',
+      viewScrub:()=>this.setState({dvView:'scrubber'}), viewGrid:()=>{ this.dvStop(); this.setState({dvView:'grid'}); },
+      segScrub:this.ccSeg(sdv.dvView!=='grid'), segGrid:this.ccSeg(sdv.dvView==='grid'),
+      playIcon:sdv.dvPlaying?'❚❚':'▶', togglePlay:()=>this.dvTogglePlay(), prev:()=>this.dvPrev(), next:()=>this.dvNext(),
+      showZones:!!sdv.dvZones, toggleZones:()=>this.setState(st=>({dvZones:!st.dvZones})), zonesBtn:this.ccChip(!!sdv.dvZones),
+      counter:String(dvCur+1).padStart(2,'0')+' / '+dvN, curTime:(dvN?Math.round(dvBase[dvCur].t):0)+'s', totalTime:(dvN?Math.round(dvBase[dvMax].t):0)+'s',
+      cur:dvCur, maxIdx:dvMax, pct:(dvMax?(dvCur/dvMax*100):0)+'%',
+      onScrub:(e)=>this.dvGo(parseInt((e&&e.target?e.target.value:0),10)||0),
+      curFrame:Object.assign({}, dcf, { intLabel:dcf.type==='ui'?'UI-Overlay / B-Roll':'Talking head' }),
+      upNext:[1,2,3].map(k=>{ const idx=dvN?((dvCur+k)%dvN):0; const f=dvBase[idx]||{}; return { timeStr:f.timeStr||'', intColor:f.intColor||'var(--line)', src:f.src||'', go:()=>this.dvGo(idx) }; }),
+      frames2:dvFrames2, selCount:dvSelCount,
+      selectAll:()=>{ const sel={}; dvBase.forEach(f=>{ sel[f.t]=true; }); this.setState({ dvSel:sel }); }, clearSel:()=>this.setState({ dvSel:{} }),
+      doExport:()=>this.dvExport(), exportLabel:sdv.dvExporting?'Exporting…':('⬇ '+(dvSelCount?(dvSelCount+' selected'):'all')),
+      exportBtnStyle:{ display:'inline-flex',alignItems:'center',gap:'7px',padding:'8px 16px',borderRadius:'9px',border:'none',background:'var(--cc)',color:'var(--cc-on)',fontSize:'13px',fontWeight:'650',cursor:'pointer',fontFamily:'inherit' },
+      miniBtnStyle:{ padding:'7px 12px',borderRadius:'8px',border:'1px solid var(--line)',background:'var(--surface)',color:'var(--text-2)',fontSize:'12.5px',fontWeight:'600',cursor:'pointer',fontFamily:'inherit' } };
+    // reel audit (this reel vs the Lab's measured best practices)
+    const auData=(sdv.reelAuditFor===r.id)?sdv.reelAudit:null;
+    const AV={ pass:['✓','#16a34a'], warn:['△','#e0a458'], fail:['✕','#dc2626'], info:['i','#64748b'] };
+    const auditRows=((auData&&auData.checks)||[]).map(c=>{ const v=AV[c.verdict]||AV.info;
+      return { icon:v[0], iconStyle:{ flex:'none', width:'20px', height:'20px', borderRadius:'6px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'11px', fontWeight:'800', color:'#fff', background:v[1], marginTop:'1px' }, label:c.label, value:c.value||'', why:c.why||'' }; });
+    const auRatio=auData&&auData.score&&auData.score.total ? auData.score.pass/auData.score.total : 0;
     return {
       id:r.id, cap:r.cap, date:r.date, time:r.time||'', lenFmt:this.fmtT(r.len), permalink:r.permalink,
+      postedLine:'Posted '+r.date+(r.time?(' · '+r.time):'')+' · '+this.fmtT(r.len)+' long',
+      dv:DV,
+      auditHas: auditRows.length>0, auditLoading: !!sdv.reelAuditLoading && !auData, auditRows,
+      auditScore: auData&&auData.score ? (auData.score.pass+' / '+auData.score.total+' best practices') : '',
+      auditScoreStyle:{ fontSize:'11px', fontWeight:'700', padding:'4px 10px', borderRadius:'999px', color:'#fff', background: auRatio>=0.75?'#16a34a':auRatio>=0.5?'#e0a458':'#dc2626' },
       linkText: linkReal?'Open on Instagram ↗':'', linkStyle: linkReal?{ alignSelf:'flex-start',marginTop:'14px',fontSize:'13px',fontWeight:'600',color:'#6366f1',textDecoration:'none' }:{ display:'none' },
       summary, kpiCards,
       retSub: r.retReal ? ('Real audience retention, read from your Instagram insights recording — the actual drop-off across the '+this.fmtT(r.len)+' video.') : ('Estimated from average watch time across the '+this.fmtT(r.len)+' video — the Graph API does not expose per-second retention.'),
@@ -2491,14 +2693,14 @@ class Component extends DCLogic {
   toggleFrame(t){ const sel=Object.assign({}, this.state.ccSel); if(sel[t]) delete sel[t]; else sel[t]=true; this.setState({ ccSel:sel }); }
   selectAllFrames(){ const r=this.state.ccResult; if(!r) return; const sel={}; (r.frames||[]).forEach(f=>{ sel[f.t]=true; }); this.setState({ ccSel:sel }); }
   clearFrames(){ this.setState({ ccSel:{} }); }
-  async exportFrames(){
-    const r=this.state.ccResult; if(!r) return;
+  async exportFrames(){ return this._zipFrames(this.state.ccResult, this.state.ccSel||{}, 'ccExporting'); }
+  async _zipFrames(r, sel, busyKey){
+    if(!r) return;
     if(typeof window==='undefined' || !window.JSZip){ this.setState({ ccError:'Export library still loading — try again in a moment.' }); return; }
-    const sel=this.state.ccSel||{};
     const picked=(r.frames||[]).filter(f=>sel[f.t]);
     const frames = picked.length ? picked : (r.frames||[]);   // none selected → export all
     if(!frames.length) return;
-    this.setState({ ccExporting:true, ccError:'' });
+    this.setState({ [busyKey]:true, ccError:'' });
     try{
       const zip=new window.JSZip();
       const folder=zip.folder(r.id);
@@ -2516,14 +2718,14 @@ class Component extends DCLogic {
       const a=document.createElement('a'); a.href=url; a.download=r.id+'-frames.zip'; document.body.appendChild(a); a.click(); a.remove();
       setTimeout(()=>URL.revokeObjectURL(url), 4000);
     }catch(e){ this.setState({ ccError:'Export failed: '+String((e&&e.message)||e) }); }
-    this.setState({ ccExporting:false });
+    this.setState({ [busyKey]:false });
   }
   // ── Content Creation: frame scrubber + Claude-design-prompt assembler ──────
   // Maps the real extracted frames into the scrubber's model: spoken line (from
   // the Whisper transcript at that timestamp), a heuristic visual-intensity 0–4,
   // and a talk/ui type — all derived, labelled as estimates in the UI.
-  ccFrames(){
-    const r=this.state.ccResult; if(!r) return [];
+  _frameModel(r){
+    if(!r) return [];
     const segs=(r.transcript&&r.transcript.segments)||[];
     const spokenAt=(t)=>{ const x=segs.find(o=>t>=Math.floor(o.start)&&t<=Math.ceil(o.end)); return x?String(x.text).trim():''; };
     const INT=['#d9d8e6','#c4c0f3','#9d96ee','#7165e9','#5b50e6'];
@@ -2540,6 +2742,8 @@ class Component extends DCLogic {
         intensity, intColor:INT[intensity], type:isUI?'ui':'talk', stat:statEl?String(statEl.content).trim():'' };
     });
   }
+  ccFrames(){ return this._frameModel(this.state.ccResult); }
+  dvFrames(){ return this._frameModel((this.state.analysisFor===this.state.sel)?this.state.analysis:null); }
   ccGo(i){ const m=this.ccFrames().length; if(!m) return; i=((i%m)+m)%m; this.setState({ ccCur:i }); }
   ccPrev(){ this.ccGo((this.state.ccCur||0)-1); }
   ccNext(){ this.ccGo((this.state.ccCur||0)+1); }
@@ -2550,7 +2754,20 @@ class Component extends DCLogic {
     this.setState({ ccPlaying:true });
   }
   ccStop(){ if(this._ccTimer){ clearInterval(this._ccTimer); this._ccTimer=null; } if(this.state.ccPlaying) this.setState({ ccPlaying:false }); }
-  componentWillUnmount(){ if(this._ccTimer) clearInterval(this._ccTimer); clearTimeout(this._ccToast); }
+  // detail-page frame viewer (same model as the Studio scrubber, own state)
+  dvGo(i){ const m=this.dvFrames().length; if(!m) return; i=((i%m)+m)%m; this.setState({ dvCur:i }); }
+  dvPrev(){ this.dvGo((this.state.dvCur||0)-1); }
+  dvNext(){ this.dvGo((this.state.dvCur||0)+1); }
+  dvTogglePlay(){
+    if(this.state.dvPlaying){ this.dvStop(); return; }
+    const m=this.dvFrames().length; if(!m) return;
+    this._dvTimer=setInterval(()=>this.setState(s=>({ dvCur:((s.dvCur||0)+1)%m })), 1300);
+    this.setState({ dvPlaying:true });
+  }
+  dvStop(){ if(this._dvTimer){ clearInterval(this._dvTimer); this._dvTimer=null; } if(this.state.dvPlaying) this.setState({ dvPlaying:false }); }
+  toggleDvFrame(t){ const sel=Object.assign({}, this.state.dvSel); if(sel[t]) delete sel[t]; else sel[t]=true; this.setState({ dvSel:sel }); }
+  dvExport(){ const r=(this.state.analysisFor===this.state.sel)?this.state.analysis:null; return this._zipFrames(r, this.state.dvSel||{}, 'dvExporting'); }
+  componentWillUnmount(){ if(this._ccTimer) clearInterval(this._ccTimer); if(this._dvTimer) clearInterval(this._dvTimer); clearTimeout(this._ccToast); }
   ccFlash(msg){ this.setState({ ccToast:msg }); clearTimeout(this._ccToast); this._ccToast=setTimeout(()=>this.setState({ ccToast:'' }),1500); }
   ccCopy(text,msg){ try{ navigator.clipboard.writeText(text||''); }catch(e){} this.ccFlash(msg||'Copied'); }
   ccAnimScriptVal(){ const s=this.state; return s.ccAnimScript!=null ? s.ccAnimScript : (s.ccScript||''); }

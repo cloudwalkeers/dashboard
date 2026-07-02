@@ -271,6 +271,18 @@ const server = http.createServer(async (req, res) => {
       }
     }
 
+    // Reel audit: one reel's measured elements vs the Lab's proven practices.
+    if (u.pathname === "/api/audit" && req.method === "GET") {
+      const audit = await import("./lib/audit.mjs");
+      if (!audit.isConfigured()) return send(res, 200, ".json", JSON.stringify({ configured: false }));
+      try {
+        const out = await audit.reelAudit(u.searchParams.get("shortcode") || "");
+        return send(res, 200, ".json", JSON.stringify(out || { checks: [] }));
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e), checks: [] }));
+      }
+    }
+
     // Lab: hook analysis — the spoken opening line, classified deterministically (regex)
     // and contrasted on skip rate + 3s hold; includes every reel's opener verbatim.
     if (u.pathname === "/api/hooks" && req.method === "GET") {
