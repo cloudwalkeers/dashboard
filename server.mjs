@@ -278,9 +278,10 @@ const server = http.createServer(async (req, res) => {
       const predict = await import("./lib/predict.mjs");
       if (!predict.isConfigured()) return send(res, 200, ".json", JSON.stringify({ configured: false }));
       try {
-        const withRet = await predict.trainViewsModel({ withRetention: true });
         const contentOnly = await predict.trainViewsModel({ withRetention: false });
-        return send(res, 200, ".json", JSON.stringify({ configured: true, n: withRet.n, meta: withRet.meta, contentR2: contentOnly.looR2, retentionR2: withRet.looR2, medianErrorPct: withRet.medianErrorPct, drivers: withRet.drivers, note: withRet.note }));
+        const withRet = await predict.trainViewsModel({ withRetention: true });
+        const full = await predict.trainViewsModel({ withRetention: true, withEngagement: true });
+        return send(res, 200, ".json", JSON.stringify({ configured: true, n: full.n, meta: full.meta, contentR2: contentOnly.looR2, retentionR2: withRet.looR2, fullR2: full.looR2, medianErrorPct: full.medianErrorPct, drivers: full.drivers, note: full.note }));
       } catch (e) {
         return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
       }

@@ -1265,7 +1265,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
         <div style="flex:1;min-width:150px;background:var(--fill);border:1px solid var(--line);border-radius:11px;padding:12px 15px"><div class="cc-mono" style="font-size:9.5px;color:var(--text-3);margin-bottom:5px">TIME‑DECAY ALONE</div><div style="font-size:20px;font-weight:700;color:var(--text)">{{ LAB.attCvPos }}</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">knowing only the timestamp · content adds {{ LAB.attLift }}</div></div>
         <div style="flex:1;min-width:130px;background:var(--fill);border:1px solid var(--line);border-radius:11px;padding:12px 15px"><div class="cc-mono" style="font-size:9.5px;color:var(--text-3);margin-bottom:5px">AVG LOSS RATE</div><div style="font-size:20px;font-weight:700;color:var(--text)">{{ LAB.attHazard }}%/s</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">of remaining viewers, each second</div></div>
       </div>
-      <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--text-3);margin:2px 0 10px">WHAT HOLDS vs LOSES VIEWERS · <span style="color:#16a34a">green holds</span> · <span style="color:#dc2626">red bleeds</span> · <span style="color:var(--text-faint)">effect on the per‑second drop rate, all else equal</span></div>
+      <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--text-3);margin:2px 0 10px">WHAT HOLDS vs LOSES VIEWERS · <span style="color:#16a34a">green holds</span> · <span style="color:#dc2626">red bleeds</span> · <span style="color:var(--text-faint)">per‑second effect, all else equal · levers the model barely uses (&lt;0.5% weight) are hidden as noise</span></div>
       <div style="display:flex;flex-direction:column;gap:6px">
         <sc-for list="{{ LAB.attDrivers }}" as="ad" hint-placeholder-count="8">
           <div style="display:grid;grid-template-columns:220px 1fr 92px;gap:12px;align-items:center">
@@ -1307,7 +1307,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
         <div style="flex:1;min-width:150px;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:12px 15px"><div class="cc-mono" style="font-size:9.5px;letter-spacing:.06em;color:var(--text-3);margin-bottom:4px">BIGGEST POST‑HOOK CLIFF</div><div style="font-size:22px;font-weight:700;color:var(--text)">{{ LAB.dropWhen }}</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">where most reels take their next hit</div></div>
       </div>
       <sc-if value="{{ LAB.hasCuts }}" hint-placeholder-val="{{ false }}">
-        <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--text-3);margin:4px 0 9px">WHICH CUTS COST RETENTION · <span style="color:var(--text-faint)">excess drop beyond the natural decline</span></div>
+        <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--text-3);margin:4px 0 9px">WHICH CUTS COST RETENTION · <span style="color:var(--text-faint)">n = how often the cut appears across your reels · −pts = extra retention lost across it vs the reel's own trend</span></div>
         <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:20px">
           <sc-for list="{{ LAB.dropCuts }}" as="cu" hint-placeholder-count="5">
             <div style="display:grid;grid-template-columns:1fr 66px 118px;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:10px 15px">
@@ -1336,12 +1336,13 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
     <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px 22px;box-shadow:var(--shadow);margin:34px 0 0">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
         <span class="cc-mono" style="font-size:10px;letter-spacing:.1em;color:var(--cc)">3 · VIEW PREDICTOR</span>
-        <span style="font-size:10.5px;color:var(--text-faint)">does held attention convert to views · leave‑one‑out CV · maturity‑controlled</span>
+        <span style="font-size:10.5px;color:var(--text-faint)">content → retention → engagement, stacked · leave‑one‑out CV · maturity‑controlled</span>
       </div>
       <div style="font-size:13.5px;line-height:1.6;color:var(--text-2);margin-bottom:16px">{{ LAB.predVerdict }}</div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px">
-        <div style="flex:1;min-width:150px;background:var(--fill);border:1px solid var(--line);border-radius:11px;padding:12px 15px"><div class="cc-mono" style="font-size:9.5px;color:var(--text-3);margin-bottom:5px">CONTENT ALONE</div><div style="font-size:20px;font-weight:700;color:var(--text)">{{ LAB.predContentR2 }}</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">out‑of‑sample R²</div></div>
-        <div style="flex:1;min-width:150px;background:var(--cc-soft);border:1px solid var(--cc);border-radius:11px;padding:12px 15px"><div class="cc-mono" style="font-size:9.5px;color:var(--cc);margin-bottom:5px">+ RETENTION</div><div style="font-size:20px;font-weight:700;color:var(--text)">{{ LAB.predRetR2 }}</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">out‑of‑sample R²</div></div>
+        <div style="flex:1;min-width:145px;background:var(--fill);border:1px solid var(--line);border-radius:11px;padding:12px 15px"><div class="cc-mono" style="font-size:9.5px;color:var(--text-3);margin-bottom:5px">CONTENT ALONE</div><div style="font-size:20px;font-weight:700;color:var(--text)">{{ LAB.predContentR2 }}</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">what you control up front</div></div>
+        <div style="flex:1;min-width:145px;background:var(--cc-soft);border:1px solid var(--cc);border-radius:11px;padding:12px 15px"><div class="cc-mono" style="font-size:9.5px;color:var(--cc);margin-bottom:5px">+ RETENTION</div><div style="font-size:20px;font-weight:700;color:var(--text)">{{ LAB.predRetR2 }}</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">+ hook hold, completion, skip</div></div>
+        <div style="flex:1;min-width:145px;background:var(--fill);border:1px solid var(--line);border-radius:11px;padding:12px 15px"><div class="cc-mono" style="font-size:9.5px;color:var(--text-3);margin-bottom:5px">+ ENGAGEMENT</div><div style="font-size:20px;font-weight:700;color:var(--text)">{{ LAB.predFullR2 }}</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">+ saves/shares/comments per view</div></div>
         <div style="flex:1;min-width:130px;background:var(--fill);border:1px solid var(--line);border-radius:11px;padding:12px 15px"><div class="cc-mono" style="font-size:9.5px;color:var(--text-3);margin-bottom:5px">VIEW GROWTH</div><div style="font-size:20px;font-weight:700;color:var(--text)">{{ LAB.predGrowth }}</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">{{ LAB.predMaturity }}</div></div>
       </div>
       <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--text-3);margin:2px 0 10px">WHAT MOVES VIEWS · <span style="color:var(--text-faint)">standardized effect, each controlled for the rest</span></div>
@@ -1354,7 +1355,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
           </div>
         </sc-for>
       </div>
-      <p style="margin:14px 0 0;font-size:11px;color:var(--text-3);line-height:1.55">R² is out‑of‑sample (leave‑one‑out): 0 = no better than guessing your average, 1 = perfect. Low content‑alone R² means the format matters far less than whether the first seconds <em>hold</em> — so optimise the hook, not the subject. Too‑fresh reels are excluded so unsettled view counts don't skew it.</p>
+      <p style="margin:14px 0 0;font-size:11px;color:var(--text-3);line-height:1.55">R² is out‑of‑sample (leave‑one‑out): 0 = no better than guessing your average, 1 = perfect. Content covers the deterministic script + format + posting features (regex over your transcripts, counted frames, the timestamp). The engagement tier only exists <em>after</em> posting and its rates use views as denominator — read those coefficients as quality signals, not levers you can pull in advance. Too‑fresh reels are excluded so unsettled view counts don't skew it.</p>
     </div>
     </sc-if>
 
@@ -2080,7 +2081,7 @@ class Component extends DCLogic {
       .catch(e=>this.setState({ labPredLoading:false, labPredLoaded:true, labPredError:String(e) }));
   }
   _predLabel(f){
-    const map={ hook_ret:'3s hook retention', completion:'completion rate', dur_z:'duration', has_ui_animation:'UI animation on screen', has_diagram_or_data:'diagram / data on screen', step_by_step:'step‑by‑step structure', hook_has_number:'a number in the hook', shows_result_early:'result shown early', opens_on_face:'opens on your face', uses_screen_demo:'a screen demo', names_specific_tool:'names a specific tool', benefit_driven:'benefit‑driven', high_visual_intensity:'high visual intensity', person_presence:'on‑camera presence', screen_demo_level:'screen‑demo level', motion_style:'motion style' };
+    const map={ hook_ret:'3s hook retention', completion:'completion rate', dur_z:'duration', pace_z:'speech pace (words/sec)', skip_rate:'skip rate', save_rate:'save rate (per view)', share_rate:'share rate (per view)', comment_rate:'comment rate (per view)', like_rate:'like rate (per view)', hook_has_number:'a number in the hook', hook_has_question:'a question in the hook', hook_addresses_viewer:'hook speaks to the viewer (du)', cta_comment:'comment‑CTA at the end', is_weekend:'posted on a weekend', person_presence:'on‑camera presence', screen_demo_level:'screen‑demo level', motion_style:'motion style' };
     if(map[f]) return map[f];
     if(f.indexOf('=')>=0){ const p=f.split('='); return p[0].replace(/_/g,' ')+': '+p[1].replace(/_/g,' '); }
     return f.replace(/_/g,' ');
@@ -2175,7 +2176,10 @@ class Component extends DCLogic {
       contentR2:(_pd.contentR2!=null?(_pd.contentR2).toFixed(2):'—'), retR2:(_pd.retentionR2!=null?(_pd.retentionR2).toFixed(2):'—'),
       growth:(_pdMeta?((_pdMeta.weeklyGrowthPct>0?'+':'')+_pdMeta.weeklyGrowthPct+'%/wk'):'—'),
       maturity:(_pdMeta?(_pd.n+' reels · '+_pdMeta.nImmature+' too fresh'):''),
-      verdict:(()=>{ const c=_pd.contentR2, r=_pd.retentionR2; if(c==null||r==null) return 'Training the view model…'; if((r-c)>=0.07) return 'Your views are driven by RETENTION, not the topic. Knowing the content alone barely predicts views (R² '+c.toFixed(2)+'); adding how well the hook holds lifts it to '+r.toFixed(2)+'. The lever is the first few seconds, not the subject.'; if(r<0.15) return 'At this sample size neither content nor retention strongly predicts views (R² '+Math.max(c,r).toFixed(2)+') — virality is still high‑variance. Treat drivers below as leads, not laws.'; return 'Retention explains part of your views (R² '+r.toFixed(2)+' vs '+c.toFixed(2)+' for content alone). The hook matters more than the topic.'; })(),
+      fullR2:(_pd.fullR2!=null?(_pd.fullR2).toFixed(2):'—'),
+      verdict:(()=>{ const c=_pd.contentR2, r=_pd.retentionR2, e=_pd.fullR2; if(c==null||r==null) return 'Training the view model…';
+        const base='What you control up front — format, hook script (question/number/du), CTA, tool named, posting time — predicts R² '+c.toFixed(2)+'. Adding how the first seconds actually held (+ skip rate) lifts it to '+r.toFixed(2)+(e!=null?'; adding after‑the‑fact engagement quality reaches '+e.toFixed(2):'')+'.';
+        return base+((r-c)>=0.15?' The biggest lever you control in advance is still the first seconds — everything past that is quality you can only read after posting.':' Up‑front choices carry a real share of what’s predictable here.'); })(),
       drivers:_drv.slice(0,9).map(d=>{ const pos=d.coef>=0; const w=Math.round(Math.abs(d.coef)/_pmax*50); return { label:this._predLabel(d.feature), coefTxt:(pos?'+':'')+d.coef, color:pos?'#16a34a':'#dc2626', barStyle:{ position:'absolute', top:'0', height:'100%', width:w+'%', background:pos?'#16a34a':'#dc2626', opacity:'0.72', ...(pos?{ left:'50%', borderRadius:'0 5px 5px 0' }:{ right:'50%', borderRadius:'5px 0 0 5px' }) } }; }) };
     // attention model → headline accuracy, per-second drivers, residual reels
     const _ad=s.labAttData||{}; const _acv=_ad.cv||{};
@@ -2216,7 +2220,7 @@ class Component extends DCLogic {
       dropHook: DROPS.hook, dropWhen: DROPS.when,
       dropCuts: DROPS.cuts, hasCuts: DROPS.cuts.length>0, cutsPending: DROPS.hook!=null && DROPS.cuts.length===0,
       dropCliffs: DROPS.cliffs,
-      hasPredict: PRED.has, predVerdict: PRED.verdict, predContentR2: PRED.contentR2, predRetR2: PRED.retR2,
+      hasPredict: PRED.has, predVerdict: PRED.verdict, predContentR2: PRED.contentR2, predRetR2: PRED.retR2, predFullR2: PRED.fullR2,
       predGrowth: PRED.growth, predMaturity: PRED.maturity, predDrivers: PRED.drivers,
       retrain:()=>this.labRetrain(), retrainLabel: s.labRebuilding?'Retraining…':'↻ Retrain',
       attLoading: !!s.labAttLoading && !s.labAttLoaded,
