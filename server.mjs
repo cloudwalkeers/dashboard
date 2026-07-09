@@ -749,6 +749,30 @@ server.listen(PORT, () => {
   setInterval(run, 24 * 60 * 60 * 1000);
 })();
 
+// Background: multi-tenant keepalive — renew EVERY creator's Instagram token well
+// before its 60-day expiry (whether or not they log in), then re-sync each connected
+// account's reels + insights so dashboards are fresh every morning without anyone
+// clicking Sync. Daily, sequential (gentle on rate limits), best-effort.
+(() => {
+  const run = async () => {
+    try {
+      const conn = await import("./lib/oauth/connections.mjs");
+      const r = await conn.refreshAllTokens({});
+      if (r.total) console.log(`  [keepalive] tokens: ${r.refreshed} refreshed · ${r.ok} healthy · ${r.failed} need re-auth`);
+      for (const c of await conn.listActiveIgConnections()) {
+        await runInScope(
+          { creator: { id: c.creator_id }, igAccount: c.username, igToken: c.access_token },
+          () => fetchLivePayload()
+            .then((p) => console.log(`  [nightly-sync] @${c.username}: ${(p && p.defs && p.defs.length) || 0} reels`))
+            .catch((e) => console.log(`  [nightly-sync] @${c.username} failed:`, e && e.message ? e.message : e))
+        );
+      }
+    } catch (e) { console.log("  [keepalive] skipped:", e && e.message ? e.message : e); }
+  };
+  setTimeout(run, 45000);                  // shortly after boot
+  setInterval(run, 24 * 60 * 60 * 1000);   // then daily
+})();
+
 // Background: keep clipper clip views fresh, hands-off (token-free yt-dlp).
 (async () => {
   try {

@@ -129,14 +129,17 @@
       box.innerHTML = '';
       for (const p of PLATFORMS) {
         const c = connected[p.key];
+        const reauth = c && c.status === 'reauth_required';
         const row = document.createElement('div'); row.className = 'conn';
         row.innerHTML =
           `<div class="ic" style="background:${p.color}">${p.name[0]}</div>` +
           `<div class="meta"><div class="name">${p.name}</div>` +
-          `<div class="sub">${c ? ('@' + (c.username || 'connected')) : (p.live ? 'Not connected' : 'Coming soon')}</div></div>` +
-          (c ? `<span class="pill on">Connected</span>` : `<span class="pill off">${p.live ? 'Off' : 'Soon'}</span>`);
+          `<div class="sub">${reauth ? ('@' + (c.username || '') + ' · session expired — reconnect to keep syncing') : c ? ('@' + (c.username || 'connected')) : (p.live ? 'Not connected' : 'Coming soon')}</div></div>` +
+          (reauth ? `<span class="pill off" style="color:#e0a458;border-color:#e0a45855">Reconnect</span>`
+            : c ? `<span class="pill on">Connected</span>` : `<span class="pill off">${p.live ? 'Off' : 'Soon'}</span>`);
         const btn = document.createElement('button');
-        if (c) { btn.className='cbtn dis'; btn.textContent='Disconnect'; btn.onclick=()=>disconnect(p.key); }
+        if (reauth) { btn.className='cbtn'; btn.textContent='Reconnect'; btn.onclick=()=>connect(p.key); }
+        else if (c) { btn.className='cbtn dis'; btn.textContent='Disconnect'; btn.onclick=()=>disconnect(p.key); }
         else if (p.live) { btn.className='cbtn'; btn.textContent='Connect'; btn.onclick=()=>connect(p.key); }
         else { btn.className='cbtn soon'; btn.textContent='Soon'; btn.disabled=true; }
         row.appendChild(btn);
