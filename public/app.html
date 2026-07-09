@@ -32,6 +32,30 @@
     });
   };
   window.cwSignOut = function () { sb.auth.signOut().then(function () { location.replace('/connect.html'); }); };
+
+  // Account menu — click the avatar to see who's signed in, jump to connections, or sign out.
+  document.addEventListener('click', function (e) {
+    var open = document.getElementById('cwMenu');
+    var onAvatar = e.target.closest && e.target.closest('#cwAccount');
+    if (onAvatar) {
+      if (open) { open.remove(); return; }
+      var m = document.createElement('div');
+      m.id = 'cwMenu';
+      m.style.cssText = 'position:fixed;top:58px;right:24px;z-index:1000;min-width:230px;background:var(--surface,#fff);border:1px solid var(--line,#e5e5e5);border-radius:12px;box-shadow:0 24px 60px -24px rgba(0,0,0,.5);padding:8px;font-family:inherit';
+      m.innerHTML =
+        '<div style="padding:8px 10px 10px;border-bottom:1px solid var(--line,#eee)">' +
+          '<div style="font-size:10.5px;color:var(--text-3,#888);text-transform:uppercase;letter-spacing:.06em">Signed in as</div>' +
+          '<div style="font-size:13px;font-weight:600;color:var(--text,#111);margin-top:3px;word-break:break-all">' + (window.cwEmail || '…') + '</div>' +
+        '</div>' +
+        '<a href="/connect.html" style="display:block;padding:9px 10px;font-size:13px;color:var(--text-2,#333);text-decoration:none;border-radius:8px">Manage connections</a>' +
+        '<button id="cwSignOutBtn" style="width:100%;text-align:left;padding:9px 10px;font-size:13px;color:#e5484d;background:none;border:none;cursor:pointer;font-family:inherit;border-radius:8px">Sign out</button>';
+      document.body.appendChild(m);
+      var so = document.getElementById('cwSignOutBtn');
+      if (so) so.onclick = function () { window.cwSignOut(); };
+      return;
+    }
+    if (open && !(e.target.closest && e.target.closest('#cwMenu'))) open.remove();
+  });
 })();
 </script>
 <script src="./support.js"></script>
@@ -112,7 +136,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
       <div style="display:flex;align-items:center;gap:12px">
         <div style="width:30px;height:30px;border-radius:8px;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px">▶</div>
         <div style="display:flex;flex-direction:column;line-height:1.15">
-          <span style="font-size:15px;font-weight:650;letter-spacing:-.01em">Reels Analytics</span>
+          <span style="font-size:15px;font-weight:650;letter-spacing:-.01em">cloudwalkeers</span>
           <span style="font-size:12px;color:var(--text-3)">{{ account }}</span>
         </div>
       </div>
@@ -131,7 +155,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
           {{ syncText }}
         </button>
         <button onClick="{{ themeToggle }}" title="Toggle dark mode" style="{{ themeBtnStyle }}">{{ themeIcon }}</button>
-        <div style="width:32px;height:32px;border-radius:50%;background:repeating-linear-gradient(135deg,#ede9fe 0 7px,#e0d9fb 7px 14px)"></div>
+        <div id="cwAccount" title="Your account" style="width:32px;height:32px;border-radius:50%;background:repeating-linear-gradient(135deg,#ede9fe 0 7px,#e0d9fb 7px 14px);cursor:pointer;border:1px solid var(--line)"></div>
       </div>
     </div>
   </header>
