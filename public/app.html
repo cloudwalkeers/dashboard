@@ -42,16 +42,31 @@
     var onAvatar = e.target.closest && e.target.closest('#cwAccount');
     if (onAvatar) {
       if (open) { open.remove(); return; }
+      if (!document.getElementById('cwMenuCss')) {
+        var css = document.createElement('style');
+        css.id = 'cwMenuCss';
+        css.textContent =
+          '#cwMenu{position:fixed;top:56px;right:22px;z-index:1000;min-width:250px;background:var(--surface,#fff);border:1px solid var(--line,#e5e5e5);border-radius:14px;box-shadow:0 24px 60px -22px rgba(0,0,0,.45), 0 2px 8px rgba(0,0,0,.12);padding:6px;font-family:inherit;animation:sgIn .18s ease both}' +
+          '#cwMenu .cw-id{display:flex;align-items:center;gap:10px;padding:10px 10px 12px;border-bottom:1px solid var(--line-2,#eee);margin-bottom:5px}' +
+          '#cwMenu .cw-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#5b8cff33,#3ee0b033),var(--fill,#f2f2f2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--text-2,#555);flex:none;border:1px solid var(--line,#e5e5e5)}' +
+          '#cwMenu .cw-who{min-width:0}' +
+          '#cwMenu .cw-k{font-size:10px;color:var(--text-3,#999);text-transform:uppercase;letter-spacing:.07em;font-weight:600}' +
+          '#cwMenu .cw-em{font-size:12.5px;font-weight:650;color:var(--text,#111);margin-top:2px;word-break:break-all}' +
+          '#cwMenu .cw-it{display:flex;align-items:center;gap:9px;width:100%;text-align:left;padding:9px 10px;font-size:13px;font-weight:550;color:var(--text-2,#333);text-decoration:none;border-radius:9px;background:none;border:none;cursor:pointer;font-family:inherit}' +
+          '#cwMenu .cw-it:hover{background:var(--fill,#f3f3f3);color:var(--text,#111)}' +
+          '#cwMenu .cw-it.cw-danger{color:var(--bad,#e5484d)}' +
+          '#cwMenu .cw-it.cw-danger:hover{background:var(--bad-soft,#fdeeee);color:var(--bad,#e5484d)}' +
+          '#cwMenu .cw-ic{width:16px;text-align:center;opacity:.75;flex:none}';
+        document.head.appendChild(css);
+      }
       var m = document.createElement('div');
       m.id = 'cwMenu';
-      m.style.cssText = 'position:fixed;top:58px;right:24px;z-index:1000;min-width:230px;background:var(--surface,#fff);border:1px solid var(--line,#e5e5e5);border-radius:12px;box-shadow:0 24px 60px -24px rgba(0,0,0,.5);padding:8px;font-family:inherit';
+      var initial = ((window.cwEmail || 'c').slice(0, 1) || 'c').toUpperCase();
       m.innerHTML =
-        '<div style="padding:8px 10px 10px;border-bottom:1px solid var(--line,#eee)">' +
-          '<div style="font-size:10.5px;color:var(--text-3,#888);text-transform:uppercase;letter-spacing:.06em">Signed in as</div>' +
-          '<div style="font-size:13px;font-weight:600;color:var(--text,#111);margin-top:3px;word-break:break-all">' + (window.cwEmail || '…') + '</div>' +
-        '</div>' +
-        '<a href="/connect.html" style="display:block;padding:9px 10px;font-size:13px;color:var(--text-2,#333);text-decoration:none;border-radius:8px">Manage connections</a>' +
-        '<button id="cwSignOutBtn" style="width:100%;text-align:left;padding:9px 10px;font-size:13px;color:#e5484d;background:none;border:none;cursor:pointer;font-family:inherit;border-radius:8px">Sign out</button>';
+        '<div class="cw-id"><span class="cw-av">' + initial + '</span><div class="cw-who"><div class="cw-k">Signed in as</div><div class="cw-em">' + (window.cwEmail || '…') + '</div></div></div>' +
+        '<a class="cw-it" href="/connect.html"><span class="cw-ic">⇄</span>Manage connections</a>' +
+        '<a class="cw-it" href="/mediakit"><span class="cw-ic">📄</span>Media kit</a>' +
+        '<button class="cw-it cw-danger" id="cwSignOutBtn"><span class="cw-ic">↩</span>Sign out</button>';
       document.body.appendChild(m);
       var so = document.getElementById('cwSignOutBtn');
       if (so) so.onclick = function () { window.cwSignOut(); };
@@ -1454,9 +1469,10 @@ button{font-family:inherit}
 
         <sc-if value="{{ STU.hasThread }}" hint-placeholder-val="{{ false }}">
           <div style="display:flex;gap:8px">
-            <input value="{{ STU.refine }}" onInput="{{ STU.onRefine }}" placeholder="refine: punchier hook · make it 20s · stronger CTA…" style="flex:1;min-width:0;padding:11px 14px;border:1px solid var(--line);border-radius:11px;font-size:13.5px;font-family:inherit;background:var(--surface);color:var(--text)"/>
-            <button onClick="{{ STU.sendRefine }}" style="padding:11px 18px;border:none;border-radius:11px;background:var(--text);color:var(--bg);font-size:13.5px;font-weight:650;cursor:pointer;font-family:inherit">Send</button>
+            <input value="{{ STU.refine }}" onInput="{{ STU.onRefine }}" placeholder="Refine it — e.g. punchier hook, make it 20s, no anglicisms…" style="flex:1;min-width:0;padding:12px 16px;border:1px solid var(--line);border-radius:12px;font-size:13.5px;font-family:inherit;background:var(--surface-2);color:var(--text);box-shadow:var(--shadow)"/>
+            <button onClick="{{ STU.sendRefine }}" style="display:inline-flex;align-items:center;gap:7px;padding:12px 20px;border:none;border-radius:12px;background:var(--accent);color:#fff;font-size:13.5px;font-weight:650;cursor:pointer;font-family:inherit;box-shadow:0 6px 18px -8px var(--accent)">Send ↵</button>
           </div>
+          <div class="cc-mono" style="font-size:10px;color:var(--text-faint);margin-top:8px;letter-spacing:.04em">Refinements are remembered — future scripts follow them automatically.</div>
         </sc-if>
       </div>
     </div>

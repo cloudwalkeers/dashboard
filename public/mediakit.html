@@ -7,107 +7,190 @@
 <meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root{ --bg:#07080e; --sheet:#0d0f17; --card:#141724; --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.16);
-    --ink:#eef1f8; --muted:#9aa4b8; --faint:#5f6980; --blue:#5b8cff; --cyan:#38d6f0; --mint:#3ee0b0; }
+  :root{ --paper:#ffffff; --wash:#f7f6f3; --ink:#191919; --muted:#6b6b6b; --faint:#9b9b9b; --line:#e8e6e1;
+    --amber:#C57F17; --amber-soft:#f7ecd9; --green:#1a7f37; --green-soft:#e3f2e7; }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',-apple-system,sans-serif;line-height:1.55;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
-  .grad{background:linear-gradient(100deg,var(--blue),var(--cyan) 55%,var(--mint));-webkit-background-clip:text;background-clip:text;color:transparent}
+  body{margin:0;background:#eceae6;color:var(--ink);font-family:'Inter',-apple-system,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
   .mono{font-family:'JetBrains Mono',monospace}
-  .bar{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.85rem 1.4rem;background:rgba(7,8,14,.85);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
-  .brand{display:flex;align-items:center;gap:.55rem;font-family:'Sora',sans-serif;font-weight:800;font-size:1rem;text-decoration:none;color:var(--ink)}
-  .brand .dot{width:24px;height:24px;border-radius:7px;background:linear-gradient(135deg,var(--blue),var(--mint));display:grid;place-items:center}
-  .brand .dot::after{content:"";width:10px;height:10px;border-radius:3px;background:var(--bg)}
-  .actions{display:flex;gap:.55rem}
-  .btn{font-family:inherit;font-weight:600;font-size:.88rem;border-radius:10px;padding:.55rem 1rem;cursor:pointer;border:1px solid var(--line2);background:rgba(255,255,255,.05);color:var(--ink)}
-  .btn.primary{background:linear-gradient(135deg,var(--blue),#6a5bff);border-color:transparent;color:#fff;box-shadow:0 8px 26px -10px var(--blue)}
-  .wrap{max-width:820px;margin:0 auto;padding:2.2rem 1.4rem 3rem}
-  .sheet{background:linear-gradient(180deg,var(--sheet),#0a0c13);border:1px solid var(--line2);border-radius:24px;padding:2.4rem 2.3rem;box-shadow:0 50px 110px -50px rgba(91,140,255,.35)}
-  .top{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:1.4rem;margin-bottom:1.6rem}
-  .who .handle{font-family:'Sora',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-.02em}
-  .who .sub{color:var(--muted);font-size:.85rem;margin-top:.2rem}
-  .kicker{text-align:right}
-  .kicker .k1{font-family:'Sora',sans-serif;font-weight:700;letter-spacing:.22em;font-size:.72rem;color:var(--cyan)}
-  .kicker .k2{color:var(--faint);font-size:.75rem;margin-top:.25rem}
-  .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:.7rem;margin:1.4rem 0 1.8rem}
-  .tile{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:1rem .9rem;text-align:center}
-  .tile .n{font-family:'Sora',sans-serif;font-weight:800;font-size:1.45rem;line-height:1.05}
-  .tile .l{color:var(--faint);font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;margin-top:.4rem}
-  .h{font-family:'Sora',sans-serif;font-weight:700;font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 .9rem}
-  .top-reels{display:flex;flex-direction:column;gap:.55rem;margin-bottom:1.8rem}
-  .tr-row{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:.8rem;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:.6rem .8rem}
-  .tr-row img,.tr-ph{width:38px;height:50px;border-radius:8px;object-fit:cover;background:#1c2030}
-  .tr-cap{font-size:.85rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .tr-meta{font-size:.72rem;color:var(--faint);margin-top:.15rem}
-  .tr-views{font-family:'Sora',sans-serif;font-weight:800;font-size:1rem}
-  .bar-row{display:grid;grid-template-columns:110px 1fr 58px;gap:.7rem;align-items:center;margin:.45rem 0;font-size:.82rem}
-  .bar-row .lbl{color:var(--muted)}
-  .track{display:block;height:9px;background:#1a1e2c;border-radius:99px;overflow:hidden}
-  .fill{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--blue),var(--cyan))}
-  .bar-row .val{color:var(--ink);font-weight:700;text-align:right}
-  .foot{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:1.3rem;margin-top:1.8rem;color:var(--muted);font-size:.82rem}
-  .foot b{color:var(--ink)}
-  .empty{max-width:520px;margin:5rem auto;text-align:center;color:var(--muted)}
-  .note{color:var(--faint);font-size:.72rem;margin-top:1rem}
-  @media(max-width:620px){ .tiles{grid-template-columns:repeat(2,1fr)} .sheet{padding:1.5rem 1.1rem} }
+  .lbl{font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);font-weight:500}
+  .lbl.amber{color:var(--amber)}
+  /* toolbar (screen only) */
+  .bar{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.7rem 1.3rem;background:rgba(25,25,25,.92);backdrop-filter:blur(12px);color:#fff}
+  .bar .nav{display:flex;gap:1.1rem;align-items:center;font-size:.82rem}
+  .bar .nav a{color:#c9c9c9;text-decoration:none;font-weight:500}
+  .bar .nav a:hover{color:#fff}
+  .bar .brand{display:flex;align-items:center;gap:.5rem;font-weight:800;font-size:.95rem;color:#fff;text-decoration:none}
+  .bar .brand .dot{width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,#5b8cff,#3ee0b0);display:grid;place-items:center}
+  .bar .brand .dot::after{content:"";width:9px;height:9px;border-radius:2.5px;background:#191919}
+  .btn{font-family:inherit;font-weight:600;font-size:.83rem;border-radius:9px;padding:.5rem .95rem;cursor:pointer;border:1px solid rgba(255,255,255,.25);background:transparent;color:#fff}
+  .btn.primary{background:#fff;color:#191919;border-color:#fff}
+  .btn.editing{background:var(--amber);border-color:var(--amber);color:#fff}
+  /* sheet */
+  .wrap{max-width:860px;margin:0 auto;padding:1.6rem 1rem 3rem}
+  .sheet{background:var(--paper);border:1px solid var(--line);box-shadow:0 30px 70px -40px rgba(0,0,0,.35);padding:3rem 3.2rem}
+  .rule{display:flex;justify-content:space-between;gap:1rem;border-bottom:1px solid var(--line);padding-bottom:.5rem;margin-bottom:2rem}
+  h1{font-size:2.9rem;font-weight:900;letter-spacing:-.04em;margin:.9rem 0 .3rem;line-height:1}
+  .tagline{font-size:1.02rem;color:var(--ink);margin:0}
+  .launched{font-size:.85rem;color:var(--faint);margin:.35rem 0 0}
+  [contenteditable=true]{outline:2px dashed var(--amber);outline-offset:3px;border-radius:3px;background:var(--amber-soft)}
+  /* momentum band */
+  .band{background:var(--wash);border:1px solid var(--line);border-radius:10px;padding:1.1rem 1.4rem;margin:1.8rem 0}
+  .band .head{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:.8rem}
+  .band .cells{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
+  .cell .n{font-size:1.7rem;font-weight:800;letter-spacing:-.02em;color:var(--green)}
+  .cell.plain .n{color:var(--ink)}
+  .cell .l{font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:.3rem}
+  .up{color:var(--green);font-weight:700}
+  /* two-col ER + benchmarks */
+  .er-grid{display:grid;grid-template-columns:.9fr 1.4fr;gap:2.2rem;margin:2rem 0;align-items:start}
+  .er .chip{display:inline-block;background:var(--green-soft);color:var(--green);font-size:.68rem;font-weight:700;border-radius:5px;padding:.15rem .5rem;margin:.4rem 0}
+  .er .big{font-size:3.6rem;font-weight:900;letter-spacing:-.045em;color:var(--amber);line-height:1}
+  .er .big small{font-size:1.6rem;font-weight:800}
+  .er p{font-size:.82rem;color:var(--muted);margin:.6rem 0 0;line-height:1.5}
+  .er .src{font-size:.72rem;color:var(--faint)}
+  .bench .row{margin:.85rem 0}
+  .bench .rt{display:flex;justify-content:space-between;font-size:.85rem;margin-bottom:.3rem}
+  .bench .rt b{font-variant-numeric:tabular-nums}
+  .track{display:block;height:9px;background:#eeece7;border-radius:99px;overflow:hidden}
+  .fill{display:block;height:100%;border-radius:99px;background:#d5d2cb}
+  .row.me .fill{background:var(--amber)}
+  .row.me .rt{font-weight:700}
+  .bench .note{font-size:.8rem;color:var(--muted);margin-top:.9rem;line-height:1.55}
+  .bench .note b{color:var(--amber)}
+  /* section head */
+  .sec{display:flex;align-items:baseline;gap:1rem;border-top:2px solid var(--ink);padding-top:.6rem;margin:2.4rem 0 1.2rem}
+  .sec .dash{width:22px;height:4px;background:var(--amber);border-radius:2px;align-self:center}
+  .sec h2{font-size:1.05rem;font-weight:800;letter-spacing:-.01em;margin:0}
+  .sec .side{margin-left:auto;text-align:right}
+  /* stats row */
+  .stat4{display:grid;grid-template-columns:repeat(4,1fr);gap:0}
+  .stat4>div{padding:.4rem 1.2rem;border-left:1px solid var(--line)}
+  .stat4>div:first-child{border-left:none;padding-left:0}
+  .stat4 .n{font-size:2rem;font-weight:900;letter-spacing:-.03em}
+  .stat4 .l{font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:.25rem}
+  .stat4 .d{font-size:.72rem;font-weight:700;color:var(--green);background:var(--green-soft);display:inline-block;border-radius:5px;padding:.1rem .4rem;margin-top:.45rem}
+  /* top reels */
+  .reels3{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:1rem}
+  .breakout{background:var(--amber);color:#fff;border-radius:10px;padding:1.2rem 1.3rem;display:flex;flex-direction:column;justify-content:center}
+  .breakout .k{font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:.12em}
+  .breakout .n{font-size:2.4rem;font-weight:900;letter-spacing:-.03em;line-height:1.05;margin:.4rem 0 .3rem}
+  .breakout p{font-size:.8rem;margin:0;opacity:.95}
+  .rcard{border:1px solid var(--line);border-radius:10px;padding:1rem;display:flex;gap:.9rem;align-items:center;background:var(--wash)}
+  .rcard img,.rcard .ph{width:56px;height:86px;border-radius:8px;object-fit:cover;background:#e3e0da;border:1px solid var(--line);flex:none}
+  .rcard .n{font-size:1.45rem;font-weight:900;letter-spacing:-.02em}
+  .rcard .l{font-family:'JetBrains Mono',monospace;font-size:.58rem;letter-spacing:.1em;color:var(--muted)}
+  .rcard .cap{font-size:.8rem;font-weight:600;margin-top:.2rem;line-height:1.3}
+  .rcard .er2{font-size:.75rem;color:var(--amber);font-weight:700;margin-top:.15rem}
+  /* quality per view */
+  .q4{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
+  .q4>div{background:var(--wash);border:1px solid var(--line);border-radius:10px;padding:1rem 1.1rem}
+  .q4 .n{font-size:1.7rem;font-weight:900;color:var(--amber);letter-spacing:-.02em}
+  .q4 p{font-size:.76rem;color:var(--muted);margin:.35rem 0 0;line-height:1.45}
+  /* audience */
+  .aud3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:2rem}
+  .aud3 .row{margin:.55rem 0}
+  .aud3 .rt{display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:.25rem}
+  .aud3 .fill{background:var(--amber)}
+  .aud3 .foot{font-size:.75rem;color:var(--muted);margin-top:.7rem;line-height:1.5}
+  /* pricing */
+  .price .rowp{display:flex;justify-content:space-between;gap:1rem;align-items:baseline;border-bottom:1px solid var(--line);padding:.75rem 0;font-size:.92rem}
+  .price .rowp b.amt{color:var(--amber);font-size:1.05rem;font-weight:800;white-space:nowrap}
+  .price .note{font-size:.78rem;color:var(--faint);margin-top:.7rem}
+  /* contact */
+  .contact{display:flex;justify-content:space-between;align-items:center;gap:1rem;background:var(--ink);color:#fff;border-radius:12px;padding:1.1rem 1.4rem;margin-top:2.2rem}
+  .contact .who .nm{font-weight:800;font-size:1rem}
+  .contact .who .hd{font-size:.8rem;color:#bdbdbd}
+  .contact .mail{font-family:'JetBrains Mono',monospace;font-size:.85rem;color:var(--amber);font-weight:600}
+  .sources{font-size:.66rem;color:var(--faint);line-height:1.6;margin-top:1.6rem;border-top:1px solid var(--line);padding-top:.8rem}
+  .empty{max-width:520px;margin:5rem auto;text-align:center;color:var(--muted);font-family:'Inter',sans-serif}
+  @media (max-width:720px){ .sheet{padding:1.6rem 1.2rem} .band .cells,.stat4,.q4{grid-template-columns:repeat(2,1fr)} .er-grid,.reels3,.aud3{grid-template-columns:1fr} .stat4>div{border-left:none;padding-left:0} }
   @media print{
     .bar{display:none!important}
-    body{background:var(--bg)!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+    body{background:#fff!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
     .wrap{max-width:none;padding:0}
-    .sheet{border:none;border-radius:0;box-shadow:none;padding:10mm 8mm}
-    @page{size:A4;margin:8mm}
+    .sheet{border:none;box-shadow:none;padding:6mm 4mm}
+    [contenteditable=true]{outline:none;background:transparent}
+    @page{size:A4;margin:9mm}
   }
 </style>
 </head>
 <body>
   <div class="bar">
     <a class="brand" href="/app"><span class="dot"></span>cloudwalkeers</a>
-    <div class="actions">
-      <a class="btn" href="/app" style="text-decoration:none">← Dashboard</a>
+    <div class="nav">
+      <a href="/app">Overview</a><a href="/app#studio">Studio</a><a href="/app#lab">Lab</a><a href="/connect.html">Connections</a>
+    </div>
+    <div style="display:flex;gap:.5rem">
+      <button class="btn" id="editBtn">✎ Edit</button>
       <button class="btn primary" onclick="window.print()">⬇ Download PDF</button>
     </div>
   </div>
 
   <div class="wrap">
     <div class="sheet" id="sheet" hidden>
-      <div class="top">
-        <div class="who">
-          <div class="handle" id="mkHandle">@…</div>
-          <div class="sub">Short-form creator · Instagram Reels</div>
+      <div class="rule"><span class="lbl">Media Kit · <span id="edDate"></span> Edition</span><span class="lbl">Instagram · <span id="edNiche">Short-form creator</span></span></div>
+
+      <span class="lbl amber">Creator Media Kit</span>
+      <h1 id="mkHandle">@…</h1>
+      <p class="tagline" id="mkTagline" data-edit="tagline">Short-form content, made to hold attention.</p>
+      <p class="launched" id="mkLaunched"></p>
+
+      <div class="band">
+        <div class="head"><span class="lbl amber">Momentum · last 30 days vs the 30 before</span><span class="lbl">Live Instagram API · <span id="mkPulled"></span></span></div>
+        <div class="cells" id="mkMomentum"></div>
+      </div>
+
+      <div class="er-grid">
+        <div class="er">
+          <span class="lbl">Engagement rate</span><br>
+          <span class="chip" id="mkErChip" hidden></span>
+          <div class="big"><span id="mkEr">—</span><small>%</small></div>
+          <p>interactions per account reached, last 30 days</p>
+          <p class="src">live Instagram API · <span id="mkWindow"></span></p>
         </div>
-        <div class="kicker">
-          <div class="k1">MEDIA KIT</div>
-          <div class="k2">Live data · <span id="mkDate"></span></div>
+        <div class="bench">
+          <span class="lbl">vs published creator benchmarks</span>
+          <p style="font-size:.75rem;color:var(--faint);margin:.2rem 0 .6rem">same methodology for all three rows: interactions ÷ followers, per post</p>
+          <div class="row"><div class="rt"><span>Instagram platform median</span><b>0.36%</b></div><span class="track"><span class="fill" style="width:4%"></span></span></div>
+          <div class="row"><div class="rt"><span>Reels, all creators — average</span><b>0.52%</b></div><span class="track"><span class="fill" style="width:6%"></span></span></div>
+          <div class="row me"><div class="rt"><span id="mkBenchName">This account — median reel</span><b id="mkBenchVal">—</b></div><span class="track"><span class="fill" id="mkBenchBar" style="width:0%"></span></span></div>
+          <p class="note" id="mkBenchNote" hidden></p>
         </div>
       </div>
 
-      <div class="h">Last 30 days</div>
-      <div class="tiles">
-        <div class="tile"><div class="n grad" id="mkReach">—</div><div class="l">Reach</div></div>
-        <div class="tile"><div class="n" id="mkViews">—</div><div class="l">Views</div></div>
-        <div class="tile"><div class="n" id="mkEng">—</div><div class="l">Eng. on reach</div></div>
-        <div class="tile"><div class="n" id="mkFollowers">—</div><div class="l">Followers</div></div>
+      <div class="sec"><span class="dash"></span><h2>Last 30 days</h2><span class="side lbl" id="mkWindow2"></span></div>
+      <div class="stat4" id="mkStats"></div>
+
+      <div class="sec"><span class="dash"></span><h2>Top reels</h2><span class="side lbl">lifetime views · engagement on reach</span></div>
+      <div class="reels3" id="mkTop"></div>
+
+      <div class="sec"><span class="dash"></span><h2>Quality, per view</h2><span class="side lbl">why the reach converts · last 30 days</span></div>
+      <div class="q4" id="mkQuality"></div>
+
+      <div id="mkAudienceWrap" hidden>
+        <div class="sec"><span class="dash"></span><h2>Audience</h2><span class="side lbl">live follower demographics</span></div>
+        <div class="aud3" id="mkAudience"></div>
       </div>
 
-      <div class="h">Top reels</div>
-      <div class="top-reels" id="mkTop"></div>
+      <div class="sec"><span class="dash"></span><h2>Formats &amp; pricing</h2><span class="side lbl" id="editHint" hidden style="color:var(--amber)">click any price to edit</span></div>
+      <div class="price" id="mkPricing"></div>
+      <p class="note" style="font-size:.78rem;color:var(--faint);margin-top:.7rem" data-edit="pricing_note" id="mkPricingNote">Cross-posting, bundles, usage rights, exclusivity and whitelisting on request.</p>
 
-      <div class="h">Engagement mix <span style="color:var(--faint);letter-spacing:0;text-transform:none;font-weight:500">· last 30 days</span></div>
-      <div id="mkMix" style="margin-bottom:.4rem"></div>
-
-      <div class="foot">
-        <div>Partnerships: <b id="mkContact">—</b></div>
-        <div class="mono" style="font-size:.7rem;color:var(--faint)">made with cloudwalkeers</div>
+      <div class="contact">
+        <div class="who"><div class="nm" data-edit="contact_name" id="mkName">Your name</div><div class="hd" id="mkHd">@handle · Instagram</div></div>
+        <div class="mail" data-edit="contact_email" id="mkMail">you@example.com</div>
       </div>
-      <div class="note">All numbers pulled live from the connected account via cloudwalkeers analytics. Use the Download button (or ⌘/Ctrl-P) to save as PDF.</div>
+
+      <div class="sources" id="mkSources"></div>
     </div>
 
     <div class="empty" id="mkEmpty" hidden>
       <div style="font-size:2rem">🛰️</div>
-      <h2 style="font-family:'Sora',sans-serif">No data yet</h2>
-      <p>Connect your Instagram and sync your reels first — then your media kit builds itself from live numbers.</p>
-      <a class="btn primary" href="/connect.html" style="text-decoration:none">Connect →</a>
+      <h2>No data yet</h2>
+      <p>Connect your Instagram and sync your reels — the media kit builds itself from live numbers.</p>
+      <a class="btn" style="background:#191919;color:#fff;border:none;text-decoration:none" href="/connect.html">Connect →</a>
     </div>
   </div>
 
@@ -116,50 +199,159 @@
 (function(){
   var sb = window.supabase.createClient('https://topypyboyyvykdfbxqmj.supabase.co','sb_publishable_igrAFNS4S_dvOAqnxZY7pg_EE0oipId');
   var CW_DEV = (location.hostname==='localhost'||location.hostname==='127.0.0.1') && /[?&]cw_dev=1/.test(location.search);
+  var HDRS = {};
   var fmtK = function(n){ n=Number(n)||0; return n>=1e6?(Math.round(n/1e5)/10)+'M':n>=1e3?(Math.round(n/1e2)/10)+'K':String(n); };
+  var esc = function(s){ return String(s==null?'':s).replace(/</g,'&lt;'); };
+  var median = function(a){ if(!a.length) return 0; var s=a.slice().sort(function(x,y){return x-y;}); var m=Math.floor(s.length/2); return s.length%2?s[m]:(s[m-1]+s[m])/2; };
+  var PREFS = {};
+
+  function el(id){ return document.getElementById(id); }
+  function inter(d){ return (d.likes||0)+(d.comments||0)+(d.saves||0)+(d.shares||0); }
+
+  function render(db, aud){
+    var defs = db.defs||[], meta = db.meta||{};
+    if(!defs.length || meta.source==='demo'){ el('mkEmpty').hidden=false; return; }
+    var now=Date.now(), d30=now-30*86400000, d60=now-60*86400000;
+    var cur = defs.filter(function(d){ return d.ts && d.ts>=d30; });
+    var prev = defs.filter(function(d){ return d.ts && d.ts>=d60 && d.ts<d30; });
+    if(!cur.length) cur = defs.slice(0,15);
+    var S=function(list,k){ return list.reduce(function(a,d){ return a+(Number(d[k])||0); },0); };
+    var curViews=S(cur,'plays'), prevViews=S(prev,'plays');
+    var curReach=S(cur,'reach'), curInter=cur.reduce(function(a,d){return a+inter(d);},0), prevInter=prev.reduce(function(a,d){return a+inter(d);},0);
+    var er = curReach ? (curInter/curReach*100) : 0;
+    var pct=function(c,p){ return p>0 ? Math.round((c-p)/p*100) : null; };
+    var handle = String(meta.username||'@creator').replace(/ ·.*$/,'');
+    var followers = meta.followers;
+    var dateStr = new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+    var monthStr = new Date().toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+    var winStr = new Date(d30).toLocaleDateString('en-GB',{day:'numeric',month:'short'})+' – '+new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short'})+' '+new Date().getFullYear();
+
+    el('edDate').textContent = monthStr;
+    el('mkHandle').textContent = handle;
+    el('mkPulled').textContent = dateStr;
+    el('mkWindow').textContent = winStr; el('mkWindow2').textContent = winStr+' · live Instagram API';
+    var oldest = defs.reduce(function(a,d){ return d.ts&&(!a||d.ts<a)?d.ts:a; },null);
+    el('mkLaunched').textContent = (followers!=null?fmtK(followers)+' followers · ':'')+defs.length+' reels'+(oldest?' since '+new Date(oldest).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}):'');
+
+    // prefs-driven editable text
+    if(PREFS.tagline) el('mkTagline').textContent = PREFS.tagline;
+    if(PREFS.pricing_note) el('mkPricingNote').textContent = PREFS.pricing_note;
+    el('mkName').textContent = PREFS.contact_name || handle.replace('@','');
+    el('mkMail').textContent = PREFS.contact_email || (window.cwEmail||'you@example.com');
+    el('mkHd').textContent = handle+' · Instagram';
+
+    // momentum
+    var mom = [
+      { n:fmtK(curViews), l:'30-day views', d:pct(curViews,prevViews) },
+      { n:fmtK(curInter), l:'30-day interactions', d:pct(curInter,prevInter) },
+      { n:fmtK(curReach), l:'accounts reached', d:null },
+      { n:String(cur.length), l:'reels shipped', d:null, plain:true }
+    ];
+    el('mkMomentum').innerHTML = mom.map(function(m){
+      return '<div class="cell'+(m.plain?' plain':'')+'"><div class="n">'+m.n+'</div><div class="l">'+m.l+(m.d!=null?' · <span class="up">▲ '+m.d+'%</span>':'')+'</div></div>';
+    }).join('');
+
+    // ER + benchmark
+    el('mkEr').textContent = (Math.round(er*10)/10).toString();
+    var prevEr = (prev.length && S(prev,'reach')) ? (prevInter/S(prev,'reach')*100) : null;
+    if(prevEr){ el('mkErChip').hidden=false; el('mkErChip').textContent = '▲ from '+(Math.round(prevEr*10)/10)+'%'; }
+    if(followers){
+      var med = median(defs.map(function(d){ return inter(d)/followers*100; }));
+      var medR = Math.round(med*10)/10;
+      el('mkBenchName').textContent = handle+' — median reel';
+      el('mkBenchVal').textContent = medR+'%';
+      el('mkBenchBar').style.width = Math.max(10,Math.min(100, medR/3*100 ))+'%';
+      var x = medR/0.36;
+      el('mkBenchNote').hidden=false;
+      el('mkBenchNote').innerHTML = '<b>'+(Math.round(x))+'× the platform median</b> — same methodology (interactions ÷ followers, per post), computed across all '+defs.length+' reels against the current follower count.';
+    }
+
+    // last 30 days
+    var stats=[ {n:fmtK(curViews),l:'views',d:pct(curViews,prevViews)}, {n:fmtK(curInter),l:'interactions',d:pct(curInter,prevInter)}, {n:fmtK(curReach),l:'accounts reached',d:null}, {n:followers!=null?fmtK(followers):'—',l:'followers',d:null} ];
+    el('mkStats').innerHTML = stats.map(function(s){ return '<div><div class="n">'+s.n+'</div><div class="l">'+s.l+'</div>'+(s.d!=null?'<span class="d">▲ '+s.d+'%</span>':'')+'</div>'; }).join('');
+
+    // top reels: breakout = best of the last 30d; two more all-time
+    var byViews = defs.slice().sort(function(a,b){ return (b.plays||0)-(a.plays||0); });
+    var breakout = cur.slice().sort(function(a,b){ return (b.plays||0)-(a.plays||0); })[0] || byViews[0];
+    var others = byViews.filter(function(d){ return d!==breakout; }).slice(0,2);
+    var erOf=function(d){ return d.reach?Math.round(inter(d)/d.reach*1000)/10:null; };
+    var bo = '<div class="breakout"><span class="k">BREAKOUT · POSTED '+(breakout.ts?new Date(breakout.ts).toLocaleDateString('en-GB',{day:'numeric',month:'short'}).toUpperCase():'')+'</span><div class="n">'+fmtK(breakout.plays||0)+'</div><p>views'+(erOf(breakout)!=null?' · <b>'+erOf(breakout)+'% ER</b>':'')+' · '+esc((breakout.cap||'').slice(0,60))+'</p></div>';
+    el('mkTop').innerHTML = bo + others.map(function(d){
+      var img = d.thumb?'<img src="'+d.thumb+'" onerror="this.outerHTML=\'<div class=ph></div>\'"/>':'<div class="ph"></div>';
+      return '<div class="rcard">'+img+'<div style="min-width:0"><div class="n">'+fmtK(d.plays||0)+'</div><div class="l">VIEWS</div><div class="cap">'+esc((d.cap||'').slice(0,46))+'</div>'+(erOf(d)!=null?'<div class="er2">'+erOf(d)+'% ER</div>':'')+'</div></div>';
+    }).join('');
+
+    // quality per view
+    var q=[ {n:(curViews?Math.round(S(cur,'saves')/curViews*1000)/10:0)+'%', p:'save rate — viewers keep the content ('+fmtK(S(cur,'saves'))+' saves)'},
+            {n:(curViews?Math.round(S(cur,'comments')/curViews*1000)/10:0)+'%', p:'comment rate — '+fmtK(S(cur,'comments'))+' comments'},
+            {n:(curViews?Math.round(S(cur,'shares')/curViews*1000)/10:0)+'%', p:'share rate — '+fmtK(S(cur,'shares'))+' shares into DMs & stories'},
+            {n:fmtK(S(cur,'likes')), p:'likes in the window ('+(curViews?Math.round(S(cur,'likes')/curViews*1000)/10:0)+'% of views)'} ];
+    el('mkQuality').innerHTML = q.map(function(x){ return '<div><div class="n">'+x.n+'</div><p>'+x.p+'</p></div>'; }).join('');
+
+    // audience (per-creator, live)
+    if(aud && aud.available && aud.breakdowns){
+      var B=aud.breakdowns, names={ country:'Top countries', age:'Age', gender:'Gender' };
+      var CN={ DE:'Germany', AT:'Austria', CH:'Switzerland', US:'United States', GB:'United Kingdom', FR:'France', ES:'Spain', IT:'Italy', NL:'Netherlands', PL:'Poland', TR:'Türkiye', BR:'Brazil', IN:'India', MX:'Mexico' };
+      var html='';
+      ['country','age','gender'].forEach(function(k){
+        var items=B[k]; if(!items||!items.length) return;
+        var mx=Math.max.apply(null,items.map(function(i){return i.pct;}));
+        html+='<div><span class="lbl">'+names[k]+'</span>'+items.map(function(i){
+          var label = k==='country'?(CN[i.label]||i.label): k==='gender'?({M:'Men',F:'Women',U:'Unspecified'}[i.label]||i.label): i.label;
+          return '<div class="row"><div class="rt"><span>'+label+'</span><b>'+i.pct+'%</b></div><span class="track"><span class="fill" style="width:'+Math.max(4,Math.round(i.pct/mx*100))+'%"></span></span></div>';
+        }).join('')+'</div>';
+      });
+      if(html){ el('mkAudience').innerHTML=html; el('mkAudienceWrap').hidden=false; }
+    }
+
+    // pricing (editable, persisted)
+    var pricing = PREFS.pricing && PREFS.pricing.length ? PREFS.pricing : [
+      { label:'Dedicated Reel — scripted, produced & retention-optimised', amount:'on request' },
+      { label:'Story Set — 3 slides, link sticker', amount:'on request' }
+    ];
+    el('mkPricing').innerHTML = pricing.map(function(p,i){
+      return '<div class="rowp"><span data-edit="price_label_'+i+'">'+esc(p.label)+'</span><b class="amt" data-edit="price_amount_'+i+'">'+esc(p.amount)+'</b></div>';
+    }).join('');
+
+    el('mkSources').textContent = 'Sources: live Instagram API (graph.instagram.com), pulled '+dateStr+' — 30-day window '+winStr+': views '+curViews.toLocaleString()+' · interactions '+curInter.toLocaleString()+' · accounts reached '+curReach.toLocaleString()+(followers!=null?' · followers '+followers.toLocaleString():'')+'. Reel-level figures from per-reel insight snapshots. Benchmarks: platform median 0.36% (interactions ÷ followers) per Rival IQ 2025 Benchmark Report · Reels creator average 0.52% per Socialinsider 2025. Median-reel rate computed identically across '+defs.length+' reels against the current follower count. Built with cloudwalkeers.';
+    el('sheet').hidden=false;
+  }
+
+  // ── edit mode: contentEditable on [data-edit] fields, persisted via /api/prefs ──
+  var editing=false;
+  el('editBtn').onclick=function(){
+    editing=!editing;
+    el('editBtn').textContent = editing?'✓ Save':'✎ Edit';
+    el('editBtn').className = 'btn'+(editing?' editing':'');
+    el('editHint').hidden=!editing;
+    document.querySelectorAll('[data-edit]').forEach(function(n){ n.contentEditable = editing?'true':'false'; });
+    if(!editing){
+      var mk={ tagline:el('mkTagline').textContent.trim(), pricing_note:el('mkPricingNote').textContent.trim(),
+        contact_name:el('mkName').textContent.trim(), contact_email:el('mkMail').textContent.trim(), pricing:[] };
+      document.querySelectorAll('#mkPricing .rowp').forEach(function(r){
+        mk.pricing.push({ label:r.children[0].textContent.trim(), amount:r.children[1].textContent.trim() });
+      });
+      fetch('/api/prefs',{ method:'PUT', headers:Object.assign({'Content-Type':'application/json'},HDRS), body:JSON.stringify({ mediakit:mk }) }).catch(function(){});
+      PREFS=Object.assign(PREFS,mk);
+    }
+  };
 
   sb.auth.getSession().then(function(r){
-    var s = r && r.data && r.data.session;
-    if(!s && !CW_DEV){ location.replace('/connect.html'); return; }
-    var headers = s ? { Authorization:'Bearer '+s.access_token } : {};
-    return fetch('/api/data',{ headers: headers }).then(function(x){ return x.ok ? x.json() : null; });
-  }).then(function(db){
-    if(!db) return;
-    var defs = db.defs||[], meta = db.meta||{};
-    if(!defs.length || meta.source==='demo'){ document.getElementById('mkEmpty').hidden=false; return; }
-    var now = Date.now(), cut = now - 30*86400000;
-    var win = defs.filter(function(d){ return d.ts && d.ts >= cut; });
-    if(!win.length) win = defs.slice(0, 15); // young accounts: use what exists
-    var sum = function(k){ return win.reduce(function(a,d){ return a+(Number(d[k])||0); },0); };
-    var reach = sum('reach'), views = sum('plays');
-    var inter = sum('likes')+sum('comments')+sum('saves')+sum('shares');
-    var er = reach ? (inter/reach*100) : 0;
-
-    document.getElementById('mkHandle').textContent = String(meta.username||'@creator').replace(/ ·.*$/,'');
-    document.getElementById('mkDate').textContent = new Date().toISOString().slice(0,10);
-    document.getElementById('mkReach').textContent = fmtK(reach)+'+';
-    document.getElementById('mkViews').textContent = fmtK(views)+'+';
-    document.getElementById('mkEng').textContent = (Math.round(er*10)/10)+'%';
-    document.getElementById('mkFollowers').textContent = meta.followers!=null ? fmtK(meta.followers) : '—';
-    document.getElementById('mkContact').textContent = (window.cwEmail||'') || 'via cloudwalkeers';
-    sb.auth.getSession().then(function(r){ var u=r&&r.data&&r.data.session&&r.data.session.user; if(u&&u.email) document.getElementById('mkContact').textContent=u.email; });
-
-    var top = defs.slice().sort(function(a,b){ return (b.plays||0)-(a.plays||0); }).slice(0,3);
-    document.getElementById('mkTop').innerHTML = top.map(function(d){
-      var img = d.thumb ? '<img src="'+d.thumb+'" alt=""/>' : '<div class="tr-ph"></div>';
-      var cap = String(d.cap||'Reel').replace(/</g,'&lt;').slice(0,90);
-      var when = d.ts ? new Date(d.ts).toLocaleDateString(undefined,{month:'short',day:'numeric'}) : '';
-      return '<div class="tr-row">'+img+'<div style="min-width:0"><div class="tr-cap">'+cap+'</div><div class="tr-meta">'+when+' · '+fmtK(d.reach||0)+' reach · '+fmtK(d.saves||0)+' saves</div></div><div class="tr-views grad">'+fmtK(d.plays||0)+'</div></div>';
-    }).join('');
-
-    var mix = [ ['Likes', sum('likes')], ['Saves', sum('saves')], ['Comments', sum('comments')], ['Shares', sum('shares')] ];
-    var mx = Math.max.apply(null, mix.map(function(m){ return m[1]; }).concat([1]));
-    document.getElementById('mkMix').innerHTML = mix.map(function(m){
-      return '<div class="bar-row"><span class="lbl">'+m[0]+'</span><span class="track"><span class="fill" style="width:'+Math.max(3,Math.round(m[1]/mx*100))+'%"></span></span><span class="val">'+fmtK(m[1])+'</span></div>';
-    }).join('');
-
-    document.getElementById('sheet').hidden = false;
-  }).catch(function(){ document.getElementById('mkEmpty').hidden=false; });
+    var s=r&&r.data&&r.data.session;
+    if(!s && !CW_DEV){ location.replace('/connect.html'); return null; }
+    if(s){ HDRS={ Authorization:'Bearer '+s.access_token }; window.cwEmail=s.user&&s.user.email; }
+    return Promise.all([
+      fetch('/api/data',{headers:HDRS}).then(function(x){return x.ok?x.json():null;}),
+      fetch('/api/audience',{headers:HDRS}).then(function(x){return x.ok?x.json():null;}).catch(function(){return null;}),
+      fetch('/api/prefs',{headers:HDRS}).then(function(x){return x.ok?x.json():null;}).catch(function(){return null;})
+    ]);
+  }).then(function(res){
+    if(!res) return;
+    var db=res[0], aud=res[1], prefs=res[2];
+    PREFS=(prefs&&prefs.mediakit)||{};
+    if(!db){ el('mkEmpty').hidden=false; return; }
+    render(db,aud);
+  }).catch(function(){ el('mkEmpty').hidden=false; });
 })();
 </script>
 </body>

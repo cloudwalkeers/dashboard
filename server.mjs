@@ -380,10 +380,65 @@ const server = http.createServer(async (req, res) => {
         const studio = await import("./lib/studio.mjs");
         if (!studio.isConfigured())
           return send(res, 200, ".json", JSON.stringify({ error: "Supabase not configured", configured: false }));
-        const out = await studio.studioGenerate({ brief: body.brief || "", goal: body.goal || "likes", history: body.history || [] });
+        // A refinement turn is durable style feedback — remember it so every FUTURE
+        // generation honors it too (creator_prefs.style_notes, injected into the prompt).
+        const hist = body.history || [];
+        const last = hist[hist.length - 1];
+        if (hist.length > 1 && last && last.role === "user" && last.content) {
+          import("./lib/store/prefs.mjs").then((p) => p.addStyleNote(last.content)).catch(() => {});
+        }
+        const out = await studio.studioGenerate({ brief: body.brief || "", goal: body.goal || "likes", history: hist });
         return send(res, 200, ".json", JSON.stringify(out));
       } catch (e) {
         return send(res, e && e.code === "NO_DATA" ? 200 : 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e), code: e && e.code }));
+      }
+    }
+
+    // Media-kit custom fields (tagline, pricing, contact) — per creator.
+    if (u.pathname === "/api/prefs" && (req.method === "GET" || req.method === "PUT")) {
+      const creator = await requireCreator(req);
+      if (!creator) return send(res, 401, ".json", JSON.stringify({ error: "unauthenticated" }));
+      enterScope({ creator });
+      try {
+        const prefs = await import("./lib/store/prefs.mjs");
+        if (req.method === "PUT") {
+          const body = await readJson(req);
+          const mediakit = await prefs.saveMediakit(body.mediakit || {});
+          return send(res, 200, ".json", JSON.stringify({ ok: true, mediakit }));
+        }
+        return send(res, 200, ".json", JSON.stringify(await prefs.getPrefs()));
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
+
+    // Per-creator audience demographics (age / gender / country) via THEIR token.
+    // Cached per creator for 12h — powers the media kit's audience section.
+    if (u.pathname === "/api/audience" && req.method === "GET") {
+      const creator = await requireCreator(req);
+      if (!creator) return send(res, 401, ".json", JSON.stringify({ error: "unauthenticated" }));
+      let igAuth = null;
+      try { igAuth = await igAuthForCreator(creator.id); } catch { /* not connected */ }
+      if (!igAuth || !igAuth.token) return send(res, 200, ".json", JSON.stringify({ available: false }));
+      const key = "aud:" + creator.id;
+      const hit = liveCache.get(key);
+      if (hit && Date.now() - hit.t < 12 * 60 * 60 * 1000) return send(res, 200, ".json", JSON.stringify(hit.payload));
+      try {
+        const out = { available: true, breakdowns: {} };
+        for (const b of ["age", "gender", "country"]) {
+          const url = `https://graph.instagram.com/v21.0/me/insights?metric=follower_demographics&period=lifetime&timeframe=last_30_days&breakdown=${b}&metric_type=total_value&access_token=${encodeURIComponent(igAuth.token)}`;
+          const r = await fetch(url).then((x) => x.json());
+          const results = r && r.data && r.data[0] && r.data[0].total_value && r.data[0].total_value.breakdowns && r.data[0].total_value.breakdowns[0] && r.data[0].total_value.breakdowns[0].results;
+          if (!Array.isArray(results) || !results.length) continue;
+          let items = results.map((it) => ({ label: String((it.dimension_values && it.dimension_values[0]) || ""), value: Number(it.value) || 0 }));
+          const total = items.reduce((s, it) => s + it.value, 0) || 1;
+          items = items.map((it) => ({ ...it, pct: Math.round((it.value / total) * 1000) / 10 })).sort((a, b) => b.value - a.value);
+          out.breakdowns[b] = b === "country" ? items.slice(0, 5) : items;
+        }
+        liveCache.set(key, { t: Date.now(), payload: out });
+        return send(res, 200, ".json", JSON.stringify(out));
+      } catch (e) {
+        return send(res, 200, ".json", JSON.stringify({ available: false, error: e && e.message ? e.message : String(e) }));
       }
     }
 
@@ -729,6 +784,9 @@ async function fetchLivePayload() {
       });
     }
   } catch { /* keep the CDN cover */ }
+  // Persist covers: Instagram's CDN thumbnail URLs expire/hotlink-block, so save each
+  // reel's cover once to the volume (analysis/thumbs/<shortcode>.jpg) and serve locally.
+  try { await persistThumbs(payload.defs); } catch { /* covers are best-effort */ }
   liveCache.set(cacheKey(), { t: Date.now(), payload });
   // Remember the follower count on the creator's connection so stored-path views
   // (media kit, dashboard) can show it without an Instagram round-trip.
@@ -780,6 +838,38 @@ async function getData(force, demo) {
   // with whatever credentials the caller has (creator token when scoped).
   if (isConfigured()) { try { return await fetchLivePayload(); } catch { /* demo */ } }
   return demoPayload();
+}
+
+// Download reel covers to the persistent volume so the dashboard/media kit always
+// have a working image (IG CDN links expire). Skips existing files; bounded concurrency.
+async function persistThumbs(defs) {
+  const { mkdirSync, existsSync: ex, createWriteStream } = await import("node:fs");
+  const dir = path.join(ANALYSIS, "thumbs");
+  mkdirSync(dir, { recursive: true });
+  const scOf = (u) => { const m = String(u || "").match(/\/reels?\/([^/?#]+)/i); return m ? m[1] : null; };
+  const jobs = [];
+  for (const d of defs || []) {
+    const sc = scOf(d.permalink);
+    if (!sc) continue;
+    const file = path.join(dir, sc + ".jpg");
+    const local = "/analysis/thumbs/" + sc + ".jpg";
+    if (ex(file)) { if (!d.thumb || /^https?:/.test(d.thumb)) d.thumb = local; continue; }
+    const src = d.thumb && /^https?:/.test(d.thumb) ? d.thumb : null;
+    if (!src) continue;
+    jobs.push(async () => {
+      try {
+        const r = await fetch(src, { redirect: "follow" });
+        if (!r.ok || !r.body) return;
+        const buf = Buffer.from(await r.arrayBuffer());
+        if (buf.length < 2000) return; // an error page, not an image
+        await (await import("node:fs/promises")).writeFile(file, buf);
+        d.thumb = local;
+      } catch { /* keep whatever we had */ }
+    });
+  }
+  let i = 0;
+  const worker = async () => { while (i < jobs.length) { const j = jobs[i++]; await j(); } };
+  await Promise.all(Array.from({ length: Math.min(4, jobs.length) }, worker));
 }
 
 function readJson(req) {
