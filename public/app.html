@@ -13,9 +13,12 @@
   var sb = window.supabase.createClient(SB_URL, SB_ANON);
   window.cwSupabase = sb;
   // Resolve the session once; if not logged in, bounce to the connect/login screen.
+  // Localhost-only escape hatch (?cw_dev=1) for design work against a dev server
+  // running CW_DEV_FAKE_CREATOR — harmless elsewhere (API calls still 401).
+  var CW_DEV = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') && /[?&]cw_dev=1/.test(location.search);
   var tokenP = sb.auth.getSession().then(function (r) {
     var s = r && r.data && r.data.session;
-    if (!s) { location.replace('/connect.html'); return null; }
+    if (!s) { if (!CW_DEV) location.replace('/connect.html'); return null; }
     window.cwEmail = s.user && s.user.email;
     return s.access_token;
   }).catch(function () { return null; });
@@ -65,28 +68,34 @@
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600;650;700;800&family=Sora:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#fafafa; --surface:#ffffff; --surface-2:#fafaff; --fill:#f3f3f4; --fill-2:#f5f5f5;
-  --line:#ececec; --line-2:#f1f1f2;
-  --text:#18181b; --text-2:#52525b; --text-3:#9ca3af; --text-faint:#b4b4b8;
-  --accent:#6366f1; --accent-soft:#eef2ff;
-  --cc:#5b50e6; --cc-2:#7d72ec; --cc-soft:#efeefe; --cc-on:#ffffff;
-  --header:rgba(250,250,250,.82);
-  --shadow:0 1px 2px rgba(16,16,24,.04);
+  --bg:#f5f6f8; --surface:#ffffff; --surface-2:#f8f9fb; --fill:#eef0f4; --fill-2:#f3f4f7;
+  --line:#e6e8ee; --line-2:#eef0f4;
+  --text:#0f1218; --text-2:#4b5262; --text-3:#8a91a3; --text-faint:#b3b9c7;
+  --accent:#4f63f0; --accent-soft:#edefff;
+  --cc:#4f63f0; --cc-2:#7286f5; --cc-soft:#edefff; --cc-on:#ffffff;
+  --good:#0f9d63; --good-soft:#e7f7ef; --bad:#e5484d; --bad-soft:#fdeeee; --warn:var(--warn);
+  --header:rgba(245,246,248,.84);
+  --shadow:0 1px 2px rgba(15,18,26,.05);
+  --shadow-md:0 8px 28px -14px rgba(15,18,26,.16);
 }
 [data-theme=dark]{
-  --bg:#0d0d10; --surface:#18181d; --surface-2:#1f1f27; --fill:#26262e; --fill-2:#222229;
-  --line:#2c2c35; --line-2:#26262e;
-  --text:#f3f3f5; --text-2:#b6b6c0; --text-3:#85858f; --text-faint:#67676f;
-  --accent:#818cf8; --accent-soft:#211d3d;
-  --cc:#8b80f0; --cc-2:#9d93f3; --cc-soft:#211d3d; --cc-on:#0d0d10;
-  --header:rgba(13,13,16,.82);
-  --shadow:0 1px 2px rgba(0,0,0,.32);
+  --bg:#0a0b0f; --surface:#13151c; --surface-2:#181b24; --fill:#20242f; --fill-2:#1c1f29;
+  --line:#262a36; --line-2:#20242f;
+  --text:#eef0f6; --text-2:#aab1c2; --text-3:#767e92; --text-faint:#565d70;
+  --accent:#7c8cff; --accent-soft:#1e2140;
+  --cc:#7c8cff; --cc-2:#96a3ff; --cc-soft:#1e2140; --cc-on:#0a0b0f;
+  --good:#3ecf8e; --good-soft:#12291f; --bad:#f4695f; --bad-soft:#301818; --warn:var(--warn);
+  --header:rgba(10,11,15,.84);
+  --shadow:0 1px 2px rgba(0,0,0,.35);
+  --shadow-md:0 10px 32px -16px rgba(0,0,0,.55);
 }
 *{box-sizing:border-box}
 body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;background:var(--bg);color:var(--text);transition:background .2s ease,color .2s ease}
+h1,h2,h3{letter-spacing:-.02em}
+button{font-family:inherit}
 ::-webkit-scrollbar{width:10px;height:10px}
 ::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px;border:3px solid var(--bg)}
 .sg-scroll::-webkit-scrollbar{height:8px;width:8px}
@@ -95,12 +104,13 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes sgToast{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
 .sg-panel{animation:sgIn .28s ease both}
-.cc-font{font-family:'Plus Jakarta Sans',-apple-system,system-ui,sans-serif}
+.cc-font{font-family:'Inter',-apple-system,system-ui,sans-serif}
 .cc-mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+.cw-wordmark{font-family:'Sora','Inter',sans-serif}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 </helmet>
-<div style="min-height:100vh;background:var(--surface-2);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif">
+<div style="min-height:100vh;background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif">
 
   <sc-if value="{{ zoomShow }}" hint-placeholder-val="{{ false }}">
   <div onClick="{{ zoomClose }}" style="position:fixed;inset:0;background:rgba(0,0,0,.74);z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px">
@@ -131,31 +141,32 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
   </div>
   </sc-if>
 
-  <header style="position:sticky;top:0;z-index:20;background:var(--header);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)">
-    <div style="max-width:1240px;margin:0 auto;padding:14px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px">
-      <div style="display:flex;align-items:center;gap:12px">
-        <div style="width:30px;height:30px;border-radius:8px;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px">▶</div>
-        <div style="display:flex;flex-direction:column;line-height:1.15">
-          <span style="font-size:15px;font-weight:650;letter-spacing:-.01em">cloudwalkeers</span>
-          <span style="font-size:12px;color:var(--text-3)">{{ account }}</span>
+  <header style="position:sticky;top:0;z-index:20;background:var(--header);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)">
+    <div style="max-width:1280px;margin:0 auto;padding:11px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px">
+      <div style="display:flex;align-items:center;gap:11px;min-width:0">
+        <div style="width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#5b8cff,#3ee0b0);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px -6px #5b8cff;flex:none"><span style="width:11px;height:11px;border-radius:3.5px;background:var(--bg);display:block"></span></div>
+        <div style="display:flex;flex-direction:column;line-height:1.12;min-width:0">
+          <span class="cw-wordmark" style="font-size:14.5px;font-weight:700;letter-spacing:-.02em">cloudwalkeers</span>
+          <span style="font-size:11.5px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ account }}</span>
         </div>
       </div>
-      <div style="display:flex;align-items:center;gap:14px">
-        <div style="display:flex;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:3px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="display:flex;gap:2px;background:var(--fill);border:1px solid var(--line);border-radius:11px;padding:3px">
           <button style="{{ navOverviewStyle }}" onClick="{{ navOverview }}">Overview</button>
-          <button style="{{ navContentStyle }}" onClick="{{ navContent }}">Content Creation</button>
+          <button style="{{ navContentStyle }}" onClick="{{ navContent }}">Create</button>
           <button style="{{ navPipelineStyle }}" onClick="{{ navPipeline }}">Pipeline</button>
           <button style="{{ navDiscoveryStyle }}" onClick="{{ navDiscovery }}">Discovery</button>
           <button style="{{ navStudioStyle }}" onClick="{{ navStudio }}">Studio</button>
           <button style="{{ navLabStyle }}" onClick="{{ navLab }}">Lab</button>
           <button style="{{ navClippersStyle }}" onClick="{{ navClippers }}">Clippers</button>
+          <a href="/mediakit" style="{{ navMediakitStyle }}">Media Kit</a>
         </div>
-        <button onClick="{{ refresh }}" title="Refresh from Meta" style="display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--text-2);background:none;border:none;cursor:pointer;font-family:inherit;padding:6px 4px">
+        <button onClick="{{ refresh }}" title="Sync your latest reels + insights from Instagram" style="display:flex;align-items:center;gap:7px;font-size:12px;font-weight:550;color:var(--text-2);background:var(--surface);border:1px solid var(--line);border-radius:99px;cursor:pointer;font-family:inherit;padding:6px 12px;box-shadow:var(--shadow)">
           <span style="{{ syncDotStyle }}"></span>
           {{ syncText }}
         </button>
         <button onClick="{{ themeToggle }}" title="Toggle dark mode" style="{{ themeBtnStyle }}">{{ themeIcon }}</button>
-        <div id="cwAccount" title="Your account" style="width:32px;height:32px;border-radius:50%;background:repeating-linear-gradient(135deg,#ede9fe 0 7px,#e0d9fb 7px 14px);cursor:pointer;border:1px solid var(--line)"></div>
+        <div id="cwAccount" title="Your account" style="width:31px;height:31px;border-radius:50%;background:linear-gradient(135deg,#5b8cff33,#3ee0b033),var(--surface);cursor:pointer;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--text-2)">{{ accountInitial }}</div>
       </div>
     </div>
   </header>
@@ -281,36 +292,38 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
     </section>
 
     <!-- insights -->
-    <section style="display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:22px">
-      <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
-          <span style="width:20px;height:20px;border-radius:6px;background:#ecfdf3;color:#16a34a;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">✓</span>
-          <h3 style="margin:0;font-size:14.5px;font-weight:640">What's working</h3>
+    <section style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px">
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-md)">
+        <div style="display:flex;align-items:center;gap:9px;padding:13px 18px;background:linear-gradient(90deg,var(--good-soft),transparent 85%);border-bottom:1px solid var(--line-2)">
+          <span style="width:22px;height:22px;border-radius:7px;background:var(--good);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:800;flex:none">✓</span>
+          <h3 style="margin:0;font-size:14px;font-weight:700;letter-spacing:-.01em">What's working</h3>
+          <span class="cc-mono" style="margin-left:auto;font-size:9.5px;letter-spacing:.09em;color:var(--good);font-weight:600">FROM YOUR DATA</span>
         </div>
-        <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;flex-direction:column;padding:6px 0">
           <sc-for list="{{ insightsGood }}" as="i" hint-placeholder-count="3">
-            <div style="display:flex;gap:11px">
-              <span style="width:6px;height:6px;border-radius:50%;background:#16a34a;margin-top:7px;flex:none"></span>
-              <div>
-                <div style="font-size:13.5px;font-weight:620;margin-bottom:2px">{{ i.title }}</div>
-                <div style="font-size:13px;color:var(--text-2);line-height:1.5">{{ i.text }}</div>
+            <div style="display:flex;gap:12px;padding:12px 18px;border-bottom:1px solid var(--line-2)">
+              <span style="width:3px;border-radius:99px;background:var(--good);opacity:.55;flex:none"></span>
+              <div style="min-width:0">
+                <div style="font-size:13.5px;font-weight:650;margin-bottom:3px;letter-spacing:-.01em">{{ i.title }}</div>
+                <div style="font-size:12.5px;color:var(--text-2);line-height:1.55">{{ i.text }}</div>
               </div>
             </div>
           </sc-for>
         </div>
       </div>
-      <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
-          <span style="width:20px;height:20px;border-radius:6px;background:#fef2f2;color:#dc2626;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700">!</span>
-          <h3 style="margin:0;font-size:14.5px;font-weight:640">Needs attention</h3>
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-md)">
+        <div style="display:flex;align-items:center;gap:9px;padding:13px 18px;background:linear-gradient(90deg,var(--bad-soft),transparent 85%);border-bottom:1px solid var(--line-2)">
+          <span style="width:22px;height:22px;border-radius:7px;background:var(--bad);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:800;flex:none">!</span>
+          <h3 style="margin:0;font-size:14px;font-weight:700;letter-spacing:-.01em">Needs attention</h3>
+          <span class="cc-mono" style="margin-left:auto;font-size:9.5px;letter-spacing:.09em;color:var(--bad);font-weight:600">FIX NEXT</span>
         </div>
-        <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;flex-direction:column;padding:6px 0">
           <sc-for list="{{ insightsBad }}" as="i" hint-placeholder-count="3">
-            <div style="display:flex;gap:11px">
-              <span style="width:6px;height:6px;border-radius:50%;background:#dc2626;margin-top:7px;flex:none"></span>
-              <div>
-                <div style="font-size:13.5px;font-weight:620;margin-bottom:2px">{{ i.title }}</div>
-                <div style="font-size:13px;color:var(--text-2);line-height:1.5">{{ i.text }}</div>
+            <div style="display:flex;gap:12px;padding:12px 18px;border-bottom:1px solid var(--line-2)">
+              <span style="width:3px;border-radius:99px;background:var(--bad);opacity:.55;flex:none"></span>
+              <div style="min-width:0">
+                <div style="font-size:13.5px;font-weight:650;margin-bottom:3px;letter-spacing:-.01em">{{ i.title }}</div>
+                <div style="font-size:12.5px;color:var(--text-2);line-height:1.55">{{ i.text }}</div>
               </div>
             </div>
           </sc-for>
@@ -319,16 +332,16 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
     </section>
 
     <!-- reels table -->
-    <section style="background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px 14px">
-        <h3 style="margin:0;font-size:14.5px;font-weight:640">All reels <span style="color:var(--text-faint);font-weight:500">· {{ reelCount }}</span></h3>
+    <section style="background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-md)">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:17px 20px 15px">
+        <h3 style="margin:0;font-size:15px;font-weight:700;letter-spacing:-.01em">All reels <span style="color:var(--text-faint);font-weight:500">· {{ reelCount }}</span></h3>
         <div style="display:flex;align-items:center;gap:14px">
           <span style="font-size:12px;color:var(--text-3)">Click a reel for retention &amp; drop-off detail</span>
-          <button onClick="{{ refresh }}" style="{{ refreshBtnStyle }}" title="Refresh from Instagram">↻ {{ refreshLabel }}</button>
+          <button onClick="{{ refresh }}" style="{{ refreshBtnStyle }}" title="Sync your latest reels + insights from Instagram">↻ {{ refreshLabel }}</button>
         </div>
       </div>
       <div class="sg-scroll" style="overflow-x:auto">
-      <div style="display:grid;grid-template-columns:minmax(170px,1.3fr) 62px 72px 72px 82px 110px 64px 58px 58px 58px 66px 54px 70px;gap:10px;padding:9px 20px;border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--text-3);font-weight:650;min-width:1140px">
+      <div style="display:grid;grid-template-columns:minmax(170px,1.3fr) 62px 72px 72px 82px 110px 64px 58px 58px 58px 66px 54px 70px;gap:10px;padding:10px 20px;border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2);background:var(--surface-2);font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--text-faint);font-weight:600;min-width:1140px">
         <span>Reel</span>
         <button style="{{ sortDateStyle }}" onClick="{{ sortDate }}" title="Sort by posting date (newest first)">Date {{ sortDateCaret }}</button>
         <button style="{{ sortReachStyle }}" onClick="{{ sortReach }}">Reach {{ sortReachCaret }}</button>
@@ -344,19 +357,19 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
         <button style="{{ sortHookStyle }}" onClick="{{ sortHook }}" title="Sort by 3-second hold (real retention where measured)">Retention {{ sortHookCaret }}</button>
       </div>
       <sc-for list="{{ reels }}" as="r" hint-placeholder-count="8">
-        <div onClick="{{ r.open }}" style="display:grid;grid-template-columns:minmax(170px,1.3fr) 62px 72px 72px 82px 110px 64px 58px 58px 58px 66px 54px 70px;gap:10px;padding:13px 20px;border-bottom:1px solid var(--line-2);align-items:center;cursor:pointer;transition:background .12s;min-width:1140px" style-hover="background:var(--surface-2)">
+        <div onClick="{{ r.open }}" style="display:grid;grid-template-columns:minmax(170px,1.3fr) 62px 72px 72px 82px 110px 64px 58px 58px 58px 66px 54px 70px;gap:10px;padding:12px 20px;border-bottom:1px solid var(--line-2);align-items:center;cursor:pointer;transition:background .12s;min-width:1140px" style-hover="background:var(--accent-soft)">
           <div style="display:flex;align-items:center;gap:12px;min-width:0">
             <sc-if value="{{ r.hasThumb }}" hint-placeholder-val="{{ false }}">
-              <img src="{{ r.thumb }}" style="width:38px;height:50px;border-radius:7px;flex:none;object-fit:cover;background:var(--fill)"/>
+              <img src="{{ r.thumb }}" style="width:38px;height:50px;border-radius:8px;flex:none;object-fit:cover;background:var(--fill);border:1px solid var(--line)"/>
             </sc-if>
             <sc-if value="{{ !r.hasThumb }}" hint-placeholder-val="{{ true }}">
-              <div style="width:38px;height:50px;border-radius:7px;flex:none;background:repeating-linear-gradient(135deg,#eef0f4 0 7px,#e6e9ef 7px 14px);display:flex;align-items:center;justify-content:center">
-                <span style="width:0;height:0;border-left:8px solid #b9bec8;border-top:5px solid transparent;border-bottom:5px solid transparent;margin-left:2px"></span>
+              <div style="width:38px;height:50px;border-radius:8px;flex:none;background:var(--fill);border:1px solid var(--line);display:flex;align-items:center;justify-content:center">
+                <span style="width:0;height:0;border-left:8px solid var(--text-faint);border-top:5px solid transparent;border-bottom:5px solid transparent;margin-left:2px"></span>
               </div>
             </sc-if>
             <div style="min-width:0">
               <div style="font-size:13.5px;font-weight:570;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.cap }}</div>
-              <div style="font-size:12px;color:var(--text-3);margin-top:2px">{{ r.lenFmt }}</div>
+              <div class="cc-mono" style="font-size:10.5px;color:var(--text-3);margin-top:3px">{{ r.lenFmt }}</div>
             </div>
           </div>
           <div style="text-align:right;font-size:12px;color:var(--text-2);font-weight:550">{{ r.dateFmt }}</div>
@@ -449,9 +462,9 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
                 <line x1="0" y1="204" x2="520" y2="204" stroke="#ececed"></line>
                 <path d="{{ R.retArea }}" fill="rgba(99,102,241,.10)" stroke="none"></path>
                 <path d="{{ R.retLine }}" fill="none" stroke="#6366f1" stroke-width="2.4" stroke-linejoin="round" vector-effect="non-scaling-stroke"></path>
-                <line x1="{{ R.dropX }}" y1="14" x2="{{ R.dropX }}" y2="204" stroke="#dc2626" stroke-width="1.4" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"></line>
-                <circle cx="{{ R.dropX }}" cy="{{ R.dropY }}" r="4" fill="#dc2626" stroke="#fff" stroke-width="2"></circle>
-                <sc-for list="{{ R.deathMarks }}" as="dm" hint-placeholder-count="4"><line x1="{{ dm.x }}" y1="14" x2="{{ dm.x }}" y2="204" stroke="#dc2626" stroke-width="1" stroke-dasharray="2 3" stroke-opacity="0.5" vector-effect="non-scaling-stroke"></line><circle cx="{{ dm.x }}" cy="{{ dm.y }}" r="3.2" fill="#dc2626" fill-opacity="0.8" stroke="#fff" stroke-width="1.4"></circle></sc-for>
+                <line x1="{{ R.dropX }}" y1="14" x2="{{ R.dropX }}" y2="204" stroke="var(--bad)" stroke-width="1.4" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"></line>
+                <circle cx="{{ R.dropX }}" cy="{{ R.dropY }}" r="4" fill="var(--bad)" stroke="#fff" stroke-width="2"></circle>
+                <sc-for list="{{ R.deathMarks }}" as="dm" hint-placeholder-count="4"><line x1="{{ dm.x }}" y1="14" x2="{{ dm.x }}" y2="204" stroke="var(--bad)" stroke-width="1" stroke-dasharray="2 3" stroke-opacity="0.5" vector-effect="non-scaling-stroke"></line><circle cx="{{ dm.x }}" cy="{{ dm.y }}" r="3.2" fill="var(--bad)" fill-opacity="0.8" stroke="#fff" stroke-width="1.4"></circle></sc-for>
               </svg>
               <sc-if value="{{ R.retHasHover }}" hint-placeholder-val="{{ false }}">
                 <div style="position:absolute;top:14px;height:190px;left:{{ R.retHoverLeftPct }};width:0;border-left:1px dashed var(--text-faint);pointer-events:none;z-index:4"></div>
@@ -475,9 +488,9 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
             <span>0s</span><span>{{ R.midFmt }}</span><span>{{ R.lenFmt }}</span>
           </div>
           <div style="display:flex;gap:14px;font-size:11px;color:var(--text-3);margin-bottom:18px">
-            <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:2px;background:#16a34a"></span>Holding</span>
+            <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:2px;background:var(--good)"></span>Holding</span>
             <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:2px;background:#e07b16"></span>Dropping</span>
-            <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:2px;background:#dc2626"></span>Lost</span>
+            <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:2px;background:var(--bad)"></span>Lost</span>
           </div>
           <div style="display:flex;flex-direction:column;gap:11px">
             <sc-for list="{{ R.keyMoments }}" as="m" hint-placeholder-count="4">
@@ -501,12 +514,12 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
           <sc-for list="{{ R.deaths }}" as="dm" hint-placeholder-count="3">
             <div style="display:flex;gap:12px;align-items:flex-start;background:var(--fill);border:1px solid var(--line);border-radius:11px;padding:11px 14px">
               <div style="flex:none;text-align:center;min-width:54px">
-                <div style="font-size:13.5px;font-weight:700;color:#dc2626">{{ dm.dropTxt }}</div>
+                <div style="font-size:13.5px;font-weight:700;color:var(--bad)">{{ dm.dropTxt }}</div>
                 <div class="cc-mono" style="font-size:10px;color:var(--text-3)">{{ dm.tTxt }}</div>
               </div>
               <div style="flex:1;min-width:0">
                 <div style="font-size:12.5px;color:var(--text);line-height:1.45">{{ dm.onScreen }}</div>
-                <sc-if value="{{ dm.transition }}" hint-placeholder-val="{{ false }}"><div style="font-size:11px;color:#dc2626;margin-top:2px">{{ dm.transition }}</div></sc-if>
+                <sc-if value="{{ dm.transition }}" hint-placeholder-val="{{ false }}"><div style="font-size:11px;color:var(--bad);margin-top:2px">{{ dm.transition }}</div></sc-if>
                 <sc-if value="{{ dm.said }}" hint-placeholder-val="{{ false }}"><div style="font-size:11.5px;color:var(--text-3);font-style:italic;margin-top:3px">{{ dm.said }}</div></sc-if>
               </div>
               <div class="cc-mono" style="flex:none;font-size:10.5px;color:var(--text-3);text-align:right">{{ dm.range }}</div>
@@ -736,7 +749,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
               <p style="margin:0 0 10px;font-size:13px;color:var(--text-2);line-height:1.5">{{ R.ai.hook }}</p>
               <sc-for list="{{ R.ai.dropoff }}" as="d" hint-placeholder-count="3">
                 <div style="display:flex;gap:9px;margin-bottom:8px">
-                  <span style="flex:none;font-size:12px;font-weight:700;color:#dc2626;min-width:34px">{{ d.t }}</span>
+                  <span style="flex:none;font-size:12px;font-weight:700;color:var(--bad);min-width:34px">{{ d.t }}</span>
                   <span style="font-size:13px;color:var(--text-2);line-height:1.5">{{ d.why }}</span>
                 </div>
               </sc-for>
@@ -745,7 +758,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
               <div style="font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--text-3);font-weight:650;margin-bottom:8px">Suggestions</div>
               <sc-for list="{{ R.ai.suggestions }}" as="s" hint-placeholder-count="3">
                 <div style="display:flex;gap:9px;margin-bottom:8px">
-                  <span style="width:6px;height:6px;border-radius:50%;background:#16a34a;margin-top:6px;flex:none"></span>
+                  <span style="width:6px;height:6px;border-radius:50%;background:var(--good);margin-top:6px;flex:none"></span>
                   <span style="font-size:13px;color:var(--text-2);line-height:1.5">{{ s }}</span>
                 </div>
               </sc-for>
@@ -781,7 +794,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
       <button onClick="{{ CC.extract }}" style="border:none;background:var(--text);color:var(--bg);font-family:inherit;font-weight:600;font-size:14px;padding:0 26px;border-radius:12px;cursor:pointer">{{ CC.extractLabel }}</button>
       <button onClick="{{ CC.forceExtract }}" title="Re-download + re-analyze from scratch, ignoring any cached/stored version" style="border:1px solid var(--line);background:var(--surface);color:var(--text-2);font-family:inherit;font-weight:600;font-size:12.5px;padding:0 14px;border-radius:12px;cursor:pointer;white-space:nowrap">↻ Force re‑fetch</button>
     </div>
-    <sc-if value="{{ CC.error }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:#dc2626;margin-bottom:8px">{{ CC.error }}</div></sc-if>
+    <sc-if value="{{ CC.error }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:var(--bad);margin-bottom:8px">{{ CC.error }}</div></sc-if>
     <sc-if value="{{ CC.extracting }}" hint-placeholder-val="{{ false }}">
       <div style="margin:6px 0 8px">
         <div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--text-2);margin-bottom:6px"><span>{{ CC.step }}</span><span style="font-weight:600">{{ CC.progressPct }}</span></div>
@@ -1052,7 +1065,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
           </div>
           <div style="display:flex;flex-direction:column;gap:14px">
             <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px">
-              <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px"><div style="width:8px;height:8px;border-radius:50%;background:#16a34a;flex:none"></div><div style="font-weight:700;font-size:14px">Hook</div></div>
+              <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px"><div style="width:8px;height:8px;border-radius:50%;background:var(--good);flex:none"></div><div style="font-weight:700;font-size:14px">Hook</div></div>
               <p style="margin:0;font-size:13px;line-height:1.55;color:var(--text-2)">{{ CC.hook }}</p>
             </div>
             <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px">
@@ -1070,7 +1083,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
           <div class="cc-mono" style="font-size:11px;color:var(--text-3);letter-spacing:.1em;margin-bottom:10px">SUGGESTIONS</div>
           <div style="display:flex;flex-direction:column;gap:8px">
             <sc-for list="{{ CC.suggestions }}" as="g" hint-placeholder-count="3">
-              <div style="display:flex;gap:9px"><span style="width:6px;height:6px;border-radius:50%;background:#16a34a;margin-top:7px;flex:none"></span><span style="font-size:13px;color:var(--text-2);line-height:1.55">{{ g }}</span></div>
+              <div style="display:flex;gap:9px"><span style="width:6px;height:6px;border-radius:50%;background:var(--good);margin-top:7px;flex:none"></span><span style="font-size:13px;color:var(--text-2);line-height:1.55">{{ g }}</span></div>
             </sc-for>
           </div>
         </div>
@@ -1094,7 +1107,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
           <sc-if value="{{ !CC.animHasReel }}" hint-placeholder-val="{{ false }}">
           <div style="background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:20px;font-size:13px;color:var(--text-3)">Erst ein Reel im <strong>Frames</strong>‑Tab extrahieren — dann brichst du hier dessen Animationen Frame für Frame auf.</div>
           </sc-if>
-          <sc-if value="{{ CC.animError }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px;color:#dc2626;margin-top:8px">{{ CC.animError }}</div></sc-if>
+          <sc-if value="{{ CC.animError }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px;color:var(--bad);margin-top:8px">{{ CC.animError }}</div></sc-if>
         </div>
         <sc-if value="{{ CC.animHas }}" hint-placeholder-val="{{ false }}">
         <div style="display:flex;flex-direction:column;gap:12px">
@@ -1186,8 +1199,8 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
       <div class="cc-mono" style="margin-left:auto;font-size:11px;color:var(--text-3)">{{ PIPE.resultLabel }}</div>
     </div>
 
-    <div style="flex:1;display:grid;grid-template-columns:404px 1fr;min-height:0">
-      <aside class="sg-scroll" style="border-right:1px solid var(--line);overflow-y:auto;padding:14px">
+    <div style="flex:1;display:grid;grid-template-columns:clamp(280px,30vw,380px) minmax(0,1fr);min-height:0">
+      <aside class="sg-scroll" style="border-right:1px solid var(--line);overflow-y:auto;padding:14px;min-width:0">
         <sc-if value="{{ PIPE.hasResults }}" hint-placeholder-val="{{ true }}">
           <div style="display:flex;flex-direction:column;gap:9px">
             <sc-for list="{{ PIPE.listItems }}" as="row" hint-placeholder-count="5">
@@ -1215,9 +1228,9 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
         </sc-if>
       </aside>
 
-      <section class="sg-scroll" style="overflow-y:auto">
+      <section class="sg-scroll" style="overflow-y:auto;min-width:0">
         <sc-if value="{{ PIPE.hasSelection }}" hint-placeholder-val="{{ true }}">
-          <div style="max-width:880px;padding:26px 36px 44px">
+          <div style="max-width:880px;padding:26px clamp(16px,3vw,36px) 44px">
             <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:18px">
               <div style="flex:1;min-width:0">
                 <input value="{{ PIPE.selTitle }}" onInput="{{ PIPE.onTitleChange }}" style="width:100%;background:transparent;border:none;color:var(--text);font-size:23px;font-weight:700;font-family:inherit;letter-spacing:-.01em;padding:2px 0"/>
@@ -1293,8 +1306,8 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
           <input value="{{ DISC.category }}" onInput="{{ DISC.onCategory }}" placeholder="AI, Finance…" style="width:150px;padding:10px 13px;border:1px solid var(--line);border-radius:10px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text)"/>
         </div>
       </div>
-      <sc-if value="{{ DISC.error }}" hint-placeholder-val="{{ false }}"><div style="margin-top:12px;font-size:12.5px;color:#dc2626">{{ DISC.error }}</div></sc-if>
-      <sc-if value="{{ DISC.msg }}" hint-placeholder-val="{{ false }}"><div style="margin-top:12px;font-size:12.5px;color:#16a34a">{{ DISC.msg }}</div></sc-if>
+      <sc-if value="{{ DISC.error }}" hint-placeholder-val="{{ false }}"><div style="margin-top:12px;font-size:12.5px;color:var(--bad)">{{ DISC.error }}</div></sc-if>
+      <sc-if value="{{ DISC.msg }}" hint-placeholder-val="{{ false }}"><div style="margin-top:12px;font-size:12.5px;color:var(--good)">{{ DISC.msg }}</div></sc-if>
     </div>
 
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px">
@@ -1335,7 +1348,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
               <button onClick="{{ d.toCC }}" style="padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">→ Content</button>
               <a href="{{ d.permalink }}" target="_blank" rel="noopener" style="font-size:12px;color:var(--cc);text-decoration:none;font-weight:600">Open ↗</a>
               <div style="flex:1"></div>
-              <button onClick="{{ d.del }}" style="padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:#dc2626;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">Delete</button>
+              <button onClick="{{ d.del }}" style="padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--bad);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">Delete</button>
             </div>
           </div>
         </div>
@@ -1360,7 +1373,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
             <sc-for list="{{ STU.goals }}" as="g" hint-placeholder-count="3"><button onClick="{{ g.click }}" style="{{ g.style }}">{{ g.label }}</button></sc-for>
           </div>
           <button onClick="{{ STU.generate }}" style="margin-top:16px;width:100%;padding:11px;border:none;border-radius:11px;background:var(--cc);color:var(--cc-on);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">{{ STU.genLabel }}</button>
-          <sc-if value="{{ STU.error }}" hint-placeholder-val="{{ false }}"><div style="margin-top:10px;font-size:12.5px;color:#dc2626">{{ STU.error }}</div></sc-if>
+          <sc-if value="{{ STU.error }}" hint-placeholder-val="{{ false }}"><div style="margin-top:10px;font-size:12.5px;color:var(--bad)">{{ STU.error }}</div></sc-if>
         </div>
 
         <sc-if value="{{ STU.hasResult }}" hint-placeholder-val="{{ false }}">
@@ -1407,7 +1420,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
             <div class="cc-mono" style="font-size:10px;letter-spacing:.1em;color:var(--text-3)">GENERATED SCRIPT</div>
             <div style="display:flex;gap:8px;align-items:center">
-              <span style="font-size:12px;color:#16a34a">{{ STU.saved }}</span>
+              <span style="font-size:12px;color:var(--good)">{{ STU.saved }}</span>
               <button onClick="{{ STU.copy }}" style="padding:7px 13px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--text);font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit">Copy</button>
               <button onClick="{{ STU.save }}" style="padding:7px 13px;border:none;border-radius:9px;background:var(--cc);color:var(--cc-on);font-size:12.5px;font-weight:650;cursor:pointer;font-family:inherit">{{ STU.saveLabel }}</button>
             </div>
@@ -1460,12 +1473,20 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
       <button onClick="{{ LAB.retrain }}" style="{{ refreshBtnStyle }}">{{ LAB.retrainLabel }}</button>
     </div>
 
-    <div class="cc-mono" style="font-size:11.5px;color:var(--text-3);margin:14px 0 22px">{{ LAB.attSeconds }} per‑second observations · {{ LAB.attReels }} reels · group cross‑validation (no reel in both train &amp; test)</div>
+    <div class="cc-mono" style="font-size:11.5px;color:var(--text-3);margin:14px 0 18px">{{ LAB.attSeconds }} per‑second observations · {{ LAB.attReels }} reels · group cross‑validation (no reel in both train &amp; test)</div>
 
-    <sc-if value="{{ LAB.attError }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:#dc2626;margin-bottom:16px">{{ LAB.attError }}</div></sc-if>
+    <!-- lab sub-tabs: one story per tab, readable one at a time -->
+    <div style="display:flex;gap:2px;background:var(--fill);border:1px solid var(--line);border-radius:12px;padding:3px;margin-bottom:22px;max-width:fit-content;flex-wrap:wrap">
+      <sc-for list="{{ LAB.tabs }}" as="lt" hint-placeholder-count="4">
+        <button onClick="{{ lt.click }}" style="{{ lt.style }}"><span style="{{ lt.dotStyle }}"></span>{{ lt.label }}</button>
+      </sc-for>
+    </div>
+
+    <sc-if value="{{ LAB.attError }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:var(--bad);margin-bottom:16px">{{ LAB.attError }}</div></sc-if>
     <sc-if value="{{ LAB.attLoading }}" hint-placeholder-val="{{ true }}"><div style="font-size:13.5px;color:var(--text-3);margin-bottom:16px">Training the attention model on your per‑second data…</div></sc-if>
 
     <!-- ── 1 · attention model: what on screen/said holds or loses viewers, per second ── -->
+    <sc-if value="{{ LAB.tab1 }}" hint-placeholder-val="{{ true }}">
     <sc-if value="{{ LAB.hasAtt }}" hint-placeholder-val="{{ true }}">
     <div style="position:relative;overflow:hidden;background:var(--surface);border:1px solid var(--cc);border-radius:16px;padding:20px 22px 20px 26px;box-shadow:var(--shadow);margin-bottom:26px">
       <div style="position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--cc)"></div>
@@ -1479,7 +1500,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
         <div style="flex:1;min-width:150px;background:var(--fill);border:1px solid var(--line);border-radius:11px;padding:12px 15px"><div class="cc-mono" style="font-size:9.5px;color:var(--text-3);margin-bottom:5px">TIME‑DECAY ALONE</div><div style="font-size:20px;font-weight:700;color:var(--text)">{{ LAB.attCvPos }}</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">knowing only the timestamp · content adds {{ LAB.attLift }}</div></div>
         <div style="flex:1;min-width:130px;background:var(--fill);border:1px solid var(--line);border-radius:11px;padding:12px 15px"><div class="cc-mono" style="font-size:9.5px;color:var(--text-3);margin-bottom:5px">AVG LOSS RATE</div><div style="font-size:20px;font-weight:700;color:var(--text)">{{ LAB.attHazard }}%/s</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">of remaining viewers, each second</div></div>
       </div>
-      <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--text-3);margin:2px 0 10px">WHAT HOLDS vs LOSES VIEWERS · <span style="color:#16a34a">green holds</span> · <span style="color:#dc2626">red bleeds</span> · <span style="color:var(--text-faint)">per‑second effect, all else equal · levers the model barely uses (&lt;0.5% weight) are hidden as noise</span></div>
+      <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--text-3);margin:2px 0 10px">WHAT HOLDS vs LOSES VIEWERS · <span style="color:var(--good)">green holds</span> · <span style="color:var(--bad)">red bleeds</span> · <span style="color:var(--text-faint)">per‑second effect, all else equal · levers the model barely uses (&lt;0.5% weight) are hidden as noise</span></div>
       <div style="display:flex;flex-direction:column;gap:6px">
         <sc-for list="{{ LAB.attDrivers }}" as="ad" hint-placeholder-count="8">
           <div style="display:grid;grid-template-columns:220px 1fr 92px;gap:12px;align-items:center">
@@ -1491,18 +1512,18 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
       </div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">
         <div style="flex:1;min-width:230px">
-          <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:#dc2626;margin-bottom:8px">BLEEDING MORE THAN CONTENT PREDICTS · <span style="color:var(--text-faint)">something unmeasured is hurting</span></div>
+          <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--bad);margin-bottom:8px">BLEEDING MORE THAN CONTENT PREDICTS · <span style="color:var(--text-faint)">something unmeasured is hurting</span></div>
           <div style="display:flex;flex-direction:column;gap:6px">
             <sc-for list="{{ LAB.attBad }}" as="ab" hint-placeholder-count="3">
-              <div onClick="{{ ab.open }}" style="display:flex;justify-content:space-between;gap:10px;background:var(--fill);border:1px solid var(--line);border-radius:9px;padding:8px 12px;cursor:pointer"><span style="font-size:12px;color:var(--text)">{{ ab.label }}</span><span style="font-size:11.5px;font-weight:700;color:#dc2626">{{ ab.valTxt }}</span></div>
+              <div onClick="{{ ab.open }}" style="display:flex;justify-content:space-between;gap:10px;background:var(--fill);border:1px solid var(--line);border-radius:9px;padding:8px 12px;cursor:pointer"><span style="font-size:12px;color:var(--text)">{{ ab.label }}</span><span style="font-size:11.5px;font-weight:700;color:var(--bad)">{{ ab.valTxt }}</span></div>
             </sc-for>
           </div>
         </div>
         <div style="flex:1;min-width:230px">
-          <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:#16a34a;margin-bottom:8px">HOLDING BETTER THAN PREDICTED · <span style="color:var(--text-faint)">rewatch to find the hidden edge</span></div>
+          <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--good);margin-bottom:8px">HOLDING BETTER THAN PREDICTED · <span style="color:var(--text-faint)">rewatch to find the hidden edge</span></div>
           <div style="display:flex;flex-direction:column;gap:6px">
             <sc-for list="{{ LAB.attGood }}" as="ag" hint-placeholder-count="3">
-              <div onClick="{{ ag.open }}" style="display:flex;justify-content:space-between;gap:10px;background:var(--fill);border:1px solid var(--line);border-radius:9px;padding:8px 12px;cursor:pointer"><span style="font-size:12px;color:var(--text)">{{ ag.label }}</span><span style="font-size:11.5px;font-weight:700;color:#16a34a">{{ ag.valTxt }}</span></div>
+              <div onClick="{{ ag.open }}" style="display:flex;justify-content:space-between;gap:10px;background:var(--fill);border:1px solid var(--line);border-radius:9px;padding:8px 12px;cursor:pointer"><span style="font-size:12px;color:var(--text)">{{ ag.label }}</span><span style="font-size:11.5px;font-weight:700;color:var(--good)">{{ ag.valTxt }}</span></div>
             </sc-for>
           </div>
         </div>
@@ -1510,43 +1531,45 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
       <p style="margin:14px 0 0;font-size:11px;color:var(--text-3);line-height:1.55">Per‑second effects compound: at your average loss rate, 30 seconds keeps ~18% of viewers — hold one green edge of −0.7pp/s over that stretch and ~22% survive, a quarter more audience. The two lists flag reels where something the model can't see (delivery, topic, audio) is helping or hurting — those are worth rewatching.</p>
     </div>
     </sc-if>
+    </sc-if>
 
     <!-- ── 2 · death moments: where viewers actually leave + which cuts cost retention ── -->
+    <sc-if value="{{ LAB.tab2 }}" hint-placeholder-val="{{ false }}">
     <div style="position:relative;overflow:hidden;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px 22px 22px 26px;box-shadow:var(--shadow);margin-bottom:26px">
-      <div style="position:absolute;left:0;top:0;bottom:0;width:4px;background:#dc2626"></div>
+      <div style="position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--bad)"></div>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
-        <span class="cc-mono" style="font-size:10px;letter-spacing:.1em;color:#dc2626">2 · DEATH MOMENTS</span>
+        <span class="cc-mono" style="font-size:10px;letter-spacing:.1em;color:var(--bad)">2 · DEATH MOMENTS</span>
         <span style="font-size:10.5px;color:var(--text-faint)">where viewers actually leave · exact per‑second retention × what's on screen</span>
       </div>
       <p style="margin:0 0 16px;font-size:13.5px;line-height:1.6;color:var(--text-2);max-width:720px">The 0–3s scroll‑off is universal. What's actionable is the <strong>second wave</strong> — the biggest drop after the hook — and which visual CUTS cost more retention than the reel's own natural decline. Every reel's own death moments are on its detail page.</p>
     <sc-if value="{{ LAB.dropsLoading }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:var(--text-3);margin-bottom:16px">Finding your death moments…</div></sc-if>
     <sc-if value="{{ LAB.hasDrops }}" hint-placeholder-val="{{ true }}">
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px">
-        <div style="flex:1;min-width:150px;background:rgba(220,38,38,.07);border:1px solid rgba(220,38,38,.35);border-radius:11px;padding:12px 15px"><div class="cc-mono" style="font-size:9.5px;letter-spacing:.06em;color:#dc2626;margin-bottom:4px">AVG HOOK SURVIVAL @3s</div><div style="font-size:22px;font-weight:700;color:var(--text)">{{ LAB.dropHook }}%</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">still watching after the scroll‑off</div></div>
+        <div style="flex:1;min-width:150px;background:rgba(220,38,38,.07);border:1px solid rgba(220,38,38,.35);border-radius:11px;padding:12px 15px"><div class="cc-mono" style="font-size:9.5px;letter-spacing:.06em;color:var(--bad);margin-bottom:4px">AVG HOOK SURVIVAL @3s</div><div style="font-size:22px;font-weight:700;color:var(--text)">{{ LAB.dropHook }}%</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">still watching after the scroll‑off</div></div>
         <div style="flex:1;min-width:150px;background:var(--fill);border:1px solid var(--line);border-radius:11px;padding:12px 15px"><div class="cc-mono" style="font-size:9.5px;letter-spacing:.06em;color:var(--text-3);margin-bottom:4px">BIGGEST POST‑HOOK CLIFF</div><div style="font-size:22px;font-weight:700;color:var(--text)">{{ LAB.dropWhen }}</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">where most reels take their next hit</div></div>
       </div>
       <sc-if value="{{ LAB.hasCuts }}" hint-placeholder-val="{{ false }}">
-        <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--text-3);margin:4px 0 9px"><span style="display:inline-block;width:7px;height:7px;border-radius:2px;background:#dc2626;margin-right:7px"></span>WHICH CUTS COST RETENTION · <span style="color:var(--text-faint)">n = how often the cut appears · −pts = extra retention lost vs the reel's own trend</span></div>
+        <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--text-3);margin:4px 0 9px"><span style="display:inline-block;width:7px;height:7px;border-radius:2px;background:var(--bad);margin-right:7px"></span>WHICH CUTS COST RETENTION · <span style="color:var(--text-faint)">n = how often the cut appears · −pts = extra retention lost vs the reel's own trend</span></div>
         <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:20px">
           <sc-for list="{{ LAB.dropCuts }}" as="cu" hint-placeholder-count="5">
             <div style="display:grid;grid-template-columns:minmax(0,1fr) 52px 110px 80px;gap:12px;align-items:center;background:var(--fill);border:1px solid var(--line);border-radius:11px;padding:10px 15px">
               <div style="font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ cu.transition }}</div>
               <div class="cc-mono" style="font-size:10.5px;color:var(--text-3)">{{ cu.meta }}</div>
               <div style="height:8px;background:var(--surface);border-radius:4px;overflow:hidden"><div style="{{ cu.barStyle }}"></div></div>
-              <div style="text-align:right"><span style="font-size:12px;font-weight:700;color:#dc2626">{{ cu.excessTxt }}</span></div>
+              <div style="text-align:right"><span style="font-size:12px;font-weight:700;color:var(--bad)">{{ cu.excessTxt }}</span></div>
             </div>
           </sc-for>
         </div>
       </sc-if>
       <sc-if value="{{ LAB.cutsPending }}" hint-placeholder-val="{{ false }}"><div style="font-size:12px;color:var(--text-3);margin:2px 0 20px">⏳ Scene‑cut costs appear once the structured visual backfill finishes.</div></sc-if>
-      <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--text-3);margin:4px 0 9px"><span style="display:inline-block;width:7px;height:7px;border-radius:2px;background:#dc2626;margin-right:7px"></span>STEEPEST POST‑HOOK CLIFFS · <span style="color:var(--text-faint)">click to open the reel</span></div>
+      <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--text-3);margin:4px 0 9px"><span style="display:inline-block;width:7px;height:7px;border-radius:2px;background:var(--bad);margin-right:7px"></span>STEEPEST POST‑HOOK CLIFFS · <span style="color:var(--text-faint)">click to open the reel</span></div>
       <div style="display:flex;flex-direction:column;gap:7px">
         <sc-for list="{{ LAB.dropCliffs }}" as="cl" hint-placeholder-count="6">
           <div onClick="{{ cl.open }}" style="display:grid;grid-template-columns:minmax(0,1fr) 44px 110px 52px;gap:12px;align-items:center;background:var(--fill);border:1px solid var(--line);border-radius:11px;padding:10px 15px;cursor:pointer">
             <div style="min-width:0;font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ cl.label }}</div>
             <div class="cc-mono" style="font-size:10.5px;color:var(--text-3);text-align:center">{{ cl.meta }}</div>
             <div style="height:8px;background:var(--surface);border-radius:4px;overflow:hidden"><div style="{{ cl.barStyle }}"></div></div>
-            <div style="text-align:right"><span style="font-size:12.5px;font-weight:700;color:#dc2626">{{ cl.dropTxt }}</span></div>
+            <div style="text-align:right"><span style="font-size:12.5px;font-weight:700;color:var(--bad)">{{ cl.dropTxt }}</span></div>
           </div>
         </sc-for>
       </div>
@@ -1554,7 +1577,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
 
     <!-- skip-rate model: what makes them swipe in the first instant -->
     <sc-if value="{{ LAB.hasSkipModel }}" hint-placeholder-val="{{ false }}">
-      <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--text-3);margin:20px 0 6px"><span style="display:inline-block;width:7px;height:7px;border-radius:2px;background:#dc2626;margin-right:7px"></span>WHAT MAKES THEM SWIPE · <span style="color:var(--text-faint)">skip‑rate model · LOO R² {{ LAB.skipR2 }} · n {{ LAB.skipN }} · effect in skip‑rate points · <span style="color:#16a34a">green = fewer skips</span></span></div>
+      <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--text-3);margin:20px 0 6px"><span style="display:inline-block;width:7px;height:7px;border-radius:2px;background:var(--bad);margin-right:7px"></span>WHAT MAKES THEM SWIPE · <span style="color:var(--text-faint)">skip‑rate model · LOO R² {{ LAB.skipR2 }} · n {{ LAB.skipN }} · effect in skip‑rate points · <span style="color:var(--good)">green = fewer skips</span></span></div>
       <div style="font-size:12px;color:var(--text-3);line-height:1.5;margin-bottom:10px;max-width:680px">{{ LAB.skipVerdict }}</div>
       <div style="display:flex;flex-direction:column;gap:6px">
         <sc-for list="{{ LAB.skipDrivers }}" as="sd" hint-placeholder-count="6">
@@ -1567,13 +1590,15 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
       </div>
     </sc-if>
     </div>
+    </sc-if>
 
     <!-- ── 3 · hooks: the opening lines themselves, measured ── -->
+    <sc-if value="{{ LAB.tab3 }}" hint-placeholder-val="{{ false }}">
     <sc-if value="{{ LAB.hasHooks }}" hint-placeholder-val="{{ false }}">
     <div style="position:relative;overflow:hidden;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px 22px 22px 26px;box-shadow:var(--shadow);margin-bottom:26px">
-      <div style="position:absolute;left:0;top:0;bottom:0;width:4px;background:#e0a458"></div>
+      <div style="position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--warn)"></div>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
-        <span class="cc-mono" style="font-size:10px;letter-spacing:.1em;color:#e0a458">3 · HOOKS</span>
+        <span class="cc-mono" style="font-size:10px;letter-spacing:.1em;color:var(--warn)">3 · HOOKS</span>
         <span style="font-size:10.5px;color:var(--text-faint)">your opening lines, measured · what is SAID in the first 3.5s · {{ LAB.hookN }} reels</span>
       </div>
       <p style="margin:0 0 14px;font-size:13.5px;line-height:1.6;color:var(--text-2);max-width:720px">Deterministic patterns (regex on the spoken opener — no AI opinions) contrasted on the two things a hook controls: the <strong>swipe</strong> and the <strong>3‑second hold</strong>. Descriptive averages at small n — where they agree with the models above, trust them.</p>
@@ -1588,7 +1613,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
         </sc-for>
       </div>
       <sc-if value="{{ LAB.hasTopics }}" hint-placeholder-val="{{ false }}">
-        <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--text-3);margin:2px 0 8px"><span style="display:inline-block;width:7px;height:7px;border-radius:2px;background:#e0a458;margin-right:7px"></span>TOPICS · <span style="color:var(--text-faint)">keyword‑detected, descriptive only — topic hurt the predictor when ablated (thin cells) · ⚠ = under 5 reels, read as anecdote</span></div>
+        <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--text-3);margin:2px 0 8px"><span style="display:inline-block;width:7px;height:7px;border-radius:2px;background:var(--warn);margin-right:7px"></span>TOPICS · <span style="color:var(--text-faint)">keyword‑detected, descriptive only — topic hurt the predictor when ablated (thin cells) · ⚠ = under 5 reels, read as anecdote</span></div>
         <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:18px">
           <div style="display:grid;grid-template-columns:minmax(0,1fr) 48px 96px 72px 84px;gap:12px;padding:0 15px" class="cc-mono"><span style="font-size:9px;color:var(--text-faint)">TOPIC</span><span style="font-size:9px;color:var(--text-faint)">N</span><span style="font-size:9px;color:var(--text-faint);text-align:right">MED VIEWS</span><span style="font-size:9px;color:var(--text-faint);text-align:right">SKIP</span><span style="font-size:9px;color:var(--text-faint);text-align:right">HOLD @3s</span></div>
           <sc-for list="{{ LAB.hookTopics }}" as="tp" hint-placeholder-count="5">
@@ -1604,7 +1629,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
       </sc-if>
       <div style="display:flex;gap:10px;flex-wrap:wrap">
         <div style="flex:1;min-width:280px">
-          <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:#16a34a;margin-bottom:8px">OPENERS THAT HELD · lowest skip · <span style="color:var(--text-faint)">click to open</span></div>
+          <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--good);margin-bottom:8px">OPENERS THAT HELD · lowest skip · <span style="color:var(--text-faint)">click to open</span></div>
           <div style="display:flex;flex-direction:column;gap:6px">
             <sc-for list="{{ LAB.hookBest }}" as="hb" hint-placeholder-count="4">
               <div onClick="{{ hb.open }}" style="background:var(--fill);border:1px solid var(--line);border-radius:9px;padding:9px 12px;cursor:pointer"><div style="font-size:12px;color:var(--text);line-height:1.45;font-style:italic">{{ hb.text }}</div><div class="cc-mono" style="font-size:9.5px;color:var(--text-3);margin-top:3px">{{ hb.meta }}</div></div>
@@ -1612,7 +1637,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
           </div>
         </div>
         <div style="flex:1;min-width:280px">
-          <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:#dc2626;margin-bottom:8px">OPENERS THAT GOT SWIPED · highest skip · <span style="color:var(--text-faint)">click to open</span></div>
+          <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--bad);margin-bottom:8px">OPENERS THAT GOT SWIPED · highest skip · <span style="color:var(--text-faint)">click to open</span></div>
           <div style="display:flex;flex-direction:column;gap:6px">
             <sc-for list="{{ LAB.hookWorst }}" as="hw" hint-placeholder-count="4">
               <div onClick="{{ hw.open }}" style="background:var(--fill);border:1px solid var(--line);border-radius:9px;padding:9px 12px;cursor:pointer"><div style="font-size:12px;color:var(--text);line-height:1.45;font-style:italic">{{ hw.text }}</div><div class="cc-mono" style="font-size:9.5px;color:var(--text-3);margin-top:3px">{{ hw.meta }}</div></div>
@@ -1622,13 +1647,15 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
       </div>
     </div>
     </sc-if>
+    </sc-if>
 
     <!-- ── 4 · view predictor: does held attention convert to views ── -->
+    <sc-if value="{{ LAB.tab4 }}" hint-placeholder-val="{{ false }}">
     <sc-if value="{{ LAB.hasPredict }}" hint-placeholder-val="{{ true }}">
     <div style="position:relative;overflow:hidden;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px 22px 20px 26px;box-shadow:var(--shadow);margin:0">
-      <div style="position:absolute;left:0;top:0;bottom:0;width:4px;background:#16a34a"></div>
+      <div style="position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--good)"></div>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
-        <span class="cc-mono" style="font-size:10px;letter-spacing:.1em;color:#16a34a">4 · VIEW PREDICTOR</span>
+        <span class="cc-mono" style="font-size:10px;letter-spacing:.1em;color:var(--good)">4 · VIEW PREDICTOR</span>
         <span style="font-size:10.5px;color:var(--text-faint)">content → retention → engagement, stacked · leave‑one‑out CV · maturity‑controlled</span>
       </div>
       <div style="font-size:13.5px;line-height:1.6;color:var(--text-2);margin-bottom:16px">{{ LAB.predVerdict }}</div>
@@ -1651,6 +1678,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
       <p style="margin:14px 0 0;font-size:11px;color:var(--text-3);line-height:1.55">R² is out‑of‑sample (leave‑one‑out): 0 = no better than guessing your average, 1 = perfect. Content covers the deterministic script + format + posting features (regex over your transcripts, counted frames, the timestamp). The engagement tier only exists <em>after</em> posting and its rates use views as denominator — read those coefficients as quality signals, not levers you can pull in advance. Too‑fresh reels are excluded so unsettled view counts don't skew it.</p>
     </div>
     </sc-if>
+    </sc-if>
 
     <p style="margin:24px 0 0;font-size:11.5px;color:var(--text-3);line-height:1.55">Everything above is measured and honestly cross‑validated — strong enough to rank what to try next, not to prove cause. The proof is changing ONE lever in a new reel (e.g. cut the stale scene at its predicted death moment) and watching its curve beat the model's prediction.</p>
   </main>
@@ -1670,7 +1698,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
         <button onClick="{{ CLIP.refreshAll }}" title="Fetch every posted clip's public views (YouTube/TikTok)" style="font-size:12px;font-weight:600;color:var(--text-2);background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:8px 13px;cursor:pointer;font-family:inherit;white-space:nowrap">{{ CLIP.refreshAllLabel }}</button>
       </div>
     </div>
-    <sc-if value="{{ CLIP.error }}" hint-placeholder-val="{{ false }}"><div style="padding:8px 26px;font-size:12.5px;color:#dc2626">{{ CLIP.error }}</div></sc-if>
+    <sc-if value="{{ CLIP.error }}" hint-placeholder-val="{{ false }}"><div style="padding:8px 26px;font-size:12.5px;color:var(--bad)">{{ CLIP.error }}</div></sc-if>
     <div style="flex:1;display:grid;grid-template-columns:320px 1fr;min-height:0">
       <div class="sg-scroll" style="border-right:1px solid var(--line);overflow-y:auto;padding:16px">
         <button onClick="{{ CLIP.addClipper }}" style="width:100%;padding:9px;margin-bottom:12px;border-radius:10px;border:1px dashed var(--line);background:none;color:var(--text-2);font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit">+ Add clipper account</button>
@@ -1691,7 +1719,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
       <div class="sg-scroll" style="overflow-y:auto;padding:22px 26px">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:16px">
           <input value="{{ CLIP.nameVal }}" onInput="{{ CLIP.nameInput }}" onChange="{{ CLIP.nameCommit }}" style="font-size:20px;font-weight:800;letter-spacing:-.02em;border:none;background:none;color:var(--text);font-family:inherit;padding:0;min-width:160px;outline:none"/>
-          <button onClick="{{ CLIP.del }}" style="font-size:11.5px;color:#dc2626;background:none;border:1px solid var(--line);border-radius:8px;padding:5px 11px;cursor:pointer;font-family:inherit">{{ CLIP.delLabel }}</button>
+          <button onClick="{{ CLIP.del }}" style="font-size:11.5px;color:var(--bad);background:none;border:1px solid var(--line);border-radius:8px;padding:5px 11px;cursor:pointer;font-family:inherit">{{ CLIP.delLabel }}</button>
         </div>
         <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:16px">
           <div class="cc-mono" style="font-size:10px;letter-spacing:.08em;color:var(--text-3);margin-bottom:10px">PLATFORMS &amp; ACCOUNTS</div>
@@ -1706,7 +1734,7 @@ body{margin:0;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialias
         </div>
         <div style="display:flex;align-items:center;gap:11px;margin-bottom:16px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:11px 16px">
           <span style="font-size:13px;font-weight:700;color:#ff0000">▶ YouTube API</span>
-          <sc-if value="{{ CLIP.ytConnected }}" hint-placeholder-val="{{ false }}"><span style="font-size:12.5px;color:#16a34a;font-weight:600">✓ {{ CLIP.ytChannel }}</span></sc-if>
+          <sc-if value="{{ CLIP.ytConnected }}" hint-placeholder-val="{{ false }}"><span style="font-size:12.5px;color:var(--good);font-weight:600">✓ {{ CLIP.ytChannel }}</span></sc-if>
           <sc-if value="{{ !CLIP.ytConnected }}" hint-placeholder-val="{{ true }}"><span style="font-size:12px;color:var(--text-3)">post clips automatically from the dashboard</span></sc-if>
           <button onClick="{{ CLIP.ytConnect }}" style="margin-left:auto;font-size:12px;font-weight:600;color:var(--cc);background:var(--cc-soft);border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer;font-family:inherit;white-space:nowrap">{{ CLIP.ytConnectLabel }}</button>
         </div>
@@ -1772,7 +1800,7 @@ class Component extends DCLogic {
   constructor(props){
     super(props);
     this.MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    this.state = { view:'overview', sel:null, range:'30D', sort:'reach', loading:true, syncing:false, loadError:null, analysis:null, analysisFor:null, analysisLoading:false,
+    this.state = { view:(function(){ try{ var h=(location.hash||'').replace('#',''); return ['content','pipeline','discovery','studio','lab','clippers'].indexOf(h)>=0?h:'overview'; }catch(e){ return 'overview'; } })(), sel:null, range:'30D', sort:'reach', loading:true, syncing:false, loadError:null, analysis:null, analysisFor:null, analysisLoading:false,
       ccUrl:'', ccLoading:false, ccResult:null, ccError:'', ccTab:'frames', ccScript:'', ccScriptLoading:false, ccBrief:'', ccProgress:0, ccStep:'',
       ccAnimScript:null, ccStoryboard:null, ccStoryLoading:false, ccStoryError:'', ccFrameHtml:{}, ccFrameBusy:{}, ccRenderingAll:false, ccZoom:null,
       ccSel:{}, ccExporting:false, ccSaving:false, ccSaved:'',
@@ -1855,7 +1883,7 @@ class Component extends DCLogic {
     return { line:d, area:d+'L'+X(n-1).toFixed(1)+' '+(h-pb).toFixed(1)+'L'+X(0).toFixed(1)+' '+(h-pb).toFixed(1)+'Z' };
   }
 
-  heatColor(v){ if(v>=78)return'#15a34a'; if(v>=62)return'#6aa11c'; if(v>=46)return'#caa006'; if(v>=32)return'#e07b16'; return'#dc2626'; }
+  heatColor(v){ if(v>=78)return'#15a34a'; if(v>=62)return'#6aa11c'; if(v>=46)return'#caa006'; if(v>=32)return'#e07b16'; return'var(--bad)'; }
 
   // Retention is not exposed by the Graph API; model a decay curve whose mean
   // watch fraction matches the real avg watch time (len is real, probed from
@@ -1915,9 +1943,9 @@ class Component extends DCLogic {
     return this.buildPath(v,96,32,3,3,5,5,mn-pad,mx+pad);
   }
 
-  deltaStyle(up){ return { display:'inline-flex',alignItems:'center',gap:'5px',marginTop:'11px',fontSize:'12px',fontWeight:'600',color: up?'#16a34a':'#dc2626' }; }
+  deltaStyle(up){ return { display:'inline-flex',alignItems:'center',gap:'5px',marginTop:'11px',fontSize:'12px',fontWeight:'600',color: up?'var(--good)':'var(--bad)' }; }
   deltaMuted(){ return { display:'inline-flex',alignItems:'center',gap:'5px',marginTop:'11px',fontSize:'12px',fontWeight:'600',color:'#9ca3af' }; }
-  chip(up){ return { display:'inline-flex',alignItems:'center',gap:'3px',fontSize:'11.5px',fontWeight:'600',padding:'2px 8px',borderRadius:'999px',background: up?'#ecfdf3':'#fef2f2',color: up?'#16a34a':'#dc2626' }; }
+  chip(up){ return { display:'inline-flex',alignItems:'center',gap:'3px',fontSize:'11.5px',fontWeight:'600',padding:'2px 8px',borderRadius:'999px',background: up?'#ecfdf3':'#fef2f2',color: up?'var(--good)':'var(--bad)' }; }
 
   // ── transform payload → internal model ──────────────────────────────────
   buildFromPayload(payload){
@@ -2063,7 +2091,7 @@ class Component extends DCLogic {
     const dot = v=>({ width:'9px',height:'9px',borderRadius:'50%',background:this.heatColor(v),flex:'none' });
     const keyMoments=[
       { label:'Hook (first 3s)', sub:'Viewers still watching', value:this.pct(r.hook), dotStyle:dot(r.hook) },
-      { label:'Biggest drop', sub:'at '+this.fmtT(r.dropAt)+' · −'+Math.round(r.dropPct)+'pts', value:'−'+Math.round(r.dropPct)+'%', dotStyle:{width:'9px',height:'9px',borderRadius:'50%',background:'#dc2626',flex:'none'} },
+      { label:'Biggest drop', sub:'at '+this.fmtT(r.dropAt)+' · −'+Math.round(r.dropPct)+'pts', value:'−'+Math.round(r.dropPct)+'%', dotStyle:{width:'9px',height:'9px',borderRadius:'50%',background:'var(--bad)',flex:'none'} },
       { label:'Midpoint', sub:'Halfway through the reel', value:this.pct(r.mid), dotStyle:dot(r.mid) },
       { label:'Completion', sub:'Reached the end', value:this.pct(r.completion), dotStyle:dot(r.completion) }
     ];
@@ -2081,7 +2109,7 @@ class Component extends DCLogic {
       { icon:'🔖', label:'Save rate', v:rt.save, b:bench.save },
       { icon:'⟳', label:'Repost rate', v: r.repostRate!=null?r.repostRate:rt.repost, b:bench.repost },
       { icon:'💬', label:'Comment rate', v:rt.comment, b:bench.comment }
-    ].map(x=>{ const g=benchGood(x.label,x.b); return { icon:x.icon, label:x.label, value:fmtRate(x.v), valStyle:{ fontSize:'15px', fontWeight:'660', color: x.v==null?'var(--text-faint)':'var(--text)' }, benchText: x.b?(/high/i.test(x.b)?'Higher':'Lower'):'', benchStyle: x.b?{ fontSize:'10px', fontWeight:'700', color: g?'#16a34a':'#dc2626', marginTop:'1px' }:{ display:'none' } }; });
+    ].map(x=>{ const g=benchGood(x.label,x.b); return { icon:x.icon, label:x.label, value:fmtRate(x.v), valStyle:{ fontSize:'15px', fontWeight:'660', color: x.v==null?'var(--text-faint)':'var(--text)' }, benchText: x.b?(/high/i.test(x.b)?'Higher':'Lower'):'', benchStyle: x.b?{ fontSize:'10px', fontWeight:'700', color: g?'var(--good)':'var(--bad)', marginTop:'1px' }:{ display:'none' } }; });
     const dataSrc=(this.db&&this.db.meta&&this.db.meta.source)||'';
     let summary;
     if(dataSrc==='supabase'){
@@ -2130,7 +2158,7 @@ class Component extends DCLogic {
       miniBtnStyle:{ padding:'7px 12px',borderRadius:'8px',border:'1px solid var(--line)',background:'var(--surface)',color:'var(--text-2)',fontSize:'12.5px',fontWeight:'600',cursor:'pointer',fontFamily:'inherit' } };
     // reel audit (this reel vs the Lab's measured best practices)
     const auData=(sdv.reelAuditFor===(sdv.selCode||r.id))?sdv.reelAudit:null;
-    const AV={ pass:['✓','#16a34a'], warn:['△','#e0a458'], fail:['✕','#dc2626'], info:['i','#64748b'] };
+    const AV={ pass:['✓','var(--good)'], warn:['△','var(--warn)'], fail:['✕','var(--bad)'], info:['i','#64748b'] };
     const auditRows=((auData&&auData.checks)||[]).map(c=>{ const v=AV[c.verdict]||AV.info;
       return { icon:v[0], iconStyle:{ flex:'none', width:'20px', height:'20px', borderRadius:'6px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'11px', fontWeight:'800', color:'#fff', background:v[1], marginTop:'1px' }, label:c.label, value:c.value||'', why:c.why||'' }; });
     const auRatio=auData&&auData.score&&auData.score.total ? auData.score.pass/auData.score.total : 0;
@@ -2141,12 +2169,12 @@ class Component extends DCLogic {
       auditHas: auditRows.length>0, auditLoading: !!sdv.reelAuditLoading && !auData, auditRows,
       auditEmpty: !auditRows.length && !sdv.reelAuditLoading && sdv.reelAuditFor===(sdv.selCode||r.id),
       auditScore: auData&&auData.score ? (auData.score.pass+' / '+auData.score.total+' best practices') : '',
-      auditScoreStyle:{ fontSize:'11px', fontWeight:'700', padding:'4px 10px', borderRadius:'999px', color:'#fff', background: auRatio>=0.75?'#16a34a':auRatio>=0.5?'#e0a458':'#dc2626' },
+      auditScoreStyle:{ fontSize:'11px', fontWeight:'700', padding:'4px 10px', borderRadius:'999px', color:'#fff', background: auRatio>=0.75?'var(--good)':auRatio>=0.5?'var(--warn)':'var(--bad)' },
       linkText: linkReal?'Open on Instagram ↗':'', linkStyle: linkReal?{ alignSelf:'flex-start',marginTop:'14px',fontSize:'13px',fontWeight:'600',color:'#6366f1',textDecoration:'none' }:{ display:'none' },
       summary, kpiCards,
       retSub: r.retReal ? ('Real audience retention, read from your Instagram insights recording — the actual drop-off across the '+this.fmtT(r.len)+' video.') : ('Estimated from average watch time across the '+this.fmtT(r.len)+' video — the Graph API does not expose per-second retention.'),
       retReal: !!r.retReal, retBadge: r.retReal?'MEASURED':'ESTIMATED',
-      retBadgeStyle: r.retReal?{fontSize:'9px',fontWeight:'700',letterSpacing:'.06em',color:'#fff',background:'#16a34a',padding:'3px 8px',borderRadius:'99px'}:{fontSize:'9px',fontWeight:'700',letterSpacing:'.06em',color:'var(--text-3)',background:'var(--fill)',padding:'3px 8px',borderRadius:'99px'},
+      retBadgeStyle: r.retReal?{fontSize:'9px',fontWeight:'700',letterSpacing:'.06em',color:'#fff',background:'var(--good)',padding:'3px 8px',borderRadius:'99px'}:{fontSize:'9px',fontWeight:'700',letterSpacing:'.06em',color:'var(--text-3)',background:'var(--fill)',padding:'3px 8px',borderRadius:'99px'},
       retLine:rp.line, retArea:rp.area, dropX:+dropX.toFixed(1), dropY:+dropY.toFixed(1),
       retHasHover:rHas,
       retHoverX: rHas?+rHX(rhi).toFixed(1):0, retHoverY: rHas?+rHY(rFull[rhi]).toFixed(1):0,
@@ -2169,20 +2197,23 @@ class Component extends DCLogic {
   headerVals(){
     const m = this.db ? this.db.meta : {};
     let syncText, dot;
-    if(this.state.syncing){ syncText='Syncing…'; dot='#d97706'; }
-    else if(this.state.loadError){ syncText='Sync failed'; dot='#dc2626'; }
-    else if(m.source==='demo'){ syncText='Demo data · not connected'; dot='#d97706'; }
-    else if(m.source==='supabase'){ syncText='Your reels · from Supabase (no live token)'; dot='#6366f1'; }
-    else if(m.source==='live'){ syncText='Synced from Meta · '+this.relTime(m.fetchedAt); dot='#16a34a'; }
-    else { syncText='Loading…'; dot='#9ca3af'; }
+    if(this.state.syncing){ syncText='Syncing from Instagram…'; dot='var(--warn)'; }
+    else if(this.state.loadError){ syncText='Sync failed — retry'; dot='var(--bad)'; }
+    else if(m.source==='demo'){ syncText='Sample data · connect Instagram'; dot='var(--warn)'; }
+    else if(m.source==='supabase'){ syncText=(m.liveCapable===false)?'Your reels · connect Instagram to sync':'Your reels · click to sync'; dot='var(--accent)'; }
+    else if(m.source==='live'){ syncText='Synced from Instagram · '+this.relTime(m.fetchedAt); dot='var(--good)'; }
+    else { syncText='Loading…'; dot='var(--text-faint)'; }
+    const email=(window.cwEmail||'');
     return {
       account: (this.db && this.db.meta && this.db.meta.username) || 'Instagram reels',
+      accountInitial: (email||'c').slice(0,1).toUpperCase(),
       syncText,
-      syncDotStyle: { width:'7px',height:'7px',borderRadius:'50%',background:dot,boxShadow:'0 0 0 3px '+dot+'22' },
+      syncDotStyle: { width:'7px',height:'7px',borderRadius:'50%',background:dot,boxShadow:'0 0 0 3px color-mix(in srgb, '+dot+' 18%, transparent)',flex:'none' },
       refresh: ()=>this.refresh(),
       refreshing: !!this.state.syncing,
-      refreshLabel: this.state.syncing ? 'Refreshing…' : 'Refresh',
-      refreshBtnStyle: { display:'inline-flex',alignItems:'center',gap:'6px',padding:'6px 12px',borderRadius:'8px',border:'1px solid var(--line)',background:'var(--surface)',color:'var(--text-2)',fontSize:'12px',fontWeight:'600',cursor:'pointer',fontFamily:'inherit' },
+      refreshLabel: this.state.syncing ? 'Syncing…' : 'Sync',
+      refreshBtnStyle: { display:'inline-flex',alignItems:'center',gap:'6px',padding:'7px 13px',borderRadius:'9px',border:'1px solid var(--line)',background:'var(--surface)',color:'var(--text-2)',fontSize:'12px',fontWeight:'600',cursor:'pointer',fontFamily:'inherit',boxShadow:'var(--shadow)' },
+      navMediakitStyle: { padding:'6px 12px',borderRadius:'8px',fontSize:'12.5px',fontWeight:'500',cursor:'pointer',border:'none',background:'transparent',color:'var(--text-3)',fontFamily:'inherit',textDecoration:'none',display:'inline-flex',alignItems:'center' },
       themeToggle: ()=>this.toggleTheme(),
       themeIcon: this.state.theme==='dark' ? '☀' : '☾',
       themeBtnStyle: { display:'inline-flex',alignItems:'center',justifyContent:'center',width:'30px',height:'30px',borderRadius:'8px',border:'1px solid var(--line)',background:'var(--surface)',color:'var(--text-2)',fontSize:'14px',cursor:'pointer',fontFamily:'inherit' },
@@ -2217,7 +2248,7 @@ class Component extends DCLogic {
     };
   }
 
-  tabStyle(active){ return { padding:'6px 12px',borderRadius:'8px',fontSize:'12.5px',fontWeight:'600',cursor:'pointer',border:'none',background:active?'var(--text)':'transparent',color:active?'var(--bg)':'var(--text-2)',fontFamily:'inherit' }; }
+  tabStyle(active){ return { padding:'6px 12px',borderRadius:'8px',fontSize:'12.5px',fontWeight:active?'650':'500',cursor:'pointer',border:'none',background:active?'var(--surface)':'transparent',color:active?'var(--text)':'var(--text-3)',boxShadow:active?'0 1px 3px rgba(15,18,26,.12), inset 0 0 0 1px var(--line)':'none',fontFamily:'inherit',transition:'color .15s,background .15s' }; }
   ccTabStyle(active){ return { padding:'9px 14px',background:'none',border:'none',borderBottom:active?'2px solid var(--text)':'2px solid transparent',color:active?'var(--text)':'var(--text-3)',fontSize:'13.5px',fontWeight:'600',cursor:'pointer',fontFamily:'inherit',marginBottom:'-1px' }; }
 
   setView(v){ this.setState({ view:v }); if(typeof window!=='undefined') window.scrollTo(0,0); }
@@ -2505,8 +2536,15 @@ class Component extends DCLogic {
   }
   labVals(){
     const s=this.state, d=s.labData||{}, outcome=d.outcome||s.labOutcome||'rate';
-    const STAT={ supported:'#16a34a', weak:'#e0a458', inconclusive:'var(--text-3)', refuted:'#dc2626' };
+    const STAT={ supported:'var(--good)', weak:'var(--warn)', inconclusive:'var(--text-3)', refuted:'var(--bad)' };
     const exp=d.experiment;
+    // sub-tabs — one model per view so each story is readable on its own
+    const _labTab=s.labTab||'att';
+    const _tabDefs=[ ['att','Attention model','var(--cc)'], ['drops','Death moments','var(--bad)'], ['hooks','Hooks','var(--warn)'], ['pred','View predictor','var(--good)'] ];
+    const labTabs=_tabDefs.map(([k,label,c])=>({ label,
+      click:()=>this.setState({ labTab:k }),
+      style:{ display:'inline-flex',alignItems:'center',gap:'7px',padding:'7px 14px',borderRadius:'9px',fontSize:'12.5px',fontWeight:_labTab===k?'650':'500',cursor:'pointer',border:'none',fontFamily:'inherit',background:_labTab===k?'var(--surface)':'transparent',color:_labTab===k?'var(--text)':'var(--text-3)',boxShadow:_labTab===k?'0 1px 3px rgba(15,18,26,.12), inset 0 0 0 1px var(--line)':'none' },
+      dotStyle:{ width:'7px',height:'7px',borderRadius:'50%',background:c,flex:'none',opacity:_labTab===k?'1':'.4' } }));
     const _catOf=(f)=>{ f=String(f||'');
       if(f.indexOf('hook')===0||f==='opens_on_face') return 'hook';
       if(['uses_screen_demo','has_ui_animation','text_overlay_density','visual_pace','has_diagram_or_data','talking_head_share','high_visual_intensity','opens_energy','has_burned_captions','person_presence','screen_demo_level','scene_variety','motion_style','caption_style','has_big_hook_text','primary_app'].indexOf(f)>=0) return 'visual';
@@ -2520,7 +2558,7 @@ class Component extends DCLogic {
       effect:(h.effect>0?'+':'')+h.effect,
       n:h.n_with+' / '+h.n_without,
       conf:Math.round((h.confidence||0)*100),
-      confBarStyle:{ height:'100%', width:Math.max(2,Math.round((h.confidence||0)*100))+'%', background:(h.effect>0?'var(--cc)':'#dc2626'), borderRadius:'999px' },
+      confBarStyle:{ height:'100%', width:Math.max(2,Math.round((h.confidence||0)*100))+'%', background:(h.effect>0?'var(--cc)':'var(--bad)'), borderRadius:'999px' },
       status:h.status,
       statusStyle:{ fontSize:'10.5px', fontWeight:'700', padding:'2px 9px', borderRadius:'999px', color:'#fff', background:(STAT[h.status]||'var(--text-3)'), textTransform:'uppercase', letterSpacing:'.03em' },
       shared:!!h.shared_by_losers,
@@ -2539,7 +2577,7 @@ class Component extends DCLogic {
         return { label:x.label, n:'n '+x.n,
           holdTxt:(hu?'+':'')+x.hold3s_delta+' @3s', holdStyle:this.chip(hu),
           complTxt:(cu?'+':'')+x.completion_delta+' end', complStyle:this.chip(cu),
-          sig: sig?'p<0.05':'directional', sigStyle:{ fontSize:'10px',fontWeight:'700',padding:'2px 8px',borderRadius:'999px',color: sig?'#fff':'var(--text-3)', background: sig?'#16a34a':'var(--fill)' },
+          sig: sig?'p<0.05':'directional', sigStyle:{ fontSize:'10px',fontWeight:'700',padding:'2px 8px',borderRadius:'999px',color: sig?'#fff':'var(--text-3)', background: sig?'var(--good)':'var(--fill)' },
           dropTxt: (x.biggest_drop_at_pct!=null&&x.biggest_drop_loss>0) ? ('body drop @'+x.biggest_drop_at_pct+'%') : '',
           curvePath: x.curve_with ? this.buildPath(x.curve_with,120,44,2,2,5,6,0,100).line : '',
           basePath: _rov ? this.buildPath(_rov,120,44,2,2,5,6,0,100).line : '',
@@ -2551,7 +2589,7 @@ class Component extends DCLogic {
     const _cutsArr=(_dd.costlyCuts||[]).filter(c=>c.avgExcessDrop>0).slice(0,6);
     const _cutMax=Math.max(0.1,..._cutsArr.map(c=>c.avgExcessDrop));
     const _clArr=(_dd.worstCliffs||[]); const _clMax=Math.max(1,..._clArr.map(c=>c.dropPts));
-    const _redBar=(frac)=>({ height:'100%', width:Math.max(4,Math.round(frac*100))+'%', background:'#dc2626', opacity:'0.72', borderRadius:'4px' });
+    const _redBar=(frac)=>({ height:'100%', width:Math.max(4,Math.round(frac*100))+'%', background:'var(--bad)', opacity:'0.72', borderRadius:'4px' });
     const DROPS={ hook:(_dd.avgHookRetention!=null?_dd.avgHookRetention:null), when:(_whenTop&&_whenTop[1]>0?_whenTop[0]:'—'),
       cuts:_cutsArr.map(c=>({ transition:c.transition, meta:'n '+c.n, excessTxt:'−'+c.avgExcessDrop+' pts', barStyle:_redBar(c.avgExcessDrop/_cutMax) })),
       cliffs:_clArr.map(c=>({ label:c.shortcode+' · '+(c.scene||'—'), meta:'@'+c.sec+'s', dropTxt:'−'+c.dropPts, barStyle:_redBar(c.dropPts/_clMax), open:()=>{ if(typeof window!=='undefined') window.open('https://www.instagram.com/reel/'+c.shortcode+'/','_blank'); } })) };
@@ -2566,7 +2604,7 @@ class Component extends DCLogic {
       verdict:(()=>{ const c=_pd.contentR2, r=_pd.retentionR2, e=_pd.fullR2; if(c==null||r==null) return 'Training the view model…';
         const base='What you control up front — format, opening structure (first cut, demo timing), hook script (question/number/du), CTA, tool named, posting time — predicts R² '+c.toFixed(2)+'. Adding how the first seconds actually held (+ skip rate) lifts it to '+r.toFixed(2)+(e!=null?'; adding after‑the‑fact engagement quality reaches '+e.toFixed(2):'')+'.';
         return base+((r-c)>=0.15?' The biggest lever you control in advance is still the first seconds — everything past that is quality you can only read after posting.':' Up‑front choices carry a real share of what’s predictable here.'); })(),
-      drivers:_drv.slice(0,9).map(d=>{ const pos=d.coef>=0; const w=Math.round(Math.abs(d.coef)/_pmax*50); return { label:this._predLabel(d.feature), coefTxt:(pos?'+':'')+d.coef, color:pos?'#16a34a':'#dc2626', barStyle:{ position:'absolute', top:'0', height:'100%', width:w+'%', background:pos?'#16a34a':'#dc2626', opacity:'0.72', ...(pos?{ left:'50%', borderRadius:'0 5px 5px 0' }:{ right:'50%', borderRadius:'5px 0 0 5px' }) } }; }) };
+      drivers:_drv.slice(0,9).map(d=>{ const pos=d.coef>=0; const w=Math.round(Math.abs(d.coef)/_pmax*50); return { label:this._predLabel(d.feature), coefTxt:(pos?'+':'')+d.coef, color:pos?'var(--good)':'var(--bad)', barStyle:{ position:'absolute', top:'0', height:'100%', width:w+'%', background:pos?'var(--good)':'var(--bad)', opacity:'0.72', ...(pos?{ left:'50%', borderRadius:'0 5px 5px 0' }:{ right:'50%', borderRadius:'5px 0 0 5px' }) } }; }) };
     // skip-rate model → what makes them swipe (served with /api/predict)
     const _sk=_pd.skip||{}; const _skd=(_sk.drivers||[]).slice(0,7);
     const _skmax=Math.max(0.1,..._skd.map(d=>Math.abs(d.coef)));
@@ -2574,8 +2612,8 @@ class Component extends DCLogic {
       r2:(_sk.looR2!=null?_sk.looR2.toFixed(2):'—'), n:_sk.n||0,
       verdict:(_sk.looR2!=null?(_sk.looR2>=0.1?('Measured content explains R² '+_sk.looR2.toFixed(2)+' of who swipes away — the rest is thumbnail and feed context we can’t see. Effects below are per trait, all else equal.'):'Content barely predicts the swipe (R² '+_sk.looR2.toFixed(2)+') — the decision is mostly thumbnail/feed context we can’t measure. Treat directions as weak leads.'):''),
       drivers:_skd.map(d=>{ const good=d.coef<0; const w=Math.round(Math.abs(d.coef)/_skmax*50);
-        return { label:this._predLabel(d.feature), coefTxt:(d.coef>0?'+':'')+d.coef+'pp', color:good?'#16a34a':'#dc2626',
-          barStyle:{ position:'absolute', top:'0', height:'100%', width:w+'%', background:good?'#16a34a':'#dc2626', opacity:'0.72', ...(good?{ left:'50%', borderRadius:'0 5px 5px 0' }:{ right:'50%', borderRadius:'5px 0 0 5px' }) } }; }) };
+        return { label:this._predLabel(d.feature), coefTxt:(d.coef>0?'+':'')+d.coef+'pp', color:good?'var(--good)':'var(--bad)',
+          barStyle:{ position:'absolute', top:'0', height:'100%', width:w+'%', background:good?'var(--good)':'var(--bad)', opacity:'0.72', ...(good?{ left:'50%', borderRadius:'0 5px 5px 0' }:{ right:'50%', borderRadius:'5px 0 0 5px' }) } }; }) };
     // attention model → headline accuracy, per-second drivers, residual reels
     const _ad=s.labAttData||{}; const _acv=_ad.cv||{};
     const _adrv=(_ad.contentDrivers||[]).slice(0,9);
@@ -2589,8 +2627,8 @@ class Component extends DCLogic {
       hazard:(_ad.avgHazardPct!=null?_ad.avgHazardPct:'—'),
       verdict:(_acv.full!=null?('Second‑to‑second, the model explains R² '+_acv.full.toFixed(2)+' of your audience loss out‑of‑sample. The universal time‑decay curve alone explains '+(_acv.positionOnly!=null?_acv.positionOnly.toFixed(2):'—')+' — your on‑screen choices add the rest. The green levers below measurably slow the bleed, each estimated with everything else held equal.'):'Training…'),
       drivers:_adrv.map(d=>{ const holds=d.effectPp<0; const w=Math.round(Math.abs(d.effectPp)/_amax*50);
-        return { label:this._attLabel(d.feature), meta:'model weight '+d.importancePct+'%', effTxt:(d.effectPp>0?'+':'')+d.effectPp+'pp/s', color:holds?'#16a34a':'#dc2626',
-          barStyle:{ position:'absolute', top:'0', height:'100%', width:w+'%', background:holds?'#16a34a':'#dc2626', opacity:'0.72', ...(holds?{ left:'50%', borderRadius:'0 5px 5px 0' }:{ right:'50%', borderRadius:'5px 0 0 5px' }) } }; }),
+        return { label:this._attLabel(d.feature), meta:'model weight '+d.importancePct+'%', effTxt:(d.effectPp>0?'+':'')+d.effectPp+'pp/s', color:holds?'var(--good)':'var(--bad)',
+          barStyle:{ position:'absolute', top:'0', height:'100%', width:w+'%', background:holds?'var(--good)':'var(--bad)', opacity:'0.72', ...(holds?{ left:'50%', borderRadius:'0 5px 5px 0' }:{ right:'50%', borderRadius:'5px 0 0 5px' }) } }; }),
       bad:_resid.slice(0,3).filter(r=>r.avgExcessHazardPp>0.3).map(r=>({ label:r.shortcode, valTxt:'+'+r.avgExcessHazardPp+'pp/s', open:_openIg(r.shortcode) })),
       good:_resid.slice(-3).reverse().filter(r=>r.avgExcessHazardPp<-0.3).map(r=>({ label:r.shortcode, valTxt:r.avgExcessHazardPp+'pp/s', open:_openIg(r.shortcode) })) };
     // hook patterns + the actual best/worst opening lines
@@ -2600,8 +2638,8 @@ class Component extends DCLogic {
     const _opener=(r)=>({ text:'“'+(r.text||'').slice(0,92)+((r.text||'').length>92?'…':'')+'”', meta:'skip '+r.skip+'% · hold '+(r.hold3!=null?r.hold3+'%':'—')+' @3s · '+this.fmtK(r.views)+' views', open:_openIg(r.shortcode) });
     const HOOKS={ has: !!s.labHooksLoaded && _hp.length>0, n:_hk.n||0,
       rows:_hp.map(p=>({ label:p.label, meta:'n '+p.n+' / '+p.nWithout,
-        skipTxt:(p.skipDelta!=null?((p.skipDelta>0?'+':'')+p.skipDelta+'pp skips'):'—'), skipStyle:{fontSize:'11.5px',fontWeight:'700',color:(p.skipDelta!=null&&p.skipDelta<0)?'#16a34a':'#dc2626'},
-        holdTxt:(p.holdDelta!=null?((p.holdDelta>0?'+':'')+p.holdDelta+'pp hold @3s'):'—'), holdStyle:{fontSize:'11.5px',fontWeight:'700',color:(p.holdDelta!=null&&p.holdDelta>0)?'#16a34a':'#dc2626'} })),
+        skipTxt:(p.skipDelta!=null?((p.skipDelta>0?'+':'')+p.skipDelta+'pp skips'):'—'), skipStyle:{fontSize:'11.5px',fontWeight:'700',color:(p.skipDelta!=null&&p.skipDelta<0)?'var(--good)':'var(--bad)'},
+        holdTxt:(p.holdDelta!=null?((p.holdDelta>0?'+':'')+p.holdDelta+'pp hold @3s'):'—'), holdStyle:{fontSize:'11.5px',fontWeight:'700',color:(p.holdDelta!=null&&p.holdDelta>0)?'var(--good)':'var(--bad)'} })),
       best:_dedup(_hr.slice(0,8)).slice(0,4).map(_opener),
       worst:_dedup(_hr.slice().reverse().slice(0,8)).slice(0,4).map(_opener),
       topics:(_hk.topics||[]).map(t=>({ label:(t.key==='other'?'Other / mixed':t.key.charAt(0).toUpperCase()+t.key.slice(1))+(t.thin?' ⚠':''), meta:'n '+t.n,
@@ -2637,7 +2675,8 @@ class Component extends DCLogic {
       attLoading: !!s.labAttLoading && !s.labAttLoaded,
       hasAtt: ATT.has, attError: s.labAttError||'',
       attSeconds: ATT.seconds, attReels: ATT.reels, attCvFull: ATT.cvFull, attCvPos: ATT.cvPos, attLift: ATT.lift, attHazard: ATT.hazard,
-      attVerdict: ATT.verdict, attDrivers: ATT.drivers, attBad: ATT.bad, attGood: ATT.good
+      attVerdict: ATT.verdict, attDrivers: ATT.drivers, attBad: ATT.bad, attGood: ATT.good,
+      tabs: labTabs, tab1:_labTab==='att', tab2:_labTab==='drops', tab3:_labTab==='hooks', tab4:_labTab==='pred'
     };
   }
   // ── Clippers: command center (roster + assignments + per-platform views) ───
@@ -2737,7 +2776,7 @@ class Component extends DCLogic {
       toggle:()=>this.clipperTogglePlatform(sel.id,p),
       acctVal:this.clipEditVal('acct:'+sel.id+':'+p, (sel.accounts&&sel.accounts[p])||''), acctInput:(e)=>this.clipEditInput('acct:'+sel.id+':'+p,e), acctCommit:()=>this.clipAcctCommit(sel.id,p) }; });
     const ytConn=(s.ytConnections||[]).find(x=>x.clipper_id===sel.id);
-    const STAT={ todo:{label:'To do',bg:'var(--fill)',col:'var(--text-2)'}, posted:{label:'Posted',bg:'#16a34a',col:'#fff'} };
+    const STAT={ todo:{label:'To do',bg:'var(--fill)',col:'var(--text-2)'}, posted:{label:'Posted',bg:'var(--good)',col:'#fff'} };
     const assigns = (sel.assignments||[]).map(a=>{ const r=reelByShort[a.reel_shortcode]||{}; const pl=PLAT[a.platform]||{label:a.platform,color:'#888'}; const st=STAT[a.status]||STAT.todo; return {
       id:a.id, cap:r.cap||a.reel_shortcode, thumb:r.thumb||'', hasThumb:!!r.thumb,
       platLabel:pl.label, platStyle:{ fontSize:'10px', fontWeight:'700', padding:'2px 7px', borderRadius:'6px', background:pl.color, color:'#fff', whiteSpace:'nowrap' },
@@ -3042,7 +3081,7 @@ Hier ist das Skript:
         snippet: ((it.script||'').replace(/\s+/g,' ').trim().slice(0,120))||'No script yet — start writing…',
         onSelect:(()=>{ const id=it.id; return ()=>this.pipeSelect(id); })(),
         cardStyle:{ position:'relative', padding:'14px 15px', background:'var(--surface)', border:'1px solid '+(on?'var(--cc)':'var(--line)'), borderRadius:'12px', cursor:'pointer', boxShadow: on?'inset 2px 0 0 var(--cc)':'none' },
-        dotStyle: dirty?{ width:'7px', height:'7px', borderRadius:'50%', background:'#e0a458', flexShrink:'0', marginTop:'6px' }:{ display:'none' }
+        dotStyle: dirty?{ width:'7px', height:'7px', borderRadius:'50%', background:'var(--warn)', flexShrink:'0', marginTop:'6px' }:{ display:'none' }
       };
     });
 
@@ -3074,8 +3113,8 @@ Hier ist das Skript:
     const st=s.pipeSaveStatus;
     let statusText, statusColor, saveLabel, saveBg, saveColor;
     if(st==='saving'){ statusText='Saving…'; statusColor='var(--text-2)'; saveLabel='Saving…'; saveBg='var(--cc)'; saveColor='var(--cc-on)'; }
-    else if(st==='saved'){ statusText='✓ All changes saved'; statusColor='#16a34a'; saveLabel='Saved ✓'; saveBg='#16a34a'; saveColor='#fff'; }
-    else if(dirty){ statusText='● Unsaved changes'; statusColor='#e0a458'; saveLabel='Save'; saveBg='var(--cc)'; saveColor='var(--cc-on)'; }
+    else if(st==='saved'){ statusText='✓ All changes saved'; statusColor='var(--good)'; saveLabel='Saved ✓'; saveBg='var(--good)'; saveColor='#fff'; }
+    else if(dirty){ statusText='● Unsaved changes'; statusColor='var(--warn)'; saveLabel='Save'; saveBg='var(--cc)'; saveColor='var(--cc-on)'; }
     else { statusText='All changes saved'; statusColor='var(--text-3)'; saveLabel='Save'; saveBg='var(--fill)'; saveColor='var(--text-3)'; }
 
     return Object.assign({
@@ -3324,7 +3363,7 @@ Hier ist das Skript:
     }));
 
     // sort header styling
-    const sortHdr=key=>{ const on=this.state.sort===key; return { style:{ background:'none',border:'none',padding:'0',font:'inherit',cursor:'pointer',textAlign:'right',letterSpacing:'.04em',textTransform:'uppercase',fontSize:'11px',fontWeight:'650',color:on?'var(--text)':'var(--text-3)' }, caret:on?'▾':'' }; };
+    const sortHdr=key=>{ const on=this.state.sort===key; return { style:{ background:'none',border:'none',padding:'0',font:'inherit',cursor:'pointer',textAlign:'right',letterSpacing:'.07em',textTransform:'uppercase',fontSize:'10.5px',fontWeight:on?'700':'600',color:on?'var(--accent)':'var(--text-faint)' }, caret:on?' ↓':'' }; };
     const hr=sortHdr('reach'), hp=sortHdr('plays'), hw=sortHdr('watch'), he=sortHdr('eng'), ha=sortHdr('awt');
     const hl=sortHdr('like'), hs=sortHdr('save'), hsh=sortHdr('share'), hc=sortHdr('comment'), hh=sortHdr('hook'), hsk=sortHdr('skip'), hdt=sortHdr('date');
     out.sortReach=()=>this.setSort('reach'); out.sortPlays=()=>this.setSort('plays'); out.sortWatch=()=>this.setSort('watch'); out.sortEng=()=>this.setSort('eng'); out.sortAvgWatch=()=>this.setSort('awt');

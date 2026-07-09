@@ -17,10 +17,10 @@ import { loadToken, refreshIfNeeded } from "./lib/ig-token.mjs";
 // cloudwalkeers multi-tenant layer: creator auth + per-creator platform connections
 import { requireCreator } from "./lib/auth.mjs";
 import * as igOAuth from "./lib/oauth/instagram.mjs";
-import { saveConnection, listConnections, deleteConnection, igAccountForCreator } from "./lib/oauth/connections.mjs";
+import { saveConnection, listConnections, deleteConnection, igAuthForCreator, saveFollowers } from "./lib/oauth/connections.mjs";
 import { signState, verifyState } from "./lib/oauth/state.mjs";
 import { getDb } from "./lib/store/supabase.mjs";
-import { enterScope, isScoped, currentIgAccount } from "./lib/scope.mjs";
+import { enterScope, runInScope, isScoped, currentScope, currentIgAccount, currentCreatorId, currentIgToken } from "./lib/scope.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC = path.join(__dirname, "public");
@@ -31,15 +31,19 @@ loadToken(); // adopt the persisted/refreshed IG token so it survives past its 6
 
 const PORT = Number(process.env.PORT || 5173);
 const CACHE_MS = 5 * 60 * 1000;
-let cache = null; // { t, payload }
-let trendCache = null; // { t, trend } — real daily account reach, cached ~30 min
+// Caches are keyed per creator (multi-tenant) — 'global' covers the CLI/env path.
+const liveCache = new Map();  // key -> { t, payload }
+const trendCaches = new Map(); // key -> { t, trend } — real daily reach, cached ~30 min
+const cacheKey = () => currentCreatorId() || "global";
 
 // Real daily account trend (reach is exposed per-day; daily plays is not, so we
 // derive it from real reach × the catalogue's plays/reach ratio). Cached so the
 // fast stored view isn't slowed by an Instagram round-trip on every load.
 async function realTrend(defs) {
   if (!isConfigured()) return null;
-  if (trendCache && Date.now() - trendCache.t < 30 * 60 * 1000) return trendCache.trend;
+  const key = cacheKey();
+  const hit = trendCaches.get(key);
+  if (hit && Date.now() - hit.t < 30 * 60 * 1000) return hit.trend;
   try {
     const { fetchAccountTrend } = await import("./lib/graph.mjs");
     const t = await fetchAccountTrend(90);
@@ -54,7 +58,7 @@ async function realTrend(defs) {
       playsS = reachS.map((v) => Math.round(v * ratio));
     }
     const trend = { reachS, playsS, reachModeled: false, playsModeled: !(t.playsS && t.playsS.length) };
-    trendCache = { t: Date.now(), trend };
+    trendCaches.set(key, { t: Date.now(), trend });
     return trend;
   } catch { return null; }
 }
@@ -75,12 +79,15 @@ const server = http.createServer(async (req, res) => {
   try {
     const u = new URL(req.url, "http://localhost");
 
-    // Multi-tenant gate: the creator-data endpoints require login and run scoped to
-    // the logged-in creator's connected account — they only ever see their own reels.
-    if (/^\/api\/(data|causal|predict|drops|attention|audit|hooks)(\/|$)/.test(u.pathname)) {
+    // Multi-tenant gate: every creator-data endpoint requires login and runs scoped
+    // to the logged-in creator — their reels, their scripts, their clippers, and
+    // live Instagram calls made with THEIR connected token (never the shared one).
+    if (/^\/api\/(data|causal|predict|drops|attention|audit|hooks|extract|generate-script|scripts|discovery|discover|clippers|assignments|studio|animate|youtube|reel)(\/|$)/.test(u.pathname)) {
       const creator = await requireCreator(req);
       if (!creator) return send(res, 401, ".json", JSON.stringify({ error: "unauthenticated", code: "AUTH" }));
-      enterScope({ creator, igAccount: await igAccountForCreator(creator.id) });
+      let igAuth = null;
+      try { igAuth = await igAuthForCreator(creator.id); } catch { /* treated as not connected */ }
+      enterScope({ creator, igAccount: igAuth && igAuth.username, igToken: igAuth && igAuth.token, igFollowers: igAuth && igAuth.followers });
     }
 
     if (u.pathname === "/api/data") {
@@ -633,6 +640,14 @@ const server = http.createServer(async (req, res) => {
         let profile = {};
         try { profile = await igOAuth.fetchProfile(tok.accessToken); } catch { /* non-fatal */ }
         await saveConnection(st.cid, "instagram", { ...tok, ...profile });
+        // Auto-backfill: pull their reels + insights with their new token right away,
+        // so the dashboard is populated by the time they open it. Fire-and-forget.
+        runInScope(
+          { creator: { id: st.cid }, igAccount: profile.username || null, igToken: tok.accessToken },
+          () => fetchLivePayload()
+            .then((p) => console.log("  [auto-sync] @" + (profile.username || "?") + ": " + ((p && p.defs && p.defs.length) || 0) + " reels"))
+            .catch((e) => console.log("  [auto-sync] failed:", e && e.message ? e.message : e))
+        );
         return redirect(res, "/connect.html?connected=instagram");
       } catch (e) {
         console.log("  [ig connect] " + (e && e.message ? e.message : e));
@@ -644,6 +659,7 @@ const server = http.createServer(async (req, res) => {
 
     const rel = u.pathname === "/" ? "index.html"
       : (u.pathname === "/app" || u.pathname === "/dashboard") ? "app.html"
+      : u.pathname === "/mediakit" ? "mediakit.html"
       : u.pathname.replace(/^\/+/, "");
     const file = path.join(PUBLIC, rel);
     if (!file.startsWith(PUBLIC)) return send(res, 403, ".html", "Forbidden");
@@ -713,20 +729,31 @@ async function fetchLivePayload() {
       });
     }
   } catch { /* keep the CDN cover */ }
-  cache = { t: Date.now(), payload };
-  import("./lib/store/metrics.mjs")
-    .then((m) => (m.isConfigured() ? m.storeMetrics(payload) : null))
-    .then((r) => r && r.stored && console.log("  metrics → supabase:", r.stored, "reel(s),", r.failed, "failed"))
-    .catch((e) => console.log("  metrics store skipped:", e && e.message ? e.message : e));
+  liveCache.set(cacheKey(), { t: Date.now(), payload });
+  // Remember the follower count on the creator's connection so stored-path views
+  // (media kit, dashboard) can show it without an Instagram round-trip.
+  if (currentCreatorId() && payload.meta && payload.meta.followers != null)
+    saveFollowers(currentCreatorId(), "instagram", payload.meta.followers).catch(() => {});
+  try {
+    // Await the store (instead of fire-and-forget) so a creator's very first sync
+    // is fully persisted before the dashboard reads it back.
+    const m = await import("./lib/store/metrics.mjs");
+    if (m.isConfigured()) {
+      const r = await m.storeMetrics(payload);
+      if (r && r.stored) console.log("  metrics → supabase:", r.stored, "reel(s),", r.failed, "failed");
+    }
+  } catch (e) { console.log("  metrics store skipped:", e && e.message ? e.message : e); }
   return payload;
 }
 
 async function getData(force, demo) {
   if (demo) return demoPayload();
-  // Live pull uses the shared global token, so it is CLI/legacy only — NEVER for a
-  // scoped web creator (that would serve the token owner's data to someone else).
-  if (force && !isScoped() && isConfigured()) {
-    if (cache && Date.now() - cache.t < CACHE_MS) return cache.payload; // de-dupe rapid refreshes
+  // Live pull. isConfigured()/fetchLivePayload are scope-aware: inside a web request
+  // they run with the LOGGED-IN creator's own connected token (graph.instagram.com);
+  // only the CLI/legacy path uses the env credentials.
+  if (force && isConfigured()) {
+    const hit = liveCache.get(cacheKey());
+    if (hit && Date.now() - hit.t < CACHE_MS) return hit.payload; // de-dupe rapid refreshes
     try { return await fetchLivePayload(); }
     catch (e) { console.log("  live refresh failed:", e && e.message ? e.message : e); /* fall through to stored */ }
   }
@@ -736,18 +763,21 @@ async function getData(force, demo) {
     if (stored.isConfigured()) {
       const payload = await stored.storedPayload({ account: currentIgAccount() });
       if (payload && payload.defs && payload.defs.length) {
-        // realTrend uses the shared token (owner's data) — only for the unscoped path.
-        if (!isScoped()) { const rt = await realTrend(payload.defs); if (rt) payload.trend = rt; }
+        const rt = await realTrend(payload.defs); // real daily reach via the caller's own token
+        if (rt) payload.trend = rt;
+        if (isScoped()) {
+          const sc = currentScope();
+          payload.meta = { ...(payload.meta || {}), liveCapable: !!currentIgToken() };
+          if (payload.meta.followers == null && sc && sc.igFollowers != null) payload.meta.followers = sc.igFollowers;
+        }
         return payload;
       }
     }
   } catch (e) {
     console.log("  stored payload skipped:", e && e.message ? e.message : e);
   }
-  // A logged-in creator with no reels yet → synthetic demo placeholder (clearly
-  // labeled), never a global-token live pull of someone else's account.
-  if (isScoped()) return demoPayload();
-  // Nothing stored yet → one live pull if we can, else demo.
+  // Nothing stored for this account yet → first-load auto-populate: one live pull
+  // with whatever credentials the caller has (creator token when scoped).
   if (isConfigured()) { try { return await fetchLivePayload(); } catch { /* demo */ } }
   return demoPayload();
 }
