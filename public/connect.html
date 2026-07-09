@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cloudwalkeers — Connect</title>
+  <style>
+    :root { --bg:#0b0d12; --card:#141821; --line:#232937; --ink:#e8ecf3; --muted:#8b97ab; --accent:#4f8cff; --accent2:#22d3aa; --danger:#f4695f; }
+    * { box-sizing: border-box; }
+    body { margin:0; min-height:100vh; background:radial-gradient(1200px 600px at 50% -10%, #16203a 0%, var(--bg) 55%); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; display:flex; align-items:center; justify-content:center; padding:2rem 1rem; }
+    .wrap { width:100%; max-width:440px; }
+    .brand { text-align:center; font-weight:800; font-size:1.5rem; letter-spacing:-.02em; margin-bottom:.3rem; }
+    .brand span { color:var(--accent); }
+    .tag { text-align:center; color:var(--muted); font-size:.9rem; margin-bottom:1.8rem; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:1.6rem; box-shadow:0 30px 80px -50px #000; }
+    h2 { font-size:1.1rem; margin:0 0 1.1rem; }
+    label { display:block; font-size:.78rem; color:var(--muted); margin:.9rem 0 .35rem; text-transform:uppercase; letter-spacing:.05em; }
+    input { width:100%; padding:.75rem .9rem; border-radius:11px; border:1px solid var(--line); background:#0e121a; color:var(--ink); font-size:.95rem; font-family:inherit; }
+    input:focus { outline:none; border-color:var(--accent); }
+    button { font-family:inherit; cursor:pointer; border:none; }
+    .btn { width:100%; padding:.8rem; border-radius:11px; background:var(--accent); color:#fff; font-weight:700; font-size:.95rem; margin-top:1.2rem; }
+    .btn.ghost { background:transparent; border:1px solid var(--line); color:var(--ink); font-weight:600; margin-top:.6rem; }
+    .btn:disabled { opacity:.5; cursor:default; }
+    .row { display:flex; gap:.6rem; align-items:center; }
+    .msg { font-size:.85rem; margin-top:1rem; min-height:1.1rem; }
+    .msg.err { color:var(--danger); } .msg.ok { color:var(--accent2); }
+    .who { display:flex; justify-content:space-between; align-items:center; margin-bottom:1.3rem; padding-bottom:1.1rem; border-bottom:1px solid var(--line); }
+    .who .email { font-size:.9rem; } .who .out { font-size:.82rem; color:var(--muted); background:none; }
+    .conn { display:flex; align-items:center; gap:.9rem; padding:.9rem 0; border-bottom:1px solid var(--line); }
+    .conn:last-child { border-bottom:none; }
+    .conn .ic { width:38px; height:38px; border-radius:10px; display:grid; place-items:center; font-weight:800; color:#fff; flex:none; }
+    .conn .meta { flex:1; min-width:0; }
+    .conn .name { font-weight:650; font-size:.95rem; }
+    .conn .sub { font-size:.8rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .pill { font-size:.72rem; padding:.28rem .6rem; border-radius:999px; font-weight:700; }
+    .pill.on { background:rgba(34,211,170,.15); color:var(--accent2); }
+    .pill.off { background:#0e121a; color:var(--muted); border:1px solid var(--line); }
+    .cbtn { font-size:.82rem; font-weight:700; padding:.5rem .85rem; border-radius:10px; background:var(--accent); color:#fff; }
+    .cbtn.soon { background:#0e121a; color:var(--muted); border:1px solid var(--line); cursor:default; }
+    .cbtn.dis { background:transparent; color:var(--muted); border:1px solid var(--line); }
+    .hint { font-size:.78rem; color:var(--muted); margin-top:1.3rem; line-height:1.5; }
+    .hide { display:none; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="brand">cloud<span>walkeers</span></div>
+    <div class="tag">Connect your accounts to unlock your analytics.</div>
+
+    <!-- Auth view -->
+    <div class="card" id="authView">
+      <h2 id="authTitle">Sign in</h2>
+      <label for="email">Email</label>
+      <input id="email" type="email" autocomplete="email" placeholder="you@example.com" />
+      <label for="pw">Password</label>
+      <input id="pw" type="password" autocomplete="current-password" placeholder="••••••••" />
+      <button class="btn" id="primaryBtn">Sign in</button>
+      <button class="btn ghost" id="toggleBtn">Create an account</button>
+      <div class="msg" id="authMsg"></div>
+    </div>
+
+    <!-- Connections view -->
+    <div class="card hide" id="appView">
+      <div class="who">
+        <div><div class="email" id="whoEmail"></div><div class="sub" style="font-size:.78rem;color:var(--muted)">Signed in</div></div>
+        <button class="out" id="signOut">Sign out</button>
+      </div>
+      <div id="conns"></div>
+      <div class="msg" id="connMsg"></div>
+      <div class="hint">Connecting sends you to the platform's own login — cloudwalkeers never sees your password. Instagram requires a Professional (Business/Creator) account for insights.</div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+    const SB_URL = 'https://topypyboyyvykdfbxqmj.supabase.co';
+    const SB_ANON = 'sb_publishable_igrAFNS4S_dvOAqnxZY7pg_EE0oipId';
+    const sb = createClient(SB_URL, SB_ANON);
+
+    const $ = (id) => document.getElementById(id);
+    const PLATFORMS = [
+      { key:'instagram', name:'Instagram', color:'#E1306C', live:true },
+      { key:'tiktok',    name:'TikTok',    color:'#111827', live:false },
+      { key:'youtube',   name:'YouTube',   color:'#FF0000', live:false },
+    ];
+    let mode = 'signin';
+
+    async function token() { const { data } = await sb.auth.getSession(); return data.session ? data.session.access_token : null; }
+    async function api(path, opts = {}) {
+      const t = await token();
+      return fetch(path, { ...opts, headers: { ...(opts.headers || {}), ...(t ? { Authorization: 'Bearer ' + t } : {}) } });
+    }
+
+    // ---- auth view ----
+    function renderAuthMode() {
+      $('authTitle').textContent = mode === 'signin' ? 'Sign in' : 'Create your account';
+      $('primaryBtn').textContent = mode === 'signin' ? 'Sign in' : 'Create account';
+      $('toggleBtn').textContent = mode === 'signin' ? 'Create an account' : 'I already have an account';
+      $('pw').setAttribute('autocomplete', mode === 'signin' ? 'current-password' : 'new-password');
+    }
+    $('toggleBtn').onclick = () => { mode = mode === 'signin' ? 'signup' : 'signin'; $('authMsg').textContent=''; renderAuthMode(); };
+    $('primaryBtn').onclick = async () => {
+      const email = $('email').value.trim(), password = $('pw').value;
+      const msg = $('authMsg'); msg.className = 'msg'; msg.textContent = '';
+      if (!email || !password) { msg.className='msg err'; msg.textContent='Enter your email and password.'; return; }
+      $('primaryBtn').disabled = true;
+      try {
+        if (mode === 'signup') {
+          const { data, error } = await sb.auth.signUp({ email, password });
+          if (error) throw error;
+          if (!data.session) { msg.className='msg ok'; msg.textContent='Account created — check your email to confirm, then sign in.'; mode='signin'; renderAuthMode(); }
+        } else {
+          const { error } = await sb.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+        }
+      } catch (e) { msg.className='msg err'; msg.textContent = e.message || 'Something went wrong.'; }
+      $('primaryBtn').disabled = false;
+    };
+
+    // ---- connections view ----
+    async function loadConnections() {
+      const box = $('conns'); box.innerHTML = '<div class="sub" style="color:var(--muted);font-size:.85rem">Loading…</div>';
+      let connected = {};
+      try {
+        const r = await api('/api/connections');
+        if (r.ok) { const j = await r.json(); (j.connections || []).forEach(c => connected[c.platform] = c); }
+      } catch {}
+      box.innerHTML = '';
+      for (const p of PLATFORMS) {
+        const c = connected[p.key];
+        const row = document.createElement('div'); row.className = 'conn';
+        row.innerHTML =
+          `<div class="ic" style="background:${p.color}">${p.name[0]}</div>` +
+          `<div class="meta"><div class="name">${p.name}</div>` +
+          `<div class="sub">${c ? ('@' + (c.username || 'connected')) : (p.live ? 'Not connected' : 'Coming soon')}</div></div>` +
+          (c ? `<span class="pill on">Connected</span>` : `<span class="pill off">${p.live ? 'Off' : 'Soon'}</span>`);
+        const btn = document.createElement('button');
+        if (c) { btn.className='cbtn dis'; btn.textContent='Disconnect'; btn.onclick=()=>disconnect(p.key); }
+        else if (p.live) { btn.className='cbtn'; btn.textContent='Connect'; btn.onclick=()=>connect(p.key); }
+        else { btn.className='cbtn soon'; btn.textContent='Soon'; btn.disabled=true; }
+        row.appendChild(btn);
+        box.appendChild(row);
+      }
+    }
+    async function connect(platform) {
+      const msg = $('connMsg'); msg.className='msg'; msg.textContent='Redirecting to ' + platform + '…';
+      try {
+        const r = await api('/api/connect/' + platform);
+        const j = await r.json();
+        if (!r.ok || !j.url) throw new Error(j.error || 'Could not start connect');
+        window.location.href = j.url;
+      } catch (e) { msg.className='msg err'; msg.textContent = e.message; }
+    }
+    async function disconnect(platform) {
+      const msg = $('connMsg'); msg.className='msg'; msg.textContent='';
+      try { const r = await api('/api/connect/' + platform, { method:'DELETE' }); if (!r.ok) throw new Error('Failed'); await loadConnections(); }
+      catch (e) { msg.className='msg err'; msg.textContent = e.message; }
+    }
+    $('signOut').onclick = async () => { await sb.auth.signOut(); };
+
+    // ---- session routing ----
+    function showToastFromUrl() {
+      const q = new URLSearchParams(location.search);
+      const msg = $('connMsg');
+      if (q.get('connected')) { msg.className='msg ok'; msg.textContent = 'Connected ' + q.get('connected') + ' ✓'; }
+      else if (q.get('connect') === 'error') { msg.className='msg err'; msg.textContent = 'Connection failed — please try again.'; }
+      if (q.get('connected') || q.get('connect')) history.replaceState({}, '', location.pathname);
+    }
+    async function route() {
+      const { data } = await sb.auth.getSession();
+      if (data.session) {
+        $('authView').classList.add('hide'); $('appView').classList.remove('hide');
+        $('whoEmail').textContent = data.session.user.email || '';
+        showToastFromUrl();
+        await loadConnections();
+      } else {
+        $('appView').classList.add('hide'); $('authView').classList.remove('hide');
+        renderAuthMode();
+      }
+    }
+    sb.auth.onAuthStateChange(() => route());
+    route();
+  </script>
+</body>
+</html>

@@ -14,6 +14,12 @@ import { toPayload } from "./lib/transform.mjs";
 import { demoPayload } from "./lib/demo.mjs";
 import { loadToken, refreshIfNeeded } from "./lib/ig-token.mjs";
 
+// cloudwalkeers multi-tenant layer: creator auth + per-creator platform connections
+import { requireCreator } from "./lib/auth.mjs";
+import * as igOAuth from "./lib/oauth/instagram.mjs";
+import { saveConnection, listConnections, deleteConnection } from "./lib/oauth/connections.mjs";
+import { signState, verifyState } from "./lib/oauth/state.mjs";
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC = path.join(__dirname, "public");
 const ANALYSIS = path.join(__dirname, "analysis");
@@ -547,6 +553,63 @@ const server = http.createServer(async (req, res) => {
       return send(res, 200, path.extname(file), await readFile(file));
     }
 
+    // ── cloudwalkeers: creator auth + per-creator platform connections ──────
+    if (u.pathname === "/api/me") {
+      const creator = await requireCreator(req);
+      if (!creator) return send(res, 401, ".json", JSON.stringify({ error: "unauthenticated" }));
+      return send(res, 200, ".json", JSON.stringify({ id: creator.id, email: creator.email }));
+    }
+
+    if (u.pathname === "/api/connections") {
+      const creator = await requireCreator(req);
+      if (!creator) return send(res, 401, ".json", JSON.stringify({ error: "unauthenticated" }));
+      try {
+        return send(res, 200, ".json", JSON.stringify({ connections: await listConnections(creator.id) }));
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
+
+    // Start (GET → returns the provider authorize URL) or remove (DELETE) a
+    // platform connection. Auth via the creator's bearer token.
+    const conn = u.pathname.match(/^\/api\/connect\/(instagram|tiktok|youtube)$/);
+    if (conn) {
+      const creator = await requireCreator(req);
+      if (!creator) return send(res, 401, ".json", JSON.stringify({ error: "unauthenticated" }));
+      const platform = conn[1];
+      if (req.method === "DELETE") {
+        try { await deleteConnection(creator.id, platform); return send(res, 200, ".json", JSON.stringify({ ok: true })); }
+        catch (e) { return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) })); }
+      }
+      if (platform !== "instagram")
+        return send(res, 501, ".json", JSON.stringify({ error: platform + " connect coming soon" }));
+      try {
+        const state = signState({ cid: creator.id, p: platform });
+        return send(res, 200, ".json", JSON.stringify({ url: igOAuth.authorizeUrl(state) }));
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
+
+    // OAuth callback — a top-level redirect from Instagram. The creator is carried
+    // (HMAC-signed) in `state`, so no auth header is needed here.
+    if (u.pathname === "/api/connect/instagram/callback") {
+      const st = verifyState(u.searchParams.get("state"));
+      const code = u.searchParams.get("code");
+      if (u.searchParams.get("error") || !code || !st || st.p !== "instagram")
+        return redirect(res, "/connect.html?connect=error");
+      try {
+        const tok = await igOAuth.exchangeCode(code);
+        let profile = {};
+        try { profile = await igOAuth.fetchProfile(tok.accessToken); } catch { /* non-fatal */ }
+        await saveConnection(st.cid, "instagram", { ...tok, ...profile });
+        return redirect(res, "/connect.html?connected=instagram");
+      } catch (e) {
+        console.log("  [ig connect] " + (e && e.message ? e.message : e));
+        return redirect(res, "/connect.html?connect=error");
+      }
+    }
+
     if (u.pathname === "/favicon.ico") return send(res, 204, ".ico", "");
 
     const rel = u.pathname === "/" ? "index.html" : u.pathname.replace(/^\/+/, "");
@@ -675,6 +738,11 @@ function readJson(req) {
 function send(res, code, ext, body) {
   res.writeHead(code, { "content-type": TYPES[ext] || "application/octet-stream" });
   res.end(body);
+}
+
+function redirect(res, location) {
+  res.writeHead(302, { location });
+  res.end();
 }
 
 // Dead-simple .env loader (avoids a dependency). Does not override real env vars.
