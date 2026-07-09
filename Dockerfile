@@ -11,6 +11,7 @@ RUN apt-get update \
 
 ENV NODE_ENV=production \
     PYTHON_BIN=python3 \
+    PORT=8080 \
     NPM_CONFIG_UPDATE_NOTIFIER=false
 
 WORKDIR /app
@@ -27,6 +28,6 @@ COPY . .
 # so extracted frames/transcripts survive redeploys.
 RUN mkdir -p /app/analysis /app/originals
 
-# Railway injects PORT; the server reads process.env.PORT (falls back to 5173).
-EXPOSE 5173
+# App listens on PORT (set to 8080 above) to match the Railway domain's target port.
+EXPOSE 8080
 CMD ["node", "server.mjs"]

@@ -612,7 +612,9 @@ const server = http.createServer(async (req, res) => {
 
     if (u.pathname === "/favicon.ico") return send(res, 204, ".ico", "");
 
-    const rel = u.pathname === "/" ? "index.html" : u.pathname.replace(/^\/+/, "");
+    const rel = u.pathname === "/" ? "index.html"
+      : (u.pathname === "/app" || u.pathname === "/dashboard") ? "app.html"
+      : u.pathname.replace(/^\/+/, "");
     const file = path.join(PUBLIC, rel);
     if (!file.startsWith(PUBLIC)) return send(res, 403, ".html", "Forbidden");
     if (!existsSync(file)) return send(res, 404, ".html", "Not found");
