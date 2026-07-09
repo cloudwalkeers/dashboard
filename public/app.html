@@ -1350,6 +1350,7 @@ button{font-family:inherit}
               <div style="font-size:12.5px;line-height:1.45;color:var(--text-2);max-height:54px;overflow:hidden">{{ d.caption }}</div>
               <div style="display:flex;gap:13px;margin-top:9px;font-size:11.5px;color:var(--text-2)">
                 <span>▶ {{ d.views }}</span><span>♥ {{ d.likes }}</span><span>💬 {{ d.comments }}</span>
+                <sc-if value="{{ d.hasOutlier }}" hint-placeholder-val="{{ false }}"><span style="{{ d.outlierStyle }}">⚡ {{ d.outlierTxt }}</span></sc-if>
               </div>
             </div>
           </div>
@@ -3161,6 +3162,10 @@ Hier ist das Skript:
         caption: (it.caption||'').slice(0,150) || '(no caption)',
         thumb: it.thumbnail_url||'', hasThumb: !!it.thumbnail_url,
         views:fk(it.views), likes:fk(it.like_count), comments:fk(it.comments_count),
+        hasOutlier: it.outlier!=null && it.outlier>=1.5,
+        outlierTxt: it.outlier!=null ? (Math.round(it.outlier*10)/10)+'× median' : '',
+        outlierStyle: { fontSize:'10.5px', fontWeight:'700', padding:'2px 8px', borderRadius:'99px', flex:'none',
+          background: it.outlier>=5?'var(--warn)':'var(--accent-soft)', color: it.outlier>=5?'#fff':'var(--accent)' },
         sourceBadge: it.source==='hashtag' ? ('#'+(it.hashtag||'')) : 'link',
         category: it.category||'', tagsText,
         onCategory:(e)=>this.discEdit(it.id,'category', e&&e.target?e.target.value:''),
