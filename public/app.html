@@ -1837,6 +1837,15 @@ class Component extends DCLogic {
       if(saved) Object.assign(this.state, { ccResult:saved.ccResult||null, ccUrl:saved.ccUrl||'', ccScript:saved.ccScript||'', ccBrief:saved.ccBrief||'', ccTab:saved.ccTab||'frames' });
     } catch(e){}
     this.db = null; // { reels, reachS, playsS, meta }
+    // Deep links (#discovery, #lab, …) set the initial view — fire that view's data
+    // loader too, exactly as its nav button would.
+    setTimeout(()=>{ try {
+      const v=this.state.view;
+      if(v==='pipeline') this.loadScripts(false);
+      else if(v==='discovery') this.loadDiscovery(false);
+      else if(v==='lab') this.loadLab(false);
+      else if(v==='clippers') this.loadClippers(false);
+    } catch(e){} }, 0);
   }
 
   initialTheme(){
@@ -3164,7 +3173,7 @@ Hier ist das Skript:
         views:fk(it.views), likes:fk(it.like_count), comments:fk(it.comments_count),
         hasOutlier: it.outlier!=null && it.outlier>=1.5,
         outlierTxt: it.outlier!=null ? (Math.round(it.outlier*10)/10)+'× median' : '',
-        outlierStyle: { fontSize:'10.5px', fontWeight:'700', padding:'2px 8px', borderRadius:'99px', flex:'none',
+        outlierStyle: { fontSize:'10.5px', fontWeight:'700', padding:'2px 8px', borderRadius:'99px', flex:'none', whiteSpace:'nowrap',
           background: it.outlier>=5?'var(--warn)':'var(--accent-soft)', color: it.outlier>=5?'#fff':'var(--accent)' },
         sourceBadge: it.source==='hashtag' ? ('#'+(it.hashtag||'')) : 'link',
         category: it.category||'', tagsText,
