@@ -3,7 +3,37 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Reels Analytics</title>
+<title>cloudwalkeers — Dashboard</title>
+<!-- cloudwalkeers: gate the dashboard behind login + attach the creator's token to every /api call -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function () {
+  var SB_URL = 'https://topypyboyyvykdfbxqmj.supabase.co';
+  var SB_ANON = 'sb_publishable_igrAFNS4S_dvOAqnxZY7pg_EE0oipId';
+  var sb = window.supabase.createClient(SB_URL, SB_ANON);
+  window.cwSupabase = sb;
+  // Resolve the session once; if not logged in, bounce to the connect/login screen.
+  var tokenP = sb.auth.getSession().then(function (r) {
+    var s = r && r.data && r.data.session;
+    if (!s) { location.replace('/connect.html'); return null; }
+    window.cwEmail = s.user && s.user.email;
+    return s.access_token;
+  }).catch(function () { return null; });
+  // Patch fetch so every same-origin /api request carries the bearer token.
+  var orig = window.fetch.bind(window);
+  window.fetch = function (input, init) {
+    init = init || {};
+    var url = typeof input === 'string' ? input : (input && input.url) || '';
+    var isApi = url.indexOf('/api') === 0 || url.indexOf(location.origin + '/api') === 0;
+    if (!isApi) return orig(input, init);
+    return tokenP.then(function (t) {
+      var headers = Object.assign({}, init.headers || {}, t ? { Authorization: 'Bearer ' + t } : {});
+      return orig(input, Object.assign({}, init, { headers: headers }));
+    });
+  };
+  window.cwSignOut = function () { sb.auth.signOut().then(function () { location.replace('/connect.html'); }); };
+})();
+</script>
 <script src="./support.js"></script>
 </head>
 <body>

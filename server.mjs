@@ -17,9 +17,10 @@ import { loadToken, refreshIfNeeded } from "./lib/ig-token.mjs";
 // cloudwalkeers multi-tenant layer: creator auth + per-creator platform connections
 import { requireCreator } from "./lib/auth.mjs";
 import * as igOAuth from "./lib/oauth/instagram.mjs";
-import { saveConnection, listConnections, deleteConnection } from "./lib/oauth/connections.mjs";
+import { saveConnection, listConnections, deleteConnection, igAccountForCreator } from "./lib/oauth/connections.mjs";
 import { signState, verifyState } from "./lib/oauth/state.mjs";
 import { getDb } from "./lib/store/supabase.mjs";
+import { enterScope, isScoped, currentIgAccount } from "./lib/scope.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC = path.join(__dirname, "public");
@@ -73,6 +74,14 @@ const TYPES = {
 const server = http.createServer(async (req, res) => {
   try {
     const u = new URL(req.url, "http://localhost");
+
+    // Multi-tenant gate: the creator-data endpoints require login and run scoped to
+    // the logged-in creator's connected account — they only ever see their own reels.
+    if (/^\/api\/(data|causal|predict|drops|attention|audit|hooks)(\/|$)/.test(u.pathname)) {
+      const creator = await requireCreator(req);
+      if (!creator) return send(res, 401, ".json", JSON.stringify({ error: "unauthenticated", code: "AUTH" }));
+      enterScope({ creator, igAccount: await igAccountForCreator(creator.id) });
+    }
 
     if (u.pathname === "/api/data") {
       const payload = await getData(
@@ -714,27 +723,30 @@ async function fetchLivePayload() {
 
 async function getData(force, demo) {
   if (demo) return demoPayload();
-  // Live pull ONLY on an explicit refresh (the Refresh button). Every other load
-  // serves fast stored data — which already holds the last-pulled reach/saves/watch.
-  if (force && isConfigured()) {
+  // Live pull uses the shared global token, so it is CLI/legacy only — NEVER for a
+  // scoped web creator (that would serve the token owner's data to someone else).
+  if (force && !isScoped() && isConfigured()) {
     if (cache && Date.now() - cache.t < CACHE_MS) return cache.payload; // de-dupe rapid refreshes
     try { return await fetchLivePayload(); }
     catch (e) { console.log("  live refresh failed:", e && e.message ? e.message : e); /* fall through to stored */ }
   }
-  // Default: the REAL catalogue from Supabase (fast; no round-trip to Instagram).
+  // Default: the REAL catalogue from Supabase, scoped to this creator's ig_account.
   try {
     const stored = await import("./lib/store/stored.mjs");
     if (stored.isConfigured()) {
-      const payload = await stored.storedPayload({ account: process.env.IG_ACCOUNT || null });
+      const payload = await stored.storedPayload({ account: currentIgAccount() });
       if (payload && payload.defs && payload.defs.length) {
-        const rt = await realTrend(payload.defs); // real daily reach (cached), not the modeled sine wave
-        if (rt) payload.trend = rt;
+        // realTrend uses the shared token (owner's data) — only for the unscoped path.
+        if (!isScoped()) { const rt = await realTrend(payload.defs); if (rt) payload.trend = rt; }
         return payload;
       }
     }
   } catch (e) {
     console.log("  stored payload skipped:", e && e.message ? e.message : e);
   }
+  // A logged-in creator with no reels yet → synthetic demo placeholder (clearly
+  // labeled), never a global-token live pull of someone else's account.
+  if (isScoped()) return demoPayload();
   // Nothing stored yet → one live pull if we can, else demo.
   if (isConfigured()) { try { return await fetchLivePayload(); } catch { /* demo */ } }
   return demoPayload();
