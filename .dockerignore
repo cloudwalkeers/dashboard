@@ -1,0 +1,24 @@
+# deps + build artifacts (reinstalled in the image)
+node_modules
+**/node_modules
+
+# secrets & local state — set these as env vars / a volume in Railway instead
+.env
+.env.*
+_ig_token.json
+_*
+cookies*
+
+# extraction artifacts + originals (persisted via a Railway volume, not the image)
+analysis
+originals
+
+# vcs / tooling / logs
+.git
+.gitignore
+.claude
+*.log
+npm-debug.log*
+
+# website branch assets that don't belong in the tool image
+guides
