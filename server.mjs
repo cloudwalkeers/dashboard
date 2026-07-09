@@ -19,6 +19,7 @@ import { requireCreator } from "./lib/auth.mjs";
 import * as igOAuth from "./lib/oauth/instagram.mjs";
 import { saveConnection, listConnections, deleteConnection } from "./lib/oauth/connections.mjs";
 import { signState, verifyState } from "./lib/oauth/state.mjs";
+import { getDb } from "./lib/store/supabase.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC = path.join(__dirname, "public");
@@ -551,6 +552,26 @@ const server = http.createServer(async (req, res) => {
       if (!file.startsWith(ANALYSIS) || !/\.(jpg|jpeg|png|json)$/i.test(file) || !existsSync(file))
         return send(res, 404, ".html", "Not found");
       return send(res, 200, path.extname(file), await readFile(file));
+    }
+
+    // cloudwalkeers marketing-site contact / demo request (public, no auth)
+    if (u.pathname === "/api/contact" && req.method === "POST") {
+      try {
+        const body = await readJson(req);
+        const email = String(body.email || "").trim();
+        if (!email || !/.+@.+\..+/.test(email)) return send(res, 400, ".json", JSON.stringify({ error: "invalid email" }));
+        const db = await getDb();
+        const { error } = await db.from("cw_contacts").insert({
+          name: body.name ? String(body.name).slice(0, 200) : null,
+          email: email.slice(0, 300),
+          message: body.message ? String(body.message).slice(0, 4000) : null,
+          source: body.source ? String(body.source).slice(0, 60) : "web",
+        });
+        if (error) throw new Error(error.message);
+        return send(res, 200, ".json", JSON.stringify({ ok: true }));
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
     }
 
     // ── cloudwalkeers: creator auth + per-creator platform connections ──────

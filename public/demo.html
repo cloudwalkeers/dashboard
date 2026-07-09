@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Demo — cloudwalkeers</title>
+  <meta name="description" content="See cloudwalkeers in action — the analytics, the causal engine, the content studio — and book a walkthrough with us." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2288%22>🛰️</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/cw.css" />
+  <style>
+    .demo-panel { background: linear-gradient(180deg, var(--surface), var(--bg2)); border: 1px solid var(--line2); border-radius: 20px; padding: 1.4rem; box-shadow: 0 50px 100px -50px #000; margin-top: 2.5rem; }
+    .dp-bar { display: flex; align-items: center; gap: .5rem; padding-bottom: 1rem; margin-bottom: 1.2rem; border-bottom: 1px solid var(--line); }
+    .dp-bar .dot3 { width: 10px; height: 10px; border-radius: 50%; background: var(--surface2); }
+    .dp-bar .tabs { display: flex; gap: 1.2rem; margin-left: 1rem; font-size: .82rem; color: var(--faint); }
+    .dp-bar .tabs .on { color: var(--ink); font-weight: 600; }
+    .dp-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 1rem; }
+    .dp-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6rem; margin-bottom: 1rem; }
+    .chart-card { background: var(--surface2); border: 1px solid var(--line); border-radius: 12px; padding: 1rem; }
+    .chart-card .cc-h { display: flex; justify-content: space-between; font-size: .78rem; color: var(--muted); margin-bottom: .6rem; }
+    @media (max-width: 760px) { .dp-grid { grid-template-columns: 1fr; } }
+
+    .contact { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: start; }
+    .contact form { display: flex; flex-direction: column; gap: .9rem; }
+    .contact label { font-size: .78rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: -.5rem; }
+    .contact input, .contact textarea { font-family: inherit; font-size: .95rem; color: var(--ink); background: var(--surface2); border: 1px solid var(--line); border-radius: 11px; padding: .8rem 1rem; }
+    .contact input:focus, .contact textarea:focus { outline: none; border-color: var(--blue); }
+    .contact textarea { resize: vertical; min-height: 110px; }
+    .contact .btn { justify-content: center; margin-top: .3rem; }
+    .cstatus { font-size: .9rem; min-height: 1.2rem; }
+    .cstatus.ok { color: var(--mint); } .cstatus.err { color: var(--danger); }
+    .contact .side h3 { font-family: var(--display); font-weight: 700; font-size: 1.4rem; margin: 0 0 .7rem; }
+    .contact .side p { color: var(--muted); margin: 0 0 1.4rem; }
+    .contact .side ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: .7rem; }
+    .contact .side li { color: var(--muted); font-size: .93rem; padding-left: 1.6rem; position: relative; }
+    .contact .side li::before { content: "→"; position: absolute; left: 0; color: var(--cyan); }
+    @media (max-width: 760px) { .contact { grid-template-columns: 1fr; gap: 1.6rem; } }
+  </style>
+</head>
+<body>
+  <nav class="cw"><div class="wrap nav-in">
+    <a href="/" class="logo"><span class="dot"></span>cloudwalkeers</a>
+    <div class="nav-links">
+      <a href="/features.html" class="n">Features</a>
+      <a href="/pricing.html" class="n">Pricing</a>
+      <a href="/demo.html" class="n active">Demo</a>
+      <a href="/connect.html" class="n">Log in</a>
+      <a href="/connect.html" class="btn btn-primary">Get started</a>
+    </div>
+  </div></nav>
+
+  <header class="phero">
+    <div class="aurora"></div>
+    <div class="wrap">
+      <div class="eyebrow">Demo</div>
+      <h1>See exactly what <span class="grad">cloudwalkeers shows you.</span></h1>
+      <p class="sub">A peek at the real product — the analytics, the drivers behind your views, the content engine. Want a walkthrough on your own account? Reach out below.</p>
+    </div>
+  </header>
+
+  <main>
+    <section class="sec" style="padding-top:1rem">
+      <div class="wrap">
+        <div class="demo-panel reveal">
+          <div class="dp-bar">
+            <span class="dot3"></span><span class="dot3"></span><span class="dot3"></span>
+            <span class="tabs"><span class="on">Overview</span><span>Lab</span><span>Studio</span><span>Discovery</span></span>
+          </div>
+          <div class="dp-tiles">
+            <div class="tile"><div class="n grad">2.2M</div><div class="l">REACH · 30D</div></div>
+            <div class="tile"><div class="n">2.7M</div><div class="l">PLAYS</div></div>
+            <div class="tile"><div class="n">42%</div><div class="l">WATCH-THROUGH</div></div>
+            <div class="tile"><div class="n">11.5%</div><div class="l">ENG. RATE</div></div>
+            <div class="tile"><div class="n">12s</div><div class="l">AVG WATCH</div></div>
+            <div class="tile"><div class="n">116K</div><div class="l">SAVES</div></div>
+          </div>
+          <div class="dp-grid">
+            <div class="chart-card">
+              <div class="cc-h"><span>Daily reach &amp; plays</span><span>30 days</span></div>
+              <svg viewBox="0 0 420 130" width="100%" height="130" preserveAspectRatio="none" aria-hidden="true">
+                <defs><linearGradient id="d1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5b8cff" stop-opacity=".35"/><stop offset="1" stop-color="#5b8cff" stop-opacity="0"/></linearGradient></defs>
+                <path d="M0,80 C60,70 90,110 150,96 C210,82 250,40 300,44 C350,48 390,34 420,30 L420,130 L0,130 Z" fill="url(#d1)"/>
+                <path d="M0,80 C60,70 90,110 150,96 C210,82 250,40 300,44 C350,48 390,34 420,30" fill="none" stroke="#5b8cff" stroke-width="2.5"/>
+                <path d="M0,64 C60,58 90,86 150,78 C210,70 250,30 300,32 C350,34 390,22 420,18" fill="none" stroke="#38d6f0" stroke-width="2" opacity=".7"/>
+              </svg>
+            </div>
+            <div class="chart-card">
+              <div class="cc-h"><span>What drives views</span><span>tested</span></div>
+              <div class="bar-row" style="grid-template-columns:88px 1fr auto"><span class="lbl">Hook &lt;2s</span><span class="bar-track"><span class="bar-fill" style="width:88%"></span></span><span class="val">+41%</span></div>
+              <div class="bar-row" style="grid-template-columns:88px 1fr auto"><span class="lbl">Text frame 1</span><span class="bar-track"><span class="bar-fill" style="width:62%"></span></span><span class="val">+27%</span></div>
+              <div class="bar-row" style="grid-template-columns:88px 1fr auto"><span class="lbl">Pattern break</span><span class="bar-track"><span class="bar-fill" style="width:48%"></span></span><span class="val">+19%</span></div>
+              <div class="bar-row" style="grid-template-columns:88px 1fr auto"><span class="lbl">&gt;45s length</span><span class="bar-track"><span class="bar-fill" style="width:30%;background:linear-gradient(90deg,#f4695f,#f59e6f)"></span></span><span class="val">−18%</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec alt">
+      <div class="wrap">
+        <div class="contact">
+          <div class="side">
+            <div class="eyebrow">Reach out</div>
+            <h3>Want a walkthrough?</h3>
+            <p>Tell us about your content and we'll show you what cloudwalkeers finds on your own account — and answer anything about the product, plans or teams.</p>
+            <ul>
+              <li>A live walkthrough on your reels</li>
+              <li>Answers on pricing, teams &amp; agencies</li>
+              <li>Early access &amp; roadmap input</li>
+            </ul>
+          </div>
+          <form id="contactForm" novalidate>
+            <label for="cname">Name</label>
+            <input id="cname" type="text" placeholder="Your name" autocomplete="name" />
+            <label for="cemail">Email *</label>
+            <input id="cemail" type="email" placeholder="you@example.com" required autocomplete="email" />
+            <label for="cmsg">What are you working on?</label>
+            <textarea id="cmsg" placeholder="e.g. I post 4 reels a week about finance and want to understand my drop-offs…"></textarea>
+            <button type="submit" class="btn btn-primary" id="csubmit">Send message →</button>
+            <div class="cstatus" id="cstatus"></div>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="cw"><div class="wrap foot-in">
+    <a href="/" class="logo"><span class="dot"></span>cloudwalkeers</a>
+    <div class="foot-links"><a href="/features.html">Features</a><a href="/pricing.html">Pricing</a><a href="/demo.html">Demo</a><a href="/connect.html">Log in</a></div>
+    <div>© 2026 cloudwalkeers</div>
+  </div></footer>
+
+  <script>
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: .12 });
+      document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+    }
+    document.getElementById('contactForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('csubmit'), status = document.getElementById('cstatus');
+      const email = document.getElementById('cemail').value.trim();
+      const name = document.getElementById('cname').value.trim();
+      const message = document.getElementById('cmsg').value.trim();
+      status.className = 'cstatus'; status.textContent = '';
+      if (!email || !/.+@.+\..+/.test(email)) { status.className = 'cstatus err'; status.textContent = 'Please enter a valid email.'; return; }
+      btn.disabled = true; btn.textContent = 'Sending…';
+      try {
+        const r = await fetch('/api/contact', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, email, message, source: 'demo' }) });
+        if (!r.ok) throw new Error();
+        status.className = 'cstatus ok'; status.textContent = '✓ Thanks — we’ll be in touch soon.';
+        e.target.reset();
+      } catch { status.className = 'cstatus err'; status.textContent = 'Something went wrong — email us at hello@cloudwalkeers.com.'; }
+      btn.disabled = false; btn.textContent = 'Send message →';
+    });
+  </script>
+</body>
+</html>
