@@ -231,6 +231,32 @@ const server = http.createServer(async (req, res) => {
       }
     }
 
+    // Compose a DRAFT guide (reel and/or uploaded text + prompt) — streamed, NOT saved.
+    if (u.pathname === "/api/guides/generate" && req.method === "POST") {
+      const body = await readJson(req);
+      res.writeHead(200, { "content-type": "application/x-ndjson; charset=utf-8", "cache-control": "no-cache", "x-accel-buffering": "no" });
+      const write = (o) => res.write(JSON.stringify(o) + "\n");
+      try {
+        const guides = await import("./lib/guides.mjs");
+        let sourceText = body.sourceText || "";
+        if (body.pdfBase64) { write({ step: "extracting PDF text…" }); sourceText = await guides.extractPdfText(body.pdfBase64); }
+        const guide = await guides.composeGuide({ url: body.url || null, sourceText, brief: body.brief || "", onStep: (s) => write({ step: s }) });
+        write({ done: true, guide });
+      } catch (e) { write({ error: e && e.message ? e.message : String(e) }); }
+      return res.end();
+    }
+    // Refine a DRAFT in the workbench (not persisted) — returns the updated draft.
+    if (u.pathname === "/api/guides/refine-draft" && req.method === "POST") {
+      try {
+        const body = await readJson(req);
+        const { refineGuide } = await import("./lib/guides.mjs");
+        const out = await refineGuide({ title: body.title || "", body_md: body.body_md || "", instruction: body.instruction || "" });
+        return send(res, 200, ".json", JSON.stringify({ guide: out }));
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
+
     const grm = u.pathname.match(/^\/api\/guides\/([^/]+)\/refine$/);
     if (grm && req.method === "POST") {
       const store = await import("./lib/store/guides.mjs");

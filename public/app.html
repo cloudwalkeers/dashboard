@@ -1693,24 +1693,40 @@ button{font-family:inherit}
     <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin-bottom:16px;box-shadow:var(--shadow)">
       <div style="display:inline-flex;background:var(--fill);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px;margin-bottom:12px">
         <button onClick="{{ GUIDE.setModeReel }}" style="{{ GUIDE.segReel }}">From reel</button>
-        <button onClick="{{ GUIDE.setModeUpload }}" style="{{ GUIDE.segUpload }}">Upload existing</button>
+        <button onClick="{{ GUIDE.setModeUpload }}" style="{{ GUIDE.segUpload }}">From file</button>
       </div>
       <sc-if value="{{ GUIDE.modeReel }}" hint-placeholder-val="{{ true }}">
-        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-          <input value="{{ GUIDE.url }}" onInput="{{ GUIDE.onUrl }}" placeholder="https://www.instagram.com/reel/…" style="flex:1;min-width:240px;padding:11px 13px;border:1px solid var(--line);border-radius:10px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text)"/>
-          <button onClick="{{ GUIDE.generate }}" style="padding:11px 20px;border:none;border-radius:10px;background:var(--cc);color:var(--cc-on);font-size:13px;font-weight:650;cursor:pointer;font-family:inherit">{{ GUIDE.genLabel }}</button>
-        </div>
+        <input value="{{ GUIDE.url }}" onInput="{{ GUIDE.onUrl }}" placeholder="https://www.instagram.com/reel/…" style="width:100%;box-sizing:border-box;padding:11px 13px;border:1px solid var(--line);border-radius:10px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text)"/>
       </sc-if>
       <sc-if value="{{ GUIDE.modeUpload }}" hint-placeholder-val="{{ false }}">
-        <div style="border:1px dashed var(--line);border-radius:12px;padding:22px;text-align:center;background:var(--surface-2)">
-          <div style="font-size:13px;color:var(--text-2);margin-bottom:12px">Import an existing guide — <strong>PDF</strong>, Markdown (.md) or text (.txt). It lands in your Inventory as a draft you can refine.</div>
-          <label style="display:inline-block;padding:10px 18px;border:none;border-radius:10px;background:var(--cc);color:var(--cc-on);font-size:13px;font-weight:650;cursor:pointer;font-family:inherit"><input type="file" accept=".pdf,.md,.markdown,.txt" onChange="{{ GUIDE.onFile }}" style="display:none"/>Choose file…</label>
-          <div style="font-size:11px;color:var(--text-3);margin-top:9px">Max ~3 MB. PDF text extraction runs on the deployed server.</div>
+        <div style="border:1px dashed var(--line);border-radius:12px;padding:16px;text-align:center;background:var(--surface-2)">
+          <label style="display:inline-block;padding:9px 16px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit"><input type="file" accept=".pdf,.md,.markdown,.txt" onChange="{{ GUIDE.onFile }}" style="display:none"/>Choose file…</label>
+          <sc-if value="{{ GUIDE.hasFile }}" hint-placeholder-val="{{ false }}"><div style="font-size:12px;color:var(--cc);margin-top:9px;font-weight:600">📄 {{ GUIDE.fileName }}</div></sc-if>
+          <div style="font-size:11px;color:var(--text-3);margin-top:7px">PDF · Markdown (.md) · text (.txt) — max ~3 MB. PDF extraction runs on the deployed server.</div>
         </div>
       </sc-if>
+      <textarea value="{{ GUIDE.brief }}" onInput="{{ GUIDE.onBrief }}" placeholder="Prompt — what should this guide become? Angle, audience, what to add/cut… (your active guide skills also apply)" style="width:100%;box-sizing:border-box;min-height:80px;resize:vertical;margin-top:10px;padding:11px 13px;border:1px solid var(--line);border-radius:10px;font-size:13px;line-height:1.5;font-family:inherit;background:var(--surface);color:var(--text)"></textarea>
+      <button onClick="{{ GUIDE.generate }}" style="margin-top:11px;padding:11px 20px;border:none;border-radius:10px;background:var(--cc);color:var(--cc-on);font-size:13px;font-weight:650;cursor:pointer;font-family:inherit">{{ GUIDE.genLabel }}</button>
       <sc-if value="{{ GUIDE.generating }}" hint-placeholder-val="{{ false }}"><div style="margin-top:10px;font-size:12.5px;color:var(--text-3)">⏳ {{ GUIDE.step }}</div></sc-if>
       <sc-if value="{{ GUIDE.error }}" hint-placeholder-val="{{ false }}"><div style="margin-top:10px;font-size:12.5px;color:var(--bad)">{{ GUIDE.error }}</div></sc-if>
     </div>
+
+    <sc-if value="{{ GUIDE.hasDraft }}" hint-placeholder-val="{{ false }}">
+    <div style="background:var(--surface);border:1px solid var(--cc);border-radius:16px;padding:20px 22px;margin-bottom:16px;box-shadow:var(--shadow)">
+      <div class="cc-mono" style="font-size:10px;letter-spacing:.1em;color:var(--cc);margin-bottom:10px">DRAFT · not saved yet</div>
+      <input value="{{ GUIDE.cdTitle }}" onInput="{{ GUIDE.onCdTitle }}" placeholder="Guide title" style="width:100%;box-sizing:border-box;border:none;background:transparent;color:var(--text);font-size:21px;font-weight:800;letter-spacing:-.02em;font-family:inherit;padding:0;outline:none;margin-bottom:12px"/>
+      <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center">
+        <input value="{{ GUIDE.cdFollowup }}" onInput="{{ GUIDE.onCdFollowup }}" placeholder="Follow-up prompt: refine this draft — add a section, make prompts advanced, shorten…" style="flex:1;min-width:0;padding:10px 13px;border:1px solid var(--cc);border-radius:10px;font-size:13px;font-family:inherit;background:var(--cc-soft);color:var(--text)"/>
+        <button onClick="{{ GUIDE.cdRefine }}" style="flex:none;padding:10px 16px;border:none;border-radius:10px;background:var(--cc);color:var(--cc-on);font-size:13px;font-weight:650;cursor:pointer;font-family:inherit">{{ GUIDE.cdRefineLabel }}</button>
+      </div>
+      <textarea value="{{ GUIDE.cdBody }}" onInput="{{ GUIDE.onCdBody }}" class="cc-mono" style="width:100%;box-sizing:border-box;min-height:360px;resize:vertical;padding:16px;border:1px solid var(--line);border-radius:12px;font-size:13px;line-height:1.6;font-family:'JetBrains Mono',ui-monospace,monospace;background:var(--surface-2);color:var(--text)"></textarea>
+      <div style="display:flex;gap:8px;margin-top:12px;align-items:center">
+        <button onClick="{{ GUIDE.cdSave }}" style="padding:9px 18px;border:none;border-radius:9px;background:var(--cc);color:var(--cc-on);font-size:13px;font-weight:650;cursor:pointer;font-family:inherit">{{ GUIDE.cdSaveLabel }}</button>
+        <button onClick="{{ GUIDE.cdDiscard }}" style="padding:9px 14px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--text-2);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Discard</button>
+        <span style="font-size:11.5px;color:var(--text-3)">Saving names it and moves it to Inventory, where you can keep refining.</span>
+      </div>
+    </div>
+    </sc-if>
 
     <div style="max-width:620px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 18px;box-shadow:var(--shadow)">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px">
@@ -2297,6 +2313,7 @@ class Component extends DCLogic {
       guideUrl:'', guideGenerating:false, guideStep:'', guideError:'', guides:null, guidesLoading:false, guidesLoaded:false,
       guideSel:null, guideDraftTitle:'', guideDraftBody:'', guideDirty:false, guideSaving:false, guideSaved:'', guidePreview:false,
       guideTab:'create', guideMode:'reel', guideBrief:'', guideSource:'', guideFollowup:'', guideRefining:false,
+      guideFileText:'', guideFileName:'', guidePdfB64:'', cdTitle:'', cdBody:'', cdFollowup:'', cdRefining:false, cdSaving:false,
       pipeSel:null, pipeQuery:'', pipeActiveTags:[], pipeTagDraft:'', pipeSaveStatus:'idle', pipeDeleteArmed:false, pipeRefreshing:false,
       discItems:null, discCats:[], discLoading:false, discLoaded:false, discError:'', discMsg:'', discBusy:false,
       discHashtag:'', discType:'top', discCategory:'', discLinks:'', discFilter:'', discMode:'recommend',
@@ -2917,29 +2934,22 @@ class Component extends DCLogic {
       .catch(()=>this.setState({ guidesLoading:false, guidesLoaded:true }));
   }
   setGuideTab(t){ this.setState({ guideTab:t }); }
-  guideUpload(file){
+  guidePickFile(file){
     if(!file) return;
-    const name=(file.name||'guide').replace(/\.[^.]+$/,'').slice(0,180);
     const isPdf = /\.pdf$/i.test(file.name||'') || file.type==='application/pdf';
     if(file.size > 4.5e6){ this.setState({ guideError:'File is too large (max ~3 MB).' }); return; }
-    this.setState({ guideGenerating:true, guideError:'', guideStep:'reading file…' });
+    this.setState({ guideError:'', guideFileName:file.name||'file', guideFileText:'', guidePdfB64:'' });
     const rdr=new FileReader();
-    rdr.onload=()=>{
-      const payload = isPdf ? { title:name, pdfBase64:String(rdr.result) } : { title:name, body_md:String(rdr.result) };
-      this.setState({ guideStep: isPdf?'extracting PDF text…':'importing…' });
-      fetch('/api/guides/import',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify(payload) })
-        .then(r=>r.json())
-        .then(j=>{ if(j.error){ this.setState({ guideGenerating:false, guideStep:'', guideError:j.error }); return; }
-          this.setState({ guideGenerating:false, guideStep:'', guidesLoaded:false, guideTab:'inventory' }); this.loadGuides(true); if(j.item) this.guideSelect(j.item); })
-        .catch(e=>this.setState({ guideGenerating:false, guideStep:'', guideError:String(e) }));
-    };
-    rdr.onerror=()=>this.setState({ guideGenerating:false, guideError:'Could not read that file.' });
+    rdr.onload=()=>{ if(isPdf) this.setState({ guidePdfB64:String(rdr.result) }); else this.setState({ guideFileText:String(rdr.result) }); };
+    rdr.onerror=()=>this.setState({ guideError:'Could not read that file.' });
     if(isPdf) rdr.readAsDataURL(file); else rdr.readAsText(file);
   }
   guideGenerate(){
-    const url=(this.state.guideUrl||'').trim(); if(!url){ this.setState({ guideError:'Paste a reel link.' }); return; }
+    const mode=this.state.guideMode||'reel', brief=(this.state.guideBrief||'').trim(), req={ brief };
+    if(mode==='reel'){ const url=(this.state.guideUrl||'').trim(); if(!url){ this.setState({ guideError:'Paste a reel link.' }); return; } req.url=url; }
+    else { if(this.state.guidePdfB64) req.pdfBase64=this.state.guidePdfB64; else if(this.state.guideFileText) req.sourceText=this.state.guideFileText; else if(!brief){ this.setState({ guideError:'Choose a file, or write a prompt.' }); return; } }
     this.setState({ guideGenerating:true, guideError:'', guideStep:'starting…' });
-    fetch('/api/guides',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ url }) })
+    fetch('/api/guides/generate',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify(req) })
       .then(async r=>{
         const reader=r.body.getReader(), dec=new TextDecoder(); let buf='';
         while(true){ const {value,done}=await reader.read(); if(done) break; buf+=dec.decode(value,{stream:true});
@@ -2947,12 +2957,30 @@ class Component extends DCLogic {
             let o; try{ o=JSON.parse(line); }catch(e){ continue; }
             if(o.step) this.setState({ guideStep:o.step });
             if(o.error) this.setState({ guideGenerating:false, guideError:o.error });
-            if(o.done){ this.setState({ guideGenerating:false, guideStep:'', guideUrl:'', guideBrief:'', guidesLoaded:false, guideTab:'inventory' }); this.loadGuides(true); if(o.guide) this.guideSelect(o.guide); }
+            if(o.done){ const gd=o.guide||{}; this.setState({ guideGenerating:false, guideStep:'', cdTitle:gd.title||'Untitled guide', cdBody:gd.body_md||'', cdFollowup:'' }); }
           }
         }
       })
       .catch(e=>this.setState({ guideGenerating:false, guideError:String(e) }));
   }
+  cdRefine(){
+    const instruction=(this.state.cdFollowup||'').trim(); if(!instruction) return;
+    this.setState({ cdRefining:true, guideError:'' });
+    fetch('/api/guides/refine-draft',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ title:this.state.cdTitle, body_md:this.state.cdBody, instruction }) })
+      .then(r=>r.json())
+      .then(j=>{ if(j.error){ this.setState({ cdRefining:false, guideError:j.error }); return; } const gd=j.guide||{}; this.setState({ cdRefining:false, cdFollowup:'', cdTitle:gd.title||this.state.cdTitle, cdBody:gd.body_md||this.state.cdBody }); })
+      .catch(e=>this.setState({ cdRefining:false, guideError:String(e) }));
+  }
+  cdSave(){
+    const title=(this.state.cdTitle||'').trim()||'Untitled guide', body_md=this.state.cdBody||''; if(!body_md.trim()) return;
+    this.setState({ cdSaving:true, guideError:'' });
+    fetch('/api/guides/import',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ title, body_md }) })
+      .then(r=>r.json())
+      .then(j=>{ if(j.error){ this.setState({ cdSaving:false, guideError:j.error }); return; }
+        this.setState({ cdSaving:false, cdTitle:'', cdBody:'', cdFollowup:'', guideUrl:'', guideBrief:'', guideFileText:'', guidePdfB64:'', guideFileName:'', guidesLoaded:false, guideTab:'inventory' }); this.loadGuides(true); if(j.item) this.guideSelect(j.item); })
+      .catch(e=>this.setState({ cdSaving:false, guideError:String(e) }));
+  }
+  cdDiscard(){ this.setState({ cdTitle:'', cdBody:'', cdFollowup:'', guideError:'' }); }
   guideSelect(g){ this.setState({ guideSel:g.id, guideDraftTitle:g.title||'', guideDraftBody:g.body_md||'', guideDirty:false, guideSaved:'', guidePreview:false, guideFollowup:'' }); if(typeof window!=='undefined') window.scrollTo(0,0); }
   guideRefine(){
     const id=this.state.guideSel, instruction=(this.state.guideFollowup||'').trim(); if(!id||!instruction) return;
@@ -3021,9 +3049,17 @@ class Component extends DCLogic {
       modeReel: mode==='reel', modeUpload: mode==='upload',
       segReel:this.ccSeg(mode==='reel'), segUpload:this.ccSeg(mode==='upload'),
       setModeReel:()=>this.setState({ guideMode:'reel', guideError:'' }), setModeUpload:()=>this.setState({ guideMode:'upload', guideError:'' }),
-      onFile:(e)=>{ const f=e&&e.target&&e.target.files&&e.target.files[0]; this.guideUpload(f); },
+      onFile:(e)=>{ const f=e&&e.target&&e.target.files&&e.target.files[0]; this.guidePickFile(f); },
+      fileName:s.guideFileName||'', hasFile:!!s.guideFileName,
+      brief:s.guideBrief||'', onBrief:(e)=>this.setState({ guideBrief:e&&e.target?e.target.value:'' }),
+      hasDraft: !!(s.cdBody||'').trim(),
+      cdTitle:s.cdTitle||'', onCdTitle:(e)=>this.setState({ cdTitle:e&&e.target?e.target.value:'' }),
+      cdBody:s.cdBody||'', onCdBody:(e)=>this.setState({ cdBody:e&&e.target?e.target.value:'' }),
+      cdFollowup:s.cdFollowup||'', onCdFollowup:(e)=>this.setState({ cdFollowup:e&&e.target?e.target.value:'' }),
+      cdRefine:()=>this.cdRefine(), cdRefineLabel: s.cdRefining?'Refining…':'↻ Refine',
+      cdSave:()=>this.cdSave(), cdSaveLabel: s.cdSaving?'Saving…':'✓ Save to Inventory', cdDiscard:()=>this.cdDiscard(),
       url:s.guideUrl||'', onUrl:(e)=>this.setState({ guideUrl:e&&e.target?e.target.value:'' }),
-      generate:()=>this.guideGenerate(), genLabel: s.guideGenerating?'Generating…':'Generate guide', generating:!!s.guideGenerating,
+      generate:()=>this.guideGenerate(), genLabel: s.guideGenerating?'Generating…':'Generate draft', generating:!!s.guideGenerating,
       step:s.guideStep||'', error:s.guideError||'',
       items, hasItems:items.length>0, empty: s.guidesLoaded && !s.guidesLoading && !items.length,
       hasSel:!!sel,
