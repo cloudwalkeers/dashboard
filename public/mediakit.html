@@ -120,9 +120,10 @@
   <div class="bar">
     <a class="brand" href="/app"><span class="dot"></span>cloudwalkeers</a>
     <div class="nav">
-      <a href="/app">Overview</a><a href="/app#studio">Studio</a><a href="/app#lab">Lab</a><a href="/connect.html">Connections</a>
+      <a href="/app">Overview</a><a href="/app#content">Create</a><a href="/app#pipeline">Pipeline</a><a href="/app#discovery">Discovery</a><a href="/app#studio">Studio</a><a href="/app#lab">Lab</a><a href="/app#clippers">Clippers</a>
     </div>
-    <div style="display:flex;gap:.5rem">
+    <div style="display:flex;gap:.5rem;align-items:center">
+      <span id="editHint2" class="lbl" style="color:#b9b9b9;margin-right:.4rem" hidden>Click any dashed field to edit</span>
       <button class="btn" id="editBtn">✎ Edit</button>
       <button class="btn primary" onclick="window.print()">⬇ Download PDF</button>
     </div>
@@ -147,7 +148,7 @@
           <span class="lbl">Engagement rate</span><br>
           <span class="chip" id="mkErChip" hidden></span>
           <div class="big"><span id="mkEr">—</span><small>%</small></div>
-          <p>interactions per account reached, last 30 days</p>
+          <p data-edit="er_note">interactions per account reached, last 30 days</p>
           <p class="src">live Instagram API · <span id="mkWindow"></span></p>
         </div>
         <div class="bench">
@@ -234,8 +235,11 @@
     el('mkLaunched').textContent = (followers!=null?fmtK(followers)+' followers · ':'')+defs.length+' reels'+(oldest?' since '+new Date(oldest).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}):'');
 
     // prefs-driven editable text
-    if(PREFS.tagline) el('mkTagline').textContent = PREFS.tagline;
-    if(PREFS.pricing_note) el('mkPricingNote').textContent = PREFS.pricing_note;
+    // apply saved edits generically to every [data-edit] field (full-doc editing)
+    document.querySelectorAll('[data-edit]').forEach(function(n){
+      var k=n.getAttribute('data-edit');
+      if(k && k.indexOf('price_')!==0 && PREFS[k]!=null && PREFS[k]!=='') n.textContent = PREFS[k];
+    });
     el('mkName').textContent = PREFS.contact_name || handle.replace('@','');
     el('mkMail').textContent = PREFS.contact_email || (window.cwEmail||'you@example.com');
     el('mkHd').textContent = handle+' · Instagram';
@@ -323,11 +327,16 @@
     editing=!editing;
     el('editBtn').textContent = editing?'✓ Save':'✎ Edit';
     el('editBtn').className = 'btn'+(editing?' editing':'');
-    el('editHint').hidden=!editing;
+    var eh=el('editHint'); if(eh) eh.hidden=!editing;
+    var eh2=el('editHint2'); if(eh2) eh2.hidden=!editing;
     document.querySelectorAll('[data-edit]').forEach(function(n){ n.contentEditable = editing?'true':'false'; });
     if(!editing){
-      var mk={ tagline:el('mkTagline').textContent.trim(), pricing_note:el('mkPricingNote').textContent.trim(),
-        contact_name:el('mkName').textContent.trim(), contact_email:el('mkMail').textContent.trim(), pricing:[] };
+      // collect EVERY editable field by its data-edit key (pricing rebuilt separately)
+      var mk={ pricing:[] };
+      document.querySelectorAll('[data-edit]').forEach(function(n){
+        var k=n.getAttribute('data-edit');
+        if(k && k.indexOf('price_')!==0) mk[k]=n.textContent.trim();
+      });
       document.querySelectorAll('#mkPricing .rowp').forEach(function(r){
         mk.pricing.push({ label:r.children[0].textContent.trim(), amount:r.children[1].textContent.trim() });
       });

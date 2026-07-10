@@ -46,7 +46,7 @@
         var css = document.createElement('style');
         css.id = 'cwMenuCss';
         css.textContent =
-          '#cwMenu{position:fixed;top:56px;right:22px;z-index:1000;min-width:250px;background:var(--surface,#fff);border:1px solid var(--line,#e5e5e5);border-radius:14px;box-shadow:0 24px 60px -22px rgba(0,0,0,.45), 0 2px 8px rgba(0,0,0,.12);padding:6px;font-family:inherit;animation:sgIn .18s ease both}' +
+          "#cwMenu{position:fixed;top:56px;right:22px;z-index:1000;min-width:250px;background:var(--surface,#fff);border:1px solid var(--line,#e5e5e5);border-radius:14px;box-shadow:0 24px 60px -22px rgba(0,0,0,.45), 0 2px 8px rgba(0,0,0,.12);padding:6px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;animation:sgIn .18s ease both}" +
           '#cwMenu .cw-id{display:flex;align-items:center;gap:10px;padding:10px 10px 12px;border-bottom:1px solid var(--line-2,#eee);margin-bottom:5px}' +
           '#cwMenu .cw-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#5b8cff33,#3ee0b033),var(--fill,#f2f2f2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--text-2,#555);flex:none;border:1px solid var(--line,#e5e5e5)}' +
           '#cwMenu .cw-who{min-width:0}' +
@@ -174,6 +174,7 @@ button{font-family:inherit}
           <button style="{{ navStudioStyle }}" onClick="{{ navStudio }}">Studio</button>
           <button style="{{ navLabStyle }}" onClick="{{ navLab }}">Lab</button>
           <button style="{{ navClippersStyle }}" onClick="{{ navClippers }}">Clippers</button>
+          <button style="{{ navGuidesStyle }}" onClick="{{ navGuides }}">Guides</button>
           <a href="/mediakit" style="{{ navMediakitStyle }}">Media Kit</a>
         </div>
         <button onClick="{{ refresh }}" title="Sync your latest reels + insights from Instagram" style="display:flex;align-items:center;gap:7px;font-size:12px;font-weight:550;color:var(--text-2);background:var(--surface);border:1px solid var(--line);border-radius:99px;cursor:pointer;font-family:inherit;padding:6px 12px;box-shadow:var(--shadow)">
@@ -1006,6 +1007,35 @@ button{font-family:inherit}
           </div>
         </div>
       </div>
+
+      <div style="max-width:620px;margin:22px 0 0;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 18px;box-shadow:var(--shadow)">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px">
+          <div><div style="font-size:13.5px;font-weight:700">Skills <span style="color:var(--text-faint);font-weight:500;font-size:12px">· {{ SK.activeCount }} active</span></div><div style="font-size:11px;color:var(--text-3);margin-top:2px">Reusable instructions applied when you generate a script (here &amp; in Studio).</div></div>
+          <button onClick="{{ SK.onNew }}" style="flex:none;padding:6px 11px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">+ New</button>
+        </div>
+        <sc-if value="{{ SK.composerOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="border:1px solid var(--cc);border-radius:11px;padding:11px;margin-bottom:10px;background:var(--cc-soft)">
+          <input value="{{ SK.draftName }}" onInput="{{ SK.onName }}" placeholder="Skill name (e.g. German hook voice)" style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);margin-bottom:8px"/>
+          <textarea value="{{ SK.draftContent }}" onInput="{{ SK.onContent }}" placeholder="Paste the skill content (markdown) — style rules, format, examples, voice…" style="width:100%;box-sizing:border-box;min-height:120px;resize:vertical;padding:9px 11px;border:1px solid var(--line);border-radius:8px;font-size:12.5px;line-height:1.5;font-family:inherit;background:var(--surface);color:var(--text)"></textarea>
+          <div style="display:flex;gap:8px;margin-top:9px">
+            <button onClick="{{ SK.onSave }}" style="padding:7px 14px;border:none;border-radius:8px;background:var(--cc);color:var(--cc-on);font-size:12.5px;font-weight:650;cursor:pointer;font-family:inherit">{{ SK.saveLabel }}</button>
+            <button onClick="{{ SK.onCancel }}" style="padding:7px 14px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text-2);font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit">Cancel</button>
+          </div>
+        </div>
+        </sc-if>
+        <sc-if value="{{ SK.empty }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px;color:var(--text-3);padding:6px 0">No skills yet — add one to steer how your scripts are written.</div></sc-if>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <sc-for list="{{ SK.items }}" as="sk" hint-placeholder-count="3">
+            <div style="{{ sk.rowStyle }}">
+              <span style="{{ sk.dotStyle }}"></span>
+              <div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:650;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ sk.name }}</div><div style="font-size:11px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ sk.preview }}</div></div>
+              <button onClick="{{ sk.toggle }}" style="{{ sk.toggleStyle }}">{{ sk.toggleLabel }}</button>
+              <button onClick="{{ sk.edit }}" style="border:none;background:transparent;color:var(--cc);cursor:pointer;font-size:12px;font-family:inherit;font-weight:600">Edit</button>
+              <button onClick="{{ sk.del }}" style="border:none;background:transparent;color:var(--bad);cursor:pointer;font-size:13px;font-family:inherit">✕</button>
+            </div>
+          </sc-for>
+        </div>
+      </div>
       </sc-if>
 
       <!-- VISUALS & PROMPT -->
@@ -1191,8 +1221,13 @@ button{font-family:inherit}
         <p style="margin:6px 0 0;font-size:13px;color:var(--text-2);max-width:560px">Saved scripts &amp; visual prompts from Content Creation and Studio. Edit, tag, then save — synced to Supabase.</p>
       </div>
       <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+        <div style="display:inline-flex;background:var(--fill);border:1px solid var(--line);border-radius:9px;padding:3px;gap:2px">
+          <button onClick="{{ PIPE.tabScriptsClick }}" style="{{ PIPE.segScripts }}">Scripts</button>
+          <button onClick="{{ PIPE.tabVideosClick }}" style="{{ PIPE.segVideos }}">Videos</button>
+        </div>
         <button onClick="{{ PIPE.onRefresh }}" style="display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 13px;background:var(--surface);border:1px solid var(--line);border-radius:9px;color:var(--text-2);font-size:13px;font-weight:500;font-family:inherit;cursor:pointer"><span style="{{ PIPE.refreshIconStyle }}">↻</span> Refresh</button>
-        <button onClick="{{ PIPE.onNew }}" style="display:inline-flex;align-items:center;gap:5px;height:34px;padding:0 14px;background:var(--cc);color:var(--cc-on);font-size:13px;font-weight:600;font-family:inherit;border:none;border-radius:9px;cursor:pointer">+ New script</button>
+        <sc-if value="{{ PIPE.tabScripts }}" hint-placeholder-val="{{ true }}"><button onClick="{{ PIPE.onNew }}" style="display:inline-flex;align-items:center;gap:5px;height:34px;padding:0 14px;background:var(--cc);color:var(--cc-on);font-size:13px;font-weight:600;font-family:inherit;border:none;border-radius:9px;cursor:pointer">+ New script</button></sc-if>
+        <sc-if value="{{ PIPE.tabVideos }}" hint-placeholder-val="{{ false }}"><button onClick="{{ PIPE.onNewVideo }}" style="display:inline-flex;align-items:center;gap:5px;height:34px;padding:0 14px;background:var(--cc);color:var(--cc-on);font-size:13px;font-weight:600;font-family:inherit;border:none;border-radius:9px;cursor:pointer">+ New video</button></sc-if>
       </div>
     </div>
 
@@ -1200,6 +1235,7 @@ button{font-family:inherit}
       <div style="margin:20px 28px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:24px;text-align:center;font-size:13.5px;color:var(--text-2)">Supabase isn't configured — add SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY to .env.</div>
     </sc-if>
 
+    <sc-if value="{{ PIPE.tabScripts }}" hint-placeholder-val="{{ true }}">
     <div style="display:flex;align-items:center;gap:14px;padding:13px 28px;border-bottom:1px solid var(--line);flex-wrap:wrap">
       <div style="position:relative;flex:0 0 300px;max-width:300px">
         <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-3);font-size:14px;pointer-events:none">⌕</span>
@@ -1283,6 +1319,45 @@ button{font-family:inherit}
         </sc-if>
       </section>
     </div>
+    </sc-if>
+
+    <sc-if value="{{ PIPE.tabVideos }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;overflow-y:auto;padding:20px 28px">
+      <sc-if value="{{ PIPE.videosLoading }}" hint-placeholder-val="{{ true }}"><div style="font-size:13px;color:var(--text-3)">Loading…</div></sc-if>
+      <sc-if value="{{ PIPE.videosEmpty }}" hint-placeholder-val="{{ false }}"><div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:36px 24px;text-align:center;font-size:14px;color:var(--text-2)">No saved videos yet — in Discovery, hit ⤓ Save on any reel to stash it here for extraction.</div></sc-if>
+      <sc-if value="{{ PIPE.hasVideos }}" hint-placeholder-val="{{ false }}">
+      <div style="overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface)">
+        <div style="min-width:880px">
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) 58px 68px 78px 52px 64px 60px 128px;padding:11px 14px;border-bottom:1px solid var(--line);background:var(--surface-2)">
+            <div style="font-size:11px;color:var(--text-3);font-weight:600">Content</div>
+            <button onClick="{{ PIPE.vsMatch }}" style="{{ PIPE.vhMatch }}">Match{{ PIPE.vaMatch }}</button>
+            <button onClick="{{ PIPE.vsOut }}" style="{{ PIPE.vhOut }}">Outlier{{ PIPE.vaOut }}</button>
+            <button onClick="{{ PIPE.vsViews }}" style="{{ PIPE.vhViews }}">Views{{ PIPE.vaViews }}</button>
+            <button onClick="{{ PIPE.vsLen }}" style="{{ PIPE.vhLen }}">Len{{ PIPE.vaLen }}</button>
+            <button onClick="{{ PIPE.vsPosted }}" style="{{ PIPE.vhPosted }}">Posted{{ PIPE.vaPosted }}</button>
+            <button onClick="{{ PIPE.vsSaved }}" style="{{ PIPE.vhSaved }}">Saved{{ PIPE.vaSaved }}</button>
+            <div style="font-size:11px;color:var(--text-3);font-weight:600;text-align:right">Actions</div>
+          </div>
+          <sc-for list="{{ PIPE.videos }}" as="v" hint-placeholder-count="6">
+            <div style="display:grid;grid-template-columns:minmax(0,1fr) 58px 68px 78px 52px 64px 60px 128px;padding:10px 14px;border-bottom:1px solid var(--line);align-items:center">
+              <div style="display:flex;align-items:center;gap:10px;min-width:0">
+                <div style="width:36px;height:48px;flex:none;border-radius:6px;overflow:hidden;background:var(--fill)"><sc-if value="{{ v.hasThumb }}" hint-placeholder-val="{{ false }}"><img src="{{ v.thumb }}" style="width:100%;height:100%;object-fit:cover" referrerpolicy="no-referrer" loading="lazy"/></sc-if></div>
+                <div style="min-width:0"><div style="font-size:12.5px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:360px">{{ v.caption }}</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">{{ v.source }} · <a href="{{ v.permalink }}" target="_blank" rel="noopener" style="color:var(--cc);text-decoration:none">Open ↗</a></div></div>
+              </div>
+              <div style="font-size:12.5px;text-align:right;color:var(--cc);font-weight:700">{{ v.match }}</div>
+              <div style="font-size:12.5px;text-align:right;color:var(--text-2)">{{ v.outlier }}</div>
+              <div style="font-size:12.5px;text-align:right;color:var(--text)">{{ v.views }}</div>
+              <div style="font-size:12px;text-align:right;color:var(--text-3)">{{ v.length }}</div>
+              <div style="font-size:12px;text-align:right;color:var(--text-3)">{{ v.posted }}</div>
+              <div style="font-size:12px;text-align:right;color:var(--text-3)">{{ v.added }}</div>
+              <div style="text-align:right;white-space:nowrap"><button onClick="{{ v.toCC }}" style="border:none;background:var(--cc);color:var(--cc-on);cursor:pointer;font-family:inherit;font-size:11px;padding:5px 9px;border-radius:7px;font-weight:600">→ Content</button> <button onClick="{{ v.del }}" style="border:none;background:transparent;color:var(--bad);cursor:pointer;font-family:inherit;font-size:13px;padding:5px 4px">✕</button></div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+    </div>
+    </sc-if>
   </main>
   </sc-if>
 
@@ -1290,12 +1365,98 @@ button{font-family:inherit}
   <main class="cc-font" style="max-width:1100px;margin:0 auto;padding:30px 28px 80px">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:6px">
       <div>
-        <h1 style="margin:0;font-size:24px;font-weight:800;letter-spacing:-.03em">Discovery <span style="color:var(--text-faint);font-weight:500;font-size:16px">· {{ DISC.totalCount }}</span></h1>
-        <p style="margin:6px 0 0;font-size:13.5px;color:var(--text-2);max-width:640px">Find inspiration reels by hashtag or by pasting links, tag &amp; categorize them, then browse the library for content ideas.</p>
+        <h1 style="margin:0;font-size:24px;font-weight:800;letter-spacing:-.03em">Discovery <span style="color:var(--text-faint);font-weight:500;font-size:16px">· {{ DISC.headCount }}</span></h1>
+        <p style="margin:6px 0 0;font-size:13.5px;color:var(--text-2);max-width:640px">{{ DISC.subtitle }}</p>
       </div>
-      <button onClick="{{ DISC.refresh }}" style="{{ refreshBtnStyle }}">↻ Refresh</button>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="display:inline-flex;background:var(--fill);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px">
+          <button onClick="{{ DISC.modeRec }}" style="{{ DISC.segRecommend }}">Recommendation</button>
+          <button onClick="{{ DISC.modeCre }}" style="{{ DISC.segCreators }}">Creator search</button>
+          <button onClick="{{ DISC.modeTop }}" style="{{ DISC.segTopic }}">Topic</button>
+        </div>
+        <button onClick="{{ DISC.refresh }}" style="{{ refreshBtnStyle }}">↻ Refresh</button>
+      </div>
     </div>
 
+    <sc-if value="{{ DISC.modeRecommend }}" hint-placeholder-val="{{ true }}">
+
+    <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin:18px 0 16px;box-shadow:var(--shadow)">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+        <div>
+          <div style="font-size:15px;font-weight:800;letter-spacing:-.02em">🔥 Videos to copy, ranked for YOUR content</div>
+          <div style="font-size:12px;color:var(--text-2);margin-top:3px;max-width:600px">Every watched reel scored against the content you actually make (from your own transcripts) × how hard it outperforms its creator × freshness. Off-niche and stale reels sink automatically — no filtering needed.</div>
+        </div>
+        <button onClick="{{ REC.refresh }}" style="{{ refreshBtnStyle }}">↻ Refresh</button>
+      </div>
+      <sc-if value="{{ REC.videosLoading }}" hint-placeholder-val="{{ true }}"><div style="font-size:13px;color:var(--text-3);padding:8px 0">Loading videos…</div></sc-if>
+      <sc-if value="{{ REC.videosEmpty }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:var(--text-2);padding:8px 0">No videos yet — hit + Watch on a few creators below; their reels appear here ranked by outlier.</div></sc-if>
+      <sc-if value="{{ REC.hasVideos }}" hint-placeholder-val="{{ false }}">
+      <div style="overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface)">
+        <div style="min-width:840px">
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) 66px 84px 90px 76px 64px 56px 58px 72px;padding:11px 14px;border-bottom:1px solid var(--line);background:var(--surface-2)">
+            <div style="font-size:11px;color:var(--text-3);font-weight:600">Content</div>
+            <button onClick="{{ REC.sMatch }}" style="{{ REC.hMatch }}">Match{{ REC.aMatch }}</button>
+            <button onClick="{{ REC.sViews }}" style="{{ REC.hViews }}">Views{{ REC.aViews }}</button>
+            <button onClick="{{ REC.sVel }}" style="{{ REC.hVel }}">Views/h{{ REC.aVel }}</button>
+            <button onClick="{{ REC.sOut }}" style="{{ REC.hOut }}">Outlier{{ REC.aOut }}</button>
+            <button onClick="{{ REC.sEng }}" style="{{ REC.hEng }}">Eng{{ REC.aEng }}</button>
+            <button onClick="{{ REC.sLen }}" style="{{ REC.hLen }}">Len{{ REC.aLen }}</button>
+            <button onClick="{{ REC.sAge }}" style="{{ REC.hAge }}">Age{{ REC.aAge }}</button>
+            <div style="font-size:11px;color:var(--text-3);font-weight:600;text-align:right">Extract</div>
+          </div>
+          <sc-for list="{{ REC.videos }}" as="v" hint-placeholder-count="8">
+            <div style="display:grid;grid-template-columns:minmax(0,1fr) 66px 84px 90px 76px 64px 56px 58px 72px;padding:10px 14px;border-bottom:1px solid var(--line);align-items:center">
+              <div style="display:flex;align-items:center;gap:10px;min-width:0">
+                <div style="width:36px;height:48px;flex:none;border-radius:6px;overflow:hidden;background:var(--fill)"><sc-if value="{{ v.hasThumb }}" hint-placeholder-val="{{ false }}"><img src="{{ v.thumb }}" style="width:100%;height:100%;object-fit:cover" referrerpolicy="no-referrer" loading="lazy"/></sc-if></div>
+                <div style="min-width:0">
+                  <div style="font-size:12.5px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:330px">{{ v.caption }}</div>
+                  <sc-if value="{{ v.hasWhy }}" hint-placeholder-val="{{ false }}"><div style="font-size:10.5px;color:var(--cc);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:330px">{{ v.why }}</div></sc-if>
+                  <div style="font-size:11px;color:var(--text-3);margin-top:2px">@{{ v.creator }} · <a href="{{ v.permalink }}" target="_blank" rel="noopener" style="color:var(--cc);text-decoration:none">Open ↗</a></div>
+                </div>
+              </div>
+              <div style="text-align:right"><span style="{{ v.matchStyle }}">{{ v.match }}</span></div>
+              <div style="font-size:12.5px;text-align:right;color:var(--text)">{{ v.views }}</div>
+              <div style="font-size:12.5px;text-align:right;color:var(--text-2)">{{ v.velocity }}</div>
+              <div style="text-align:right"><span style="{{ v.outlierStyle }}">{{ v.outlier }}</span></div>
+              <div style="font-size:12.5px;text-align:right;color:var(--text-2)">{{ v.engagement }}</div>
+              <div style="font-size:12px;text-align:right;color:var(--text-3)">{{ v.length }}</div>
+              <div style="font-size:12px;text-align:right;color:var(--text-3)">{{ v.age }}</div>
+              <div style="text-align:right"><button onClick="{{ v.save }}" style="border:none;background:var(--cc-soft);color:var(--cc);cursor:pointer;font-family:inherit;font-size:11px;padding:4px 8px;border-radius:7px;font-weight:600;white-space:nowrap">{{ v.saveLabel }}</button></div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+    </div>
+
+    <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin:0 0 16px;box-shadow:var(--shadow)">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:4px">
+        <div>
+          <div style="font-size:15px;font-weight:800;letter-spacing:-.02em">✨ Creators for your niche</div>
+          <div style="font-size:12px;color:var(--text-2);margin-top:3px;max-width:560px">Auto-found from the creators you already rate — no hashtags, no manual hunting. Ranked by how many of your top performers point to them. <span style="color:var(--text-faint)">{{ REC.seedsText }}</span></div>
+        </div>
+      </div>
+      <sc-if value="{{ REC.loading }}" hint-placeholder-val="{{ true }}"><div style="font-size:13px;color:var(--text-3);padding:10px 0">Finding creators in your niche…</div></sc-if>
+      <sc-if value="{{ REC.empty }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:var(--text-2);padding:10px 0">{{ REC.note }}</div></sc-if>
+      <sc-if value="{{ REC.hasItems }}" hint-placeholder-val="{{ false }}">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;margin-top:12px">
+        <sc-for list="{{ REC.items }}" as="r" hint-placeholder-count="8">
+          <div style="display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--line);border-radius:12px">
+            <div style="width:38px;height:38px;border-radius:50%;overflow:hidden;background:var(--fill);flex:none"><sc-if value="{{ r.hasAvatar }}" hint-placeholder-val="{{ false }}"><img src="{{ r.avatar }}" style="width:100%;height:100%;object-fit:cover" referrerpolicy="no-referrer" loading="lazy"/></sc-if></div>
+            <div style="min-width:0;flex:1">
+              <div style="font-size:12.5px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.at }} <sc-if value="{{ r.verified }}" hint-placeholder-val="{{ false }}"><span style="color:var(--cc);font-size:10px">✓</span></sc-if></div>
+              <div style="font-size:10.5px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.name }}</div>
+              <div style="font-size:10px;color:var(--cc);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.why }}</div>
+            </div>
+            <button onClick="{{ r.add }}" style="padding:6px 11px;border:none;border-radius:8px;background:var(--cc);color:var(--cc-on);font-size:11.5px;font-weight:650;cursor:pointer;flex:none;font-family:inherit">+ Watch</button>
+          </div>
+        </sc-for>
+      </div>
+      </sc-if>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ DISC.modeTopic }}" hint-placeholder-val="{{ false }}">
     <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin:18px 0 22px;box-shadow:var(--shadow)">
       <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end">
         <div style="flex:1;min-width:250px">
@@ -1370,6 +1531,226 @@ button{font-family:inherit}
         </div>
       </sc-for>
     </div>
+    </sc-if>
+
+    <!-- ── CREATOR SEARCH: watchlist → filterable, outlier-ranked reels ── -->
+    <sc-if value="{{ DISC.modeCreators }}" hint-placeholder-val="{{ false }}">
+
+    <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin:18px 0 16px;box-shadow:var(--shadow)">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+        <div class="cc-mono" style="font-size:10px;letter-spacing:.1em;color:var(--text-3)">WATCHLIST · {{ TR.creatorCount }} CREATORS · {{ TR.sweepTxt }}</div>
+        <button onClick="{{ TR.sweep }}" style="{{ TR.sweepBtnStyle }}">{{ TR.sweepLabel }}</button>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <div style="flex:1;min-width:220px;position:relative">
+          <input value="{{ TR.addInput }}" onInput="{{ TR.onAddInput }}" onBlur="{{ TR.onInputBlur }}" placeholder="search a creator by name or @handle…" style="width:100%;box-sizing:border-box;padding:10px 13px;border:1px solid var(--line);border-radius:10px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text)"/>
+          <sc-if value="{{ TR.searchOpen }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;top:calc(100% + 5px);left:0;right:0;z-index:40;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 18px 44px -16px rgba(0,0,0,.55);overflow:hidden;max-height:330px;overflow-y:auto">
+            <sc-for list="{{ TR.searchResults }}" as="a" hint-placeholder-count="5">
+              <button onClick="{{ a.pick }}" style="display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:9px 12px;background:none;border:none;border-bottom:1px solid var(--line);cursor:pointer;font-family:inherit">
+                <div style="width:30px;height:30px;border-radius:50%;overflow:hidden;background:var(--fill);flex:none"><sc-if value="{{ a.hasAvatar }}" hint-placeholder-val="{{ false }}"><img src="{{ a.avatar }}" style="width:100%;height:100%;object-fit:cover" referrerpolicy="no-referrer" loading="lazy"/></sc-if></div>
+                <div style="min-width:0;flex:1">
+                  <div style="font-size:12.5px;font-weight:650;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ a.at }} <sc-if value="{{ a.verified }}" hint-placeholder-val="{{ false }}"><span style="color:var(--cc);font-size:11px">✓</span></sc-if></div>
+                  <div style="font-size:11px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ a.name }}</div>
+                </div>
+              </button>
+            </sc-for>
+          </div>
+          </sc-if>
+        </div>
+        <button onClick="{{ TR.onLookup }}" style="padding:10px 16px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--text);font-size:13px;font-weight:650;cursor:pointer;font-family:inherit">{{ TR.lookupLabel }}</button>
+        <button onClick="{{ TR.findSimilar }}" style="padding:10px 16px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--text);font-size:13px;font-weight:650;cursor:pointer;font-family:inherit">{{ TR.similarLabel }}</button>
+        <button onClick="{{ TR.onAdd }}" style="padding:10px 16px;border:none;border-radius:10px;background:var(--cc);color:var(--cc-on);font-size:13px;font-weight:650;cursor:pointer;font-family:inherit">{{ TR.addLabel }}</button>
+      </div>
+      <div style="margin-top:8px;font-size:11.5px;color:var(--text-3)">Search &amp; pick a creator to add, preview their reels, or fan out to similar creators — or <button onClick="{{ TR.findSimilarSelf }}" style="border:none;background:transparent;color:var(--cc);cursor:pointer;font-family:inherit;font-size:11.5px;font-weight:600;padding:0">find creators like your own account ↗</button></div>
+      <sc-if value="{{ TR.error }}" hint-placeholder-val="{{ false }}"><div style="margin-top:10px;font-size:12.5px;color:var(--bad)">{{ TR.error }}</div></sc-if>
+      <sc-if value="{{ TR.msg }}" hint-placeholder-val="{{ false }}"><div style="margin-top:10px;font-size:12.5px;color:var(--good)">{{ TR.msg }}</div></sc-if>
+      <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:12px">
+        <sc-for list="{{ TR.creators }}" as="c" hint-placeholder-count="4">
+          <span style="display:inline-flex;align-items:center;gap:7px;padding:4px 8px 4px 4px;background:var(--fill);border:1px solid var(--line);border-radius:99px;font-size:12px;color:var(--text-2)"><span style="width:22px;height:22px;border-radius:50%;overflow:hidden;background:var(--surface);flex:none;display:inline-block"><sc-if value="{{ c.hasAvatar }}" hint-placeholder-val="{{ false }}"><img src="{{ c.avatar }}" style="width:100%;height:100%;object-fit:cover" referrerpolicy="no-referrer" loading="lazy"/></sc-if></span>{{ c.label }}<button onClick="{{ c.remove }}" style="border:none;background:transparent;color:var(--text-3);cursor:pointer;font-size:13px;line-height:1;padding:0 2px">✕</button></span>
+        </sc-for>
+      </div>
+    </div>
+
+    <sc-if value="{{ TR.hasRelated }}" hint-placeholder-val="{{ false }}">
+    <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 20px;margin:0 0 16px;box-shadow:var(--shadow)">
+      <div style="font-weight:700;font-size:13.5px;margin-bottom:12px">✨ {{ TR.related.title }} <span style="color:var(--text-faint);font-weight:500">· one-click add to your watchlist</span></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px">
+        <sc-for list="{{ TR.related.items }}" as="r" hint-placeholder-count="6">
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--line);border-radius:11px">
+            <div style="width:34px;height:34px;border-radius:50%;overflow:hidden;background:var(--fill);flex:none"><sc-if value="{{ r.hasAvatar }}" hint-placeholder-val="{{ false }}"><img src="{{ r.avatar }}" style="width:100%;height:100%;object-fit:cover" referrerpolicy="no-referrer" loading="lazy"/></sc-if></div>
+            <div style="min-width:0;flex:1">
+              <div style="font-size:12px;font-weight:650;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.at }} <sc-if value="{{ r.verified }}" hint-placeholder-val="{{ false }}"><span style="color:var(--cc);font-size:10px">✓</span></sc-if></div>
+              <div style="font-size:10.5px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.name }}</div>
+            </div>
+            <button onClick="{{ r.add }}" style="{{ r.addStyle }}">{{ r.addLabel }}</button>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ TR.hasLookup }}" hint-placeholder-val="{{ false }}">
+    <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 20px;margin:0 0 16px;box-shadow:var(--shadow)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="font-weight:700;font-size:13.5px">{{ TR.lookup.title }}</div>
+        <button onClick="{{ TR.lookupAdd }}" style="padding:7px 13px;border:none;border-radius:9px;background:var(--cc);color:var(--cc-on);font-size:12px;font-weight:650;cursor:pointer;font-family:inherit">+ Add to watchlist</button>
+      </div>
+      <sc-for list="{{ TR.lookup.reels }}" as="r" hint-placeholder-count="4">
+        <div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-top:1px solid var(--line)">
+          <div style="width:38px;height:50px;flex:none;border-radius:6px;overflow:hidden;background:var(--fill)"><sc-if value="{{ r.hasThumb }}" hint-placeholder-val="{{ false }}"><img src="{{ r.thumb }}" style="width:100%;height:100%;object-fit:cover" referrerpolicy="no-referrer" loading="lazy"/></sc-if></div>
+          <div style="flex:1;min-width:0;font-size:12.5px;color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.caption }}</div>
+          <div style="width:66px;text-align:right;font-size:12px;color:var(--text-2)">▶ {{ r.views }}</div>
+          <div style="width:56px;text-align:right"><span style="{{ r.outlierStyle }}">{{ r.outlierTxt }}</span></div>
+          <a href="{{ r.permalink }}" target="_blank" rel="noopener" style="font-size:12px;color:var(--cc);text-decoration:none;font-weight:600">Open ↗</a>
+        </div>
+      </sc-for>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ TR.hasClusters }}" hint-placeholder-val="{{ false }}">
+    <div style="margin:0 0 8px;font-size:12px;font-weight:700;color:var(--text-2)">🎵 Trending sounds <span style="color:var(--text-faint);font-weight:500">· a sound ≥2 of your creators are outperforming with</span></div>
+    <div style="display:flex;gap:12px;overflow-x:auto;padding-bottom:6px;margin-bottom:18px">
+      <sc-for list="{{ TR.clusters }}" as="cl" hint-placeholder-count="3">
+        <button onClick="{{ cl.filter }}" style="{{ cl.style }}"><div style="font-size:12.5px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:170px">{{ cl.title }}</div><div style="font-size:11px;color:var(--text-3);margin-top:3px">{{ cl.meta }}</div></button>
+      </sc-for>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ TR.hasFormats }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:stretch">
+      <sc-for list="{{ TR.formats }}" as="f" hint-placeholder-count="4">
+        <div style="{{ f.style }}"><div style="font-size:11px;color:var(--text-3)">{{ f.label }} · {{ f.count }}</div><div style="font-size:16px;font-weight:800;color:var(--text);margin-top:2px">{{ f.medOutlier }}×</div><div style="font-size:10px;color:var(--text-faint)">median outlier</div></div>
+      </sc-for>
+    </div>
+    </sc-if>
+
+    <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin-bottom:14px">
+      <div style="display:flex;gap:6px;align-items:center"><span style="font-size:11px;color:var(--text-3)">Sort</span><sc-for list="{{ TR.sortChips }}" as="ch" hint-placeholder-count="5"><button onClick="{{ ch.click }}" style="{{ ch.style }}">{{ ch.label }}</button></sc-for></div>
+      <div style="display:flex;gap:6px;align-items:center"><span style="font-size:11px;color:var(--text-3)">Outlier</span><sc-for list="{{ TR.outlierChips }}" as="ch" hint-placeholder-count="4"><button onClick="{{ ch.click }}" style="{{ ch.style }}">{{ ch.label }}</button></sc-for></div>
+      <div style="display:flex;gap:6px;align-items:center"><span style="font-size:11px;color:var(--text-3)">Length</span><sc-for list="{{ TR.durationChips }}" as="ch" hint-placeholder-count="4"><button onClick="{{ ch.click }}" style="{{ ch.style }}">{{ ch.label }}</button></sc-for></div>
+      <div style="display:flex;gap:6px;align-items:center"><span style="font-size:11px;color:var(--text-3)">Posted</span><sc-for list="{{ TR.recencyChips }}" as="ch" hint-placeholder-count="3"><button onClick="{{ ch.click }}" style="{{ ch.style }}">{{ ch.label }}</button></sc-for></div>
+      <sc-if value="{{ TR.hasActiveFilter }}" hint-placeholder-val="{{ false }}"><button onClick="{{ TR.clearFilters }}" style="font-size:11.5px;color:var(--cc);background:transparent;border:none;cursor:pointer;font-family:inherit;font-weight:600">Clear filters</button></sc-if>
+    </div>
+
+    <sc-if value="{{ TR.notConfigured }}" hint-placeholder-val="{{ false }}"><div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:24px;text-align:center;font-size:13.5px;color:var(--text-2)">Supabase isn't configured — add SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY to .env.</div></sc-if>
+    <sc-if value="{{ TR.vendorMissing }}" hint-placeholder-val="{{ false }}"><div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:24px;text-align:center;font-size:13.5px;color:var(--text-2)">Add HIKERAPI_KEY on the server to look up and sweep creators.</div></sc-if>
+    <sc-if value="{{ TR.loading }}" hint-placeholder-val="{{ true }}"><div style="font-size:13.5px;color:var(--text-3)">Loading…</div></sc-if>
+    <sc-if value="{{ TR.empty }}" hint-placeholder-val="{{ false }}"><div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:36px 24px;text-align:center;font-size:14px;color:var(--text-2)">No swept reels yet — add a creator above, or hit Sweep now. Nothing matches these filters otherwise.</div></sc-if>
+
+    <sc-if value="{{ TR.hasItems }}" hint-placeholder-val="{{ true }}">
+    <div style="overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface);box-shadow:var(--shadow)">
+      <div style="min-width:840px">
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) 84px 96px 76px 70px 58px 60px 72px;padding:11px 14px;border-bottom:1px solid var(--line);background:var(--surface-2)">
+          <div style="font-size:11px;color:var(--text-3);font-weight:600">Content</div>
+          <button onClick="{{ TR.sortViews }}" style="{{ TR.hViews }}">Views{{ TR.arrViews }}</button>
+          <button onClick="{{ TR.sortVelocity }}" style="{{ TR.hVel }}">Views/h{{ TR.arrVel }}</button>
+          <button onClick="{{ TR.sortOutlier }}" style="{{ TR.hOut }}">Outlier{{ TR.arrOut }}</button>
+          <button onClick="{{ TR.sortEngagement }}" style="{{ TR.hEng }}">Eng{{ TR.arrEng }}</button>
+          <div style="font-size:11px;color:var(--text-3);font-weight:600;text-align:right">Len</div>
+          <button onClick="{{ TR.sortRecent }}" style="{{ TR.hAge }}">Age{{ TR.arrAge }}</button>
+          <div style="font-size:11px;color:var(--text-3);font-weight:600;text-align:right">Extract</div>
+        </div>
+        <sc-for list="{{ TR.items }}" as="it" hint-placeholder-count="8">
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) 84px 96px 76px 70px 58px 60px 72px;padding:10px 14px;border-bottom:1px solid var(--line);align-items:center">
+            <div style="display:flex;align-items:center;gap:10px;min-width:0">
+              <div style="width:36px;height:48px;flex:none;border-radius:6px;overflow:hidden;background:var(--fill)"><sc-if value="{{ it.hasThumb }}" hint-placeholder-val="{{ false }}"><img src="{{ it.thumb }}" style="width:100%;height:100%;object-fit:cover" referrerpolicy="no-referrer" loading="lazy"/></sc-if></div>
+              <div style="min-width:0">
+                <div style="font-size:12.5px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:330px">{{ it.caption }}</div>
+                <div style="font-size:11px;color:var(--text-3);margin-top:2px">@{{ it.creator }} · <a href="{{ it.permalink }}" target="_blank" rel="noopener" style="color:var(--cc);text-decoration:none">Open ↗</a></div>
+              </div>
+            </div>
+            <div style="font-size:12.5px;text-align:right;color:var(--text)">{{ it.views }}</div>
+            <div style="font-size:12.5px;text-align:right;color:var(--text-2)">{{ it.velocity }}</div>
+            <div style="text-align:right"><span style="{{ it.outlierStyle }}">{{ it.outlier }}</span></div>
+            <div style="font-size:12.5px;text-align:right;color:var(--text-2)">{{ it.engagement }}</div>
+            <div style="font-size:12px;text-align:right;color:var(--text-3)">{{ it.length }}</div>
+            <div style="font-size:12px;text-align:right;color:var(--text-3)">{{ it.age }}</div>
+            <div style="text-align:right"><button onClick="{{ it.save }}" style="border:none;background:var(--cc-soft);color:var(--cc);cursor:pointer;font-family:inherit;font-size:11px;padding:4px 8px;border-radius:7px;font-weight:600;white-space:nowrap">{{ it.saveLabel }}</button></div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    </sc-if>
+
+    </sc-if>
+  </main>
+  </sc-if>
+
+  <sc-if value="{{ showGuides }}" hint-placeholder-val="{{ false }}">
+  <main class="cc-font" style="max-width:1180px;margin:0 auto;padding:30px 28px 90px">
+    <h1 style="margin:0 0 4px;font-size:24px;font-weight:800;letter-spacing:-.03em">Guides</h1>
+    <p style="margin:0 0 20px;font-size:13.5px;color:var(--text-2);max-width:680px">Paste a reel link — we pull its transcript and write a polished, standalone guide (applying your guide skills). Edit it, publish it to Supabase for your site, or download a PDF.</p>
+
+    <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin-bottom:16px;box-shadow:var(--shadow)">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <input value="{{ GUIDE.url }}" onInput="{{ GUIDE.onUrl }}" placeholder="https://www.instagram.com/reel/…" style="flex:1;min-width:240px;padding:11px 13px;border:1px solid var(--line);border-radius:10px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text)"/>
+        <button onClick="{{ GUIDE.generate }}" style="padding:11px 20px;border:none;border-radius:10px;background:var(--cc);color:var(--cc-on);font-size:13px;font-weight:650;cursor:pointer;font-family:inherit">{{ GUIDE.genLabel }}</button>
+      </div>
+      <sc-if value="{{ GUIDE.generating }}" hint-placeholder-val="{{ false }}"><div style="margin-top:10px;font-size:12.5px;color:var(--text-3)">⏳ {{ GUIDE.step }}</div></sc-if>
+      <sc-if value="{{ GUIDE.error }}" hint-placeholder-val="{{ false }}"><div style="margin-top:10px;font-size:12.5px;color:var(--bad)">{{ GUIDE.error }}</div></sc-if>
+    </div>
+
+    <div style="display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start">
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 18px;box-shadow:var(--shadow)">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px">
+            <div style="font-size:13.5px;font-weight:700">Guide skills <span style="color:var(--text-faint);font-weight:500;font-size:12px">· {{ SK.activeCount }} active</span></div>
+            <button onClick="{{ SK.onNew }}" style="flex:none;padding:6px 11px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">+ New</button>
+          </div>
+          <sc-if value="{{ SK.composerOpen }}" hint-placeholder-val="{{ false }}">
+          <div style="border:1px solid var(--cc);border-radius:11px;padding:11px;margin-bottom:10px;background:var(--cc-soft)">
+            <input value="{{ SK.draftName }}" onInput="{{ SK.onName }}" placeholder="Skill name (e.g. Step-by-step tutorial format)" style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);margin-bottom:8px"/>
+            <textarea value="{{ SK.draftContent }}" onInput="{{ SK.onContent }}" placeholder="Paste the guide skill (markdown) — structure, tone, formatting rules…" style="width:100%;box-sizing:border-box;min-height:110px;resize:vertical;padding:9px 11px;border:1px solid var(--line);border-radius:8px;font-size:12.5px;line-height:1.5;font-family:inherit;background:var(--surface);color:var(--text)"></textarea>
+            <div style="display:flex;gap:8px;margin-top:9px">
+              <button onClick="{{ SK.onSave }}" style="padding:7px 14px;border:none;border-radius:8px;background:var(--cc);color:var(--cc-on);font-size:12.5px;font-weight:650;cursor:pointer;font-family:inherit">{{ SK.saveLabel }}</button>
+              <button onClick="{{ SK.onCancel }}" style="padding:7px 14px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text-2);font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit">Cancel</button>
+            </div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ SK.empty }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px;color:var(--text-3);padding:6px 0">No guide skills yet — add one to shape how guides are written.</div></sc-if>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <sc-for list="{{ SK.items }}" as="sk" hint-placeholder-count="2">
+              <div style="{{ sk.rowStyle }}">
+                <span style="{{ sk.dotStyle }}"></span>
+                <div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:650;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ sk.name }}</div><div style="font-size:11px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ sk.preview }}</div></div>
+                <button onClick="{{ sk.toggle }}" style="{{ sk.toggleStyle }}">{{ sk.toggleLabel }}</button>
+                <button onClick="{{ sk.edit }}" style="border:none;background:transparent;color:var(--cc);cursor:pointer;font-size:12px;font-family:inherit;font-weight:600">Edit</button>
+                <button onClick="{{ sk.del }}" style="border:none;background:transparent;color:var(--bad);cursor:pointer;font-size:13px;font-family:inherit">✕</button>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div>
+          <div class="cc-mono" style="font-size:10px;letter-spacing:.1em;color:var(--text-3);margin-bottom:8px">YOUR GUIDES</div>
+          <sc-if value="{{ GUIDE.empty }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px;color:var(--text-3)">No guides yet — generate one above.</div></sc-if>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <sc-for list="{{ GUIDE.items }}" as="g" hint-placeholder-count="4">
+              <div onClick="{{ g.select }}" style="{{ g.cardStyle }}"><div style="font-size:13px;font-weight:650;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ g.title }}</div><div style="{{ g.metaStyle }}">{{ g.meta }}</div></div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <sc-if value="{{ GUIDE.hasSel }}" hint-placeholder-val="{{ true }}">
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px 22px;box-shadow:var(--shadow)">
+        <input value="{{ GUIDE.draftTitle }}" onInput="{{ GUIDE.onTitle }}" style="width:100%;box-sizing:border-box;border:none;background:transparent;color:var(--text);font-size:22px;font-weight:800;letter-spacing:-.02em;font-family:inherit;padding:0;outline:none;margin-bottom:3px"/>
+        <div style="font-size:11px;color:var(--text-3);margin-bottom:14px">{{ GUIDE.slug }}</div>
+        <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
+          <button onClick="{{ GUIDE.save }}" style="padding:7px 15px;border:none;border-radius:8px;background:var(--cc);color:var(--cc-on);font-size:12.5px;font-weight:650;cursor:pointer;font-family:inherit">{{ GUIDE.saveLabel }}</button>
+          <button onClick="{{ GUIDE.preview }}" style="padding:7px 13px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit">Preview</button>
+          <button onClick="{{ GUIDE.pdf }}" style="padding:7px 13px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit">⬇ PDF</button>
+          <button onClick="{{ GUIDE.publish }}" style="padding:7px 13px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit">{{ GUIDE.publishLabel }}</button>
+          <span style="font-size:12px;color:var(--good)">{{ GUIDE.saved }}</span>
+          <div style="flex:1"></div>
+          <button onClick="{{ GUIDE.del }}" style="padding:7px 11px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--bad);font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit">Delete</button>
+        </div>
+        <textarea value="{{ GUIDE.draftBody }}" onInput="{{ GUIDE.onBody }}" placeholder="Guide markdown…" class="cc-mono" style="width:100%;box-sizing:border-box;min-height:460px;resize:vertical;padding:16px;border:1px solid var(--line);border-radius:12px;font-size:13px;line-height:1.6;font-family:'JetBrains Mono',ui-monospace,monospace;background:var(--surface-2);color:var(--text)"></textarea>
+      </div>
+      </sc-if>
+
+    </div>
   </main>
   </sc-if>
 
@@ -1390,6 +1771,35 @@ button{font-family:inherit}
           </div>
           <button onClick="{{ STU.generate }}" style="margin-top:16px;width:100%;padding:11px;border:none;border-radius:11px;background:var(--cc);color:var(--cc-on);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">{{ STU.genLabel }}</button>
           <sc-if value="{{ STU.error }}" hint-placeholder-val="{{ false }}"><div style="margin-top:10px;font-size:12.5px;color:var(--bad)">{{ STU.error }}</div></sc-if>
+        </div>
+
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 18px;box-shadow:var(--shadow)">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px">
+            <div><div style="font-size:13.5px;font-weight:700">Skills <span style="color:var(--text-faint);font-weight:500;font-size:12px">· {{ SK.activeCount }} active</span></div><div style="font-size:11px;color:var(--text-3);margin-top:2px">Your reusable instructions — applied to every script generated here &amp; in Create.</div></div>
+            <button onClick="{{ SK.onNew }}" style="flex:none;padding:6px 11px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">+ New</button>
+          </div>
+          <sc-if value="{{ SK.composerOpen }}" hint-placeholder-val="{{ false }}">
+          <div style="border:1px solid var(--cc);border-radius:11px;padding:11px;margin-bottom:10px;background:var(--cc-soft)">
+            <input value="{{ SK.draftName }}" onInput="{{ SK.onName }}" placeholder="Skill name (e.g. German hook voice)" style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);margin-bottom:8px"/>
+            <textarea value="{{ SK.draftContent }}" onInput="{{ SK.onContent }}" placeholder="Paste the skill content (markdown) — style rules, format, examples, voice…" style="width:100%;box-sizing:border-box;min-height:120px;resize:vertical;padding:9px 11px;border:1px solid var(--line);border-radius:8px;font-size:12.5px;line-height:1.5;font-family:inherit;background:var(--surface);color:var(--text)"></textarea>
+            <div style="display:flex;gap:8px;margin-top:9px">
+              <button onClick="{{ SK.onSave }}" style="padding:7px 14px;border:none;border-radius:8px;background:var(--cc);color:var(--cc-on);font-size:12.5px;font-weight:650;cursor:pointer;font-family:inherit">{{ SK.saveLabel }}</button>
+              <button onClick="{{ SK.onCancel }}" style="padding:7px 14px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text-2);font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit">Cancel</button>
+            </div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ SK.empty }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px;color:var(--text-3);padding:6px 0">No skills yet — add one to steer how your scripts are written.</div></sc-if>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <sc-for list="{{ SK.items }}" as="sk" hint-placeholder-count="3">
+              <div style="{{ sk.rowStyle }}">
+                <span style="{{ sk.dotStyle }}"></span>
+                <div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:650;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ sk.name }}</div><div style="font-size:11px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ sk.preview }}</div></div>
+                <button onClick="{{ sk.toggle }}" style="{{ sk.toggleStyle }}">{{ sk.toggleLabel }}</button>
+                <button onClick="{{ sk.edit }}" style="border:none;background:transparent;color:var(--cc);cursor:pointer;font-size:12px;font-family:inherit;font-weight:600">Edit</button>
+                <button onClick="{{ sk.del }}" style="border:none;background:transparent;color:var(--bad);cursor:pointer;font-size:13px;font-family:inherit">✕</button>
+              </div>
+            </sc-for>
+          </div>
         </div>
 
         <sc-if value="{{ STU.hasResult }}" hint-placeholder-val="{{ false }}">
@@ -1598,6 +2008,34 @@ button{font-family:inherit}
       <div style="font-size:12px;color:var(--text-3);line-height:1.5;margin-bottom:10px;max-width:680px">{{ LAB.skipVerdict }}</div>
       <div style="display:flex;flex-direction:column;gap:6px">
         <sc-for list="{{ LAB.skipDrivers }}" as="sd" hint-placeholder-count="6">
+          <div style="display:grid;grid-template-columns:220px 1fr 92px;gap:12px;align-items:center">
+            <div style="font-size:12.5px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ sd.label }}</div>
+            <div style="height:10px;background:var(--fill);border-radius:5px;position:relative;overflow:hidden"><div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--line)"></div><div style="{{ sd.barStyle }}"></div></div>
+            <div style="text-align:right;font-size:11px;font-weight:700;color:{{ sd.color }}">{{ sd.coefTxt }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <!-- likes engine: what drives the like RATE -->
+    <sc-if value="{{ LAB.hasLikesModel }}" hint-placeholder-val="{{ false }}">
+      <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--text-3);margin:20px 0 6px"><span style="display:inline-block;width:7px;height:7px;border-radius:2px;background:var(--good);margin-right:7px"></span>WHAT DRIVES LIKES · <span style="color:var(--text-faint)">like‑rate model · LOO R² {{ LAB.likesR2 }} · n {{ LAB.likesN }} · avg {{ LAB.likesMean }}% · effect in like‑rate points · recent reels included</span></div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <sc-for list="{{ LAB.likesDrivers }}" as="sd" hint-placeholder-count="6">
+          <div style="display:grid;grid-template-columns:220px 1fr 92px;gap:12px;align-items:center">
+            <div style="font-size:12.5px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ sd.label }}</div>
+            <div style="height:10px;background:var(--fill);border-radius:5px;position:relative;overflow:hidden"><div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--line)"></div><div style="{{ sd.barStyle }}"></div></div>
+            <div style="text-align:right;font-size:11px;font-weight:700;color:{{ sd.color }}">{{ sd.coefTxt }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <!-- comments engine: what drives the comment RATE -->
+    <sc-if value="{{ LAB.hasCommentsModel }}" hint-placeholder-val="{{ false }}">
+      <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--text-3);margin:20px 0 6px"><span style="display:inline-block;width:7px;height:7px;border-radius:2px;background:var(--good);margin-right:7px"></span>WHAT DRIVES COMMENTS · <span style="color:var(--text-faint)">comment‑rate model · LOO R² {{ LAB.commentsR2 }} · n {{ LAB.commentsN }} · avg {{ LAB.commentsMean }}% · effect in comment‑rate points · recent reels included</span></div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <sc-for list="{{ LAB.commentsDrivers }}" as="sd" hint-placeholder-count="6">
           <div style="display:grid;grid-template-columns:220px 1fr 92px;gap:12px;align-items:center">
             <div style="font-size:12.5px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ sd.label }}</div>
             <div style="height:10px;background:var(--fill);border-radius:5px;position:relative;overflow:hidden"><div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--line)"></div><div style="{{ sd.barStyle }}"></div></div>
@@ -1817,15 +2255,24 @@ class Component extends DCLogic {
   constructor(props){
     super(props);
     this.MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    this.state = { view:(function(){ try{ var h=(location.hash||'').replace('#',''); return ['content','pipeline','discovery','studio','lab','clippers'].indexOf(h)>=0?h:'overview'; }catch(e){ return 'overview'; } })(), sel:null, range:'30D', sort:'reach', loading:true, syncing:false, loadError:null, analysis:null, analysisFor:null, analysisLoading:false,
+    this.state = { view:(function(){ try{ var h=(location.hash||'').replace('#',''); return ['content','pipeline','discovery','studio','lab','clippers','guides'].indexOf(h)>=0?h:'overview'; }catch(e){ return 'overview'; } })(), sel:null, range:'30D', sort:'reach', loading:true, syncing:false, loadError:null, analysis:null, analysisFor:null, analysisLoading:false,
       ccUrl:'', ccLoading:false, ccResult:null, ccError:'', ccTab:'frames', ccScript:'', ccScriptLoading:false, ccBrief:'', ccProgress:0, ccStep:'',
       ccAnimScript:null, ccStoryboard:null, ccStoryLoading:false, ccStoryError:'', ccFrameHtml:{}, ccFrameBusy:{}, ccRenderingAll:false, ccZoom:null,
       ccSel:{}, ccExporting:false, ccSaving:false, ccSaved:'',
       ccCur:0, ccCView:'scrubber', ccPlaying:false, ccZones:false, ccPromptSrc:'original', ccIncVis:false, ccToast:'',
       pipeItems:null, pipeLoading:false, pipeError:'', pipeLoaded:false,
+      pipeTab:'scripts', pipeVidItems:null, pipeVidLoading:false, pipeVidLoaded:false, pipeVidSaved:{}, pipeVidSort:'added',
+      skills:null, skillsLoading:false, skillsLoaded:false, skillDraftId:null, skillDraftName:'', skillDraftContent:'', skillDraftScope:'script', skillComposerOpen:false, skillBusy:false, skillError:'',
+      guideUrl:'', guideGenerating:false, guideStep:'', guideError:'', guides:null, guidesLoading:false, guidesLoaded:false,
+      guideSel:null, guideDraftTitle:'', guideDraftBody:'', guideDirty:false, guideSaving:false, guideSaved:'', guidePreview:false,
       pipeSel:null, pipeQuery:'', pipeActiveTags:[], pipeTagDraft:'', pipeSaveStatus:'idle', pipeDeleteArmed:false, pipeRefreshing:false,
       discItems:null, discCats:[], discLoading:false, discLoaded:false, discError:'', discMsg:'', discBusy:false,
-      discHashtag:'', discType:'top', discCategory:'', discLinks:'', discFilter:'',
+      discHashtag:'', discType:'top', discCategory:'', discLinks:'', discFilter:'', discMode:'recommend',
+      recData:null, recLoading:false, recLoaded:false, recVideos:null, recVideosLoading:false, recSort:'match',
+      wlCreators:null, wlLoading:false, wlLoaded:false, wlConfigured:true, wlVendor:true,
+      wlFeed:null, wlFeedLoading:false, wlFilters:{ sort:'velocity', minOutlier:null, duration:null, sinceDays:null, audioId:null },
+      wlAddInput:'', wlBusy:false, wlSweeping:false, wlError:'', wlMsg:'', wlLookup:null, wlLookupBusy:false,
+      wlSearchResults:[], wlSearchOpen:false, wlSearching:false, wlPicked:null, wlRelated:null, wlRelatedBusy:false,
       stuBrief:'', stuGoal:'likes', stuChat:[], stuApiHistory:[], stuResult:null, stuBusy:false, stuRefine:'', stuError:'', stuSaving:false, stuSaved:'',
       labData:null, labLoading:false, labLoaded:false, labError:'', labOutcome:'rate', labRebuilding:false,
       clippersData:null, clippersLoading:false, clippersLoaded:false, clippersError:'', clipperSel:null, clipperAssignSel:{}, clipperAssignPlatforms:{}, clipperEdits:{}, clipperBusy:false,
@@ -1842,9 +2289,10 @@ class Component extends DCLogic {
     setTimeout(()=>{ try {
       const v=this.state.view;
       if(v==='pipeline') this.loadScripts(false);
-      else if(v==='discovery') this.loadDiscovery(false);
+      else if(v==='discovery'){ this.setDiscMode(this.state.discMode||'recommend'); }
       else if(v==='lab') this.loadLab(false);
       else if(v==='clippers') this.loadClippers(false);
+      else if(v==='guides'){ this.loadGuides(false); this.loadSkills(false); }
     } catch(e){} }, 0);
   }
 
@@ -1890,6 +2338,7 @@ class Component extends DCLogic {
     return ''+n;
   }
   fmtT(s){ s=Math.round(s); if(s<=0) return '—'; const m=Math.floor(s/60), ss=s%60; return m>0?(m+':'+String(ss).padStart(2,'0')):(s+'s'); }
+  imgurl(u){ return u ? ('/api/img?u='+encodeURIComponent(u)) : ''; }   // proxy IG images (hotlink-blocked)
   pct(n){ return Math.round(n)+'%'; }
   pct1(n){ return (Math.round(n*10)/10)+'%'; }
   mean(a){ return a.length ? a.reduce((x,y)=>x+y,0)/a.length : 0; }
@@ -2244,19 +2693,21 @@ class Component extends DCLogic {
       themeIcon: this.state.theme==='dark' ? '☀' : '☾',
       themeBtnStyle: { display:'inline-flex',alignItems:'center',justifyContent:'center',width:'30px',height:'30px',borderRadius:'8px',border:'1px solid var(--line)',background:'var(--surface)',color:'var(--text-2)',fontSize:'14px',cursor:'pointer',fontFamily:'inherit' },
       navOverview: ()=>this.setView('overview'),
-      navContent: ()=>this.setView('content'),
+      navContent: ()=>{ this.setView('content'); this.loadSkills(false); },
       navPipeline: ()=>{ this.setView('pipeline'); this.loadScripts(false); },
-      navDiscovery: ()=>{ this.setView('discovery'); this.loadDiscovery(false); },
-      navStudio: ()=>this.setView('studio'),
+      navDiscovery: ()=>{ this.setView('discovery'); this.setDiscMode(this.state.discMode||'recommend'); },
+      navStudio: ()=>{ this.setView('studio'); this.loadSkills(false); },
       navLab: ()=>{ this.setView('lab'); this.loadLab(false); },
       navClippers: ()=>{ this.setView('clippers'); this.loadClippers(false); },
-      navOverviewStyle: this.tabStyle(this.state.view!=='content'&&this.state.view!=='pipeline'&&this.state.view!=='discovery'&&this.state.view!=='studio'&&this.state.view!=='lab'&&this.state.view!=='clippers'),
+      navGuides: ()=>{ this.setView('guides'); this.loadGuides(false); this.loadSkills(false); },
+      navOverviewStyle: this.tabStyle(this.state.view!=='content'&&this.state.view!=='pipeline'&&this.state.view!=='discovery'&&this.state.view!=='studio'&&this.state.view!=='lab'&&this.state.view!=='clippers'&&this.state.view!=='guides'),
       navContentStyle: this.tabStyle(this.state.view==='content'),
       navPipelineStyle: this.tabStyle(this.state.view==='pipeline'),
       navDiscoveryStyle: this.tabStyle(this.state.view==='discovery'),
       navStudioStyle: this.tabStyle(this.state.view==='studio'),
       navLabStyle: this.tabStyle(this.state.view==='lab'),
       navClippersStyle: this.tabStyle(this.state.view==='clippers'),
+      navGuidesStyle: this.tabStyle(this.state.view==='guides'),
       zoomShow: !!this.state.ccZoom, zoomHtml: this.state.ccZoom||'', zoomClose: ()=>this.setState({ ccZoom:null }),
       stop: (e)=>{ if(e&&e.stopPropagation) e.stopPropagation(); },
       labPopupShow: !!this.state.labReelPopup,
@@ -2365,6 +2816,178 @@ class Component extends DCLogic {
   pipeRemoveTag(tag){ const id=this.pipeCurId(); this.setState({ pipeItems:(this.state.pipeItems||[]).map(it=> it.id===id?Object.assign({}, it, {tags:(it.tags||[]).filter(t=>t!==tag)}):it), pipeSaveStatus:'idle' }); }
   pipeNew(){ const id='new'+Date.now(); const item={ id, title:'Untitled script', script:'', tags:[], _isNew:true, updated_at:new Date().toISOString() }; if(this.pipePristine) this.pipePristine[id]=this.pipeSnap(item); this.setState({ pipeItems:[item].concat(this.state.pipeItems||[]), pipeSel:id, pipeQuery:'', pipeActiveTags:[], pipeSaveStatus:'idle' }); }
   pipeRefresh(){ this.setState({ pipeRefreshing:true }); this.loadScripts(true); clearTimeout(this._pipeRt); this._pipeRt=setTimeout(()=>this.setState({ pipeRefreshing:false }),700); }
+  setPipeTab(t){ this.setState({ pipeTab:t }); if(t==='videos') this.loadPipeVideos(false); }
+  // ── Skills: per-creator reusable instructions, injected into script generation ──
+  loadSkills(force){
+    if(this.state.skillsLoading) return;
+    if(this.state.skillsLoaded && !force) return;
+    this.setState({ skillsLoading:true });
+    fetch('/api/skills').then(r=>r.json())
+      .then(j=>this.setState({ skillsLoading:false, skillsLoaded:true, skills:j.items||[] }))
+      .catch(()=>this.setState({ skillsLoading:false, skillsLoaded:true }));
+  }
+  skillNew(scope){ this.setState({ skillComposerOpen:true, skillDraftId:null, skillDraftName:'', skillDraftContent:'', skillDraftScope:scope||'script' }); }
+  skillEdit(sk){ this.setState({ skillComposerOpen:true, skillDraftId:sk.id, skillDraftName:sk.name||'', skillDraftContent:sk.content||'', skillDraftScope:sk.scope||'script' }); }
+  skillCancel(){ this.setState({ skillComposerOpen:false, skillDraftId:null, skillDraftName:'', skillDraftContent:'' }); }
+  skillSave(){
+    let name=(this.state.skillDraftName||'').trim(); const content=(this.state.skillDraftContent||'').trim();
+    if(!name && !content){ this.setState({ skillError:'Add a name or paste some content first.' }); return; }
+    if(!name){ name = (content.split('\n')[0]||'').replace(/^#+\s*/,'').replace(/[*_`]/g,'').slice(0,48).trim() || 'Untitled skill'; }
+    this.setState({ skillBusy:true, skillError:'' });
+    const id=this.state.skillDraftId, url='/api/skills'+(id?('/'+encodeURIComponent(id)):''), method=id?'PUT':'POST';
+    fetch(url,{ method, headers:{'content-type':'application/json'}, body:JSON.stringify({ name, content, scope:this.state.skillDraftScope||'script' }) })
+      .then(r=>r.json())
+      .then(()=>{ this.setState({ skillBusy:false, skillComposerOpen:false, skillDraftId:null, skillDraftName:'', skillDraftContent:'', skillsLoaded:false }); this.loadSkills(true); })
+      .catch(()=>this.setState({ skillBusy:false }));
+  }
+  skillToggle(sk){
+    const active=!sk.active;
+    this.setState({ skills:(this.state.skills||[]).map(x=>x.id===sk.id?Object.assign({},x,{active}):x) });
+    fetch('/api/skills/'+encodeURIComponent(sk.id),{ method:'PUT', headers:{'content-type':'application/json'}, body:JSON.stringify({ active }) }).catch(()=>{});
+  }
+  skillDelete(id){
+    fetch('/api/skills/'+encodeURIComponent(id),{ method:'DELETE' })
+      .then(r=>r.json()).then(()=>this.setState({ skills:(this.state.skills||[]).filter(x=>x.id!==id) })).catch(()=>{});
+  }
+  skillsVals(scope){
+    scope=scope||'script';
+    const s=this.state, list=(s.skills||[]).filter(sk=>(sk.scope||'script')===scope);
+    const items=list.map(sk=>({
+      name:sk.name||'Untitled', active:!!sk.active,
+      preview:(sk.content||'').replace(/\s+/g,' ').slice(0,90)||'(empty)',
+      toggle:(()=>{ const x=sk; return ()=>this.skillToggle(x); })(),
+      edit:(()=>{ const x=sk; return ()=>this.skillEdit(x); })(),
+      del:(()=>{ const id=sk.id; return ()=>this.skillDelete(id); })(),
+      dotStyle:{ width:'8px',height:'8px',borderRadius:'50%',flex:'none',background: sk.active?'var(--good)':'var(--line)' },
+      rowStyle:{ display:'flex',alignItems:'center',gap:'9px',padding:'9px 11px',border:'1px solid var(--line)',borderRadius:'10px',background: sk.active?'var(--surface)':'var(--fill)' },
+      toggleLabel: sk.active?'On':'Off',
+      toggleStyle:{ fontSize:'11px',fontWeight:'600',padding:'3px 9px',borderRadius:'7px',border:'1px solid var(--line)',cursor:'pointer',fontFamily:'inherit', background: sk.active?'var(--cc-soft)':'transparent', color: sk.active?'var(--cc)':'var(--text-3)', flex:'none' }
+    }));
+    return {
+      items, hasItems:items.length>0, count:list.length, activeCount:list.filter(x=>x.active).length,
+      empty: s.skillsLoaded && !s.skillsLoading && !items.length,
+      composerOpen: !!s.skillComposerOpen && (s.skillDraftScope||'script')===scope,
+      draftName:s.skillDraftName||'', onName:(e)=>this.setState({ skillDraftName:e&&e.target?e.target.value:'' }),
+      draftContent:s.skillDraftContent||'', onContent:(e)=>this.setState({ skillDraftContent:e&&e.target?e.target.value:'' }),
+      onNew:()=>this.skillNew(scope), onSave:()=>this.skillSave(), onCancel:()=>this.skillCancel(),
+      saveLabel: s.skillBusy?'Saving…':(s.skillDraftId?'Update skill':'Add skill'),
+      error: s.skillError||''
+    };
+  }
+
+  // ── Guides: reel link → transcript → written guide (with guide-scope skills) ────
+  loadGuides(force){
+    if(this.state.guidesLoading) return;
+    if(this.state.guidesLoaded && !force) return;
+    this.setState({ guidesLoading:true });
+    fetch('/api/guides').then(r=>r.json())
+      .then(j=>this.setState({ guidesLoading:false, guidesLoaded:true, guides:j.items||[] }))
+      .catch(()=>this.setState({ guidesLoading:false, guidesLoaded:true }));
+  }
+  guideGenerate(){
+    const url=(this.state.guideUrl||'').trim(); if(!url){ this.setState({ guideError:'Paste a reel link.' }); return; }
+    this.setState({ guideGenerating:true, guideError:'', guideStep:'starting…' });
+    fetch('/api/guides',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ url }) })
+      .then(async r=>{
+        const reader=r.body.getReader(), dec=new TextDecoder(); let buf='';
+        while(true){ const {value,done}=await reader.read(); if(done) break; buf+=dec.decode(value,{stream:true});
+          let idx; while((idx=buf.indexOf('\n'))>=0){ const line=buf.slice(0,idx); buf=buf.slice(idx+1); if(!line.trim()) continue;
+            let o; try{ o=JSON.parse(line); }catch(e){ continue; }
+            if(o.step) this.setState({ guideStep:o.step });
+            if(o.error) this.setState({ guideGenerating:false, guideError:o.error });
+            if(o.done){ this.setState({ guideGenerating:false, guideStep:'', guideUrl:'', guidesLoaded:false }); this.loadGuides(true); if(o.guide) this.guideSelect(o.guide); }
+          }
+        }
+      })
+      .catch(e=>this.setState({ guideGenerating:false, guideError:String(e) }));
+  }
+  guideSelect(g){ this.setState({ guideSel:g.id, guideDraftTitle:g.title||'', guideDraftBody:g.body_md||'', guideDirty:false, guideSaved:'', guidePreview:false }); if(typeof window!=='undefined') window.scrollTo(0,0); }
+  guideSave(){
+    const id=this.state.guideSel; if(!id) return;
+    this.setState({ guideSaving:true });
+    fetch('/api/guides/'+encodeURIComponent(id),{ method:'PUT', headers:{'content-type':'application/json'}, body:JSON.stringify({ title:this.state.guideDraftTitle, body_md:this.state.guideDraftBody }) })
+      .then(r=>r.json()).then(j=>this.setState({ guideSaving:false, guideDirty:false, guideSaved:'Saved ✓', guides:(this.state.guides||[]).map(x=>x.id===id?(j.item||x):x) }))
+      .catch(()=>this.setState({ guideSaving:false }));
+  }
+  guidePublish(){
+    const id=this.state.guideSel, g=(this.state.guides||[]).find(x=>x.id===id); if(!g) return;
+    const status=g.status==='published'?'draft':'published';
+    fetch('/api/guides/'+encodeURIComponent(id),{ method:'PUT', headers:{'content-type':'application/json'}, body:JSON.stringify({ status }) })
+      .then(r=>r.json()).then(j=>this.setState({ guides:(this.state.guides||[]).map(x=>x.id===id?(j.item||x):x) })).catch(()=>{});
+  }
+  guideDelete(id){
+    fetch('/api/guides/'+encodeURIComponent(id),{ method:'DELETE' })
+      .then(r=>r.json()).then(()=>this.setState({ guides:(this.state.guides||[]).filter(x=>x.id!==id), guideSel: this.state.guideSel===id?null:this.state.guideSel })).catch(()=>{});
+  }
+  guideOpenRendered(doPrint){
+    if(typeof window==='undefined') return;
+    const title=(this.state.guideDraftTitle||'Guide').replace(/[<>]/g,''); const html=this.mdToHtml(this.state.guideDraftBody||'');
+    const w=window.open('','_blank'); if(!w) return;
+    w.document.write('<html><head><title>'+title+'</title><meta charset="utf-8"><style>body{font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif;max-width:720px;margin:40px auto;padding:0 26px;line-height:1.65;color:#1a1a1a}h1{font-size:2rem;letter-spacing:-.02em;margin:0 0 .4em}h2{margin:1.8em 0 .5em;font-size:1.3rem}h3{font-size:1.08rem}pre{background:#f5f4f1;padding:14px 16px;border-radius:9px;overflow-x:auto;font-size:.82rem;line-height:1.5}code{background:#f5f4f1;padding:1px 5px;border-radius:4px;font-size:.9em}pre code{background:none;padding:0}ul,ol{padding-left:1.4em}a{color:#5b50e6}</style></head><body><h1>'+title+'</h1>'+html+'</body></html>');
+    w.document.close(); if(doPrint) setTimeout(()=>{ try{ w.focus(); w.print(); }catch(e){} }, 350);
+  }
+  mdToHtml(md){
+    md=String(md||''); const esc=(s)=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const blocks=[]; md=md.replace(/```[a-zA-Z0-9]*\n?([\s\S]*?)```/g,(m,code)=>{ blocks.push('<pre><code>'+esc(code.replace(/\n$/,''))+'</code></pre>'); return ' B'+(blocks.length-1)+' '; });
+    const inline=(t)=> esc(t).replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/(^|[^*])\*([^*]+)\*/g,'$1<em>$2</em>').replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\[([^\]]+)\]\(([^)\s]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
+    const out=[]; let list=null; const closeList=()=>{ if(list){ out.push('</'+list+'>'); list=null; } };
+    for(const raw of md.split(/\r?\n/)){
+      const ph=raw.trim().match(/^ B(\d+) $/); if(ph){ closeList(); out.push(blocks[+ph[1]]); continue; }
+      const line=raw.trim(); if(!line){ closeList(); continue; }
+      let m;
+      if(m=line.match(/^(#{1,4})\s+(.*)$/)){ closeList(); const lvl=m[1].length; out.push('<h'+lvl+'>'+inline(m[2])+'</h'+lvl+'>'); continue; }
+      if(m=line.match(/^[-*]\s+(.*)$/)){ if(list!=='ul'){ closeList(); out.push('<ul>'); list='ul'; } out.push('<li>'+inline(m[1])+'</li>'); continue; }
+      if(m=line.match(/^\d+[.)]\s+(.*)$/)){ if(list!=='ol'){ closeList(); out.push('<ol>'); list='ol'; } out.push('<li>'+inline(m[1])+'</li>'); continue; }
+      closeList(); out.push('<p>'+inline(line)+'</p>');
+    }
+    closeList(); return out.join('\n');
+  }
+  guidesVals(){
+    const s=this.state, list=s.guides||[]; const sel=list.find(g=>g.id===s.guideSel)||null;
+    const items=list.map(g=>({
+      title:g.title||'Untitled guide', on:g.id===s.guideSel, published:g.status==='published',
+      meta:(g.status==='published'?'● Published':'○ Draft')+(g.source_shortcode?('  ·  from '+g.source_shortcode):''),
+      select:(()=>{ const gg=g; return ()=>this.guideSelect(gg); })(),
+      cardStyle:{ padding:'11px 13px', border:'1px solid '+(g.id===s.guideSel?'var(--cc)':'var(--line)'), borderRadius:'11px', cursor:'pointer', background: g.id===s.guideSel?'var(--cc-soft)':'var(--surface)' },
+      metaStyle:{ fontSize:'11px', marginTop:'3px', color:(g.status==='published'?'var(--good)':'var(--text-3)') }
+    }));
+    return {
+      url:s.guideUrl||'', onUrl:(e)=>this.setState({ guideUrl:e&&e.target?e.target.value:'' }),
+      generate:()=>this.guideGenerate(), genLabel: s.guideGenerating?'Generating…':'Generate guide', generating:!!s.guideGenerating,
+      step:s.guideStep||'', error:s.guideError||'',
+      items, hasItems:items.length>0, empty: s.guidesLoaded && !s.guidesLoading && !items.length,
+      hasSel:!!sel,
+      draftTitle:s.guideDraftTitle||'', onTitle:(e)=>this.setState({ guideDraftTitle:e&&e.target?e.target.value:'', guideDirty:true, guideSaved:'' }),
+      draftBody:s.guideDraftBody||'', onBody:(e)=>this.setState({ guideDraftBody:e&&e.target?e.target.value:'', guideDirty:true, guideSaved:'' }),
+      save:()=>this.guideSave(), saveLabel: s.guideSaving?'Saving…':'Save', saved:s.guideSaved||'',
+      publish:()=>this.guidePublish(), publishLabel: (sel&&sel.status==='published')?'Unpublish':'Publish',
+      preview:()=>this.guideOpenRendered(false), pdf:()=>this.guideOpenRendered(true), del:()=>{ if(sel) this.guideDelete(sel.id); },
+      slug: sel&&sel.slug ? ('slug: /'+sel.slug) : ''
+    };
+  }
+  loadPipeVideos(force){
+    if(this.state.pipeVidLoading) return;
+    if(this.state.pipeVidLoaded && !force) return;
+    this.setState({ pipeVidLoading:true });
+    fetch('/api/pipeline-videos')
+      .then(r=>r.json())
+      .then(j=>this.setState({ pipeVidLoading:false, pipeVidLoaded:true, pipeVidItems:j.items||[] }))
+      .catch(()=>this.setState({ pipeVidLoading:false, pipeVidLoaded:true }));
+  }
+  savePipeVideo(it){
+    if(!it||!it.shortcode) return;
+    const saved=Object.assign({}, this.state.pipeVidSaved||{}); saved[it.shortcode]=true; this.setState({ pipeVidSaved:saved });
+    fetch('/api/pipeline-videos',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({
+      shortcode:it.shortcode, permalink:it.permalink, source_account:it.creator_username, caption:it.caption,
+      thumbnail_url:it.thumbnail_url, media_type:it.media_type, duration_sec:it.duration_sec,
+      views:it.views, like_count:it.like_count, comment_count:it.comment_count,
+      outlier:it.outlier, velocity:it.velocity, engagement:it.engagement, match:it.match, taken_at:it.taken_at }) })
+      .then(r=>r.json()).then(()=>{ if(this.state.pipeVidLoaded) this.loadPipeVideos(true); }).catch(()=>{});
+  }
+  deletePipeVideo(id){
+    fetch('/api/pipeline-videos/'+encodeURIComponent(id),{ method:'DELETE' })
+      .then(r=>r.json()).then(()=>this.setState({ pipeVidItems:(this.state.pipeVidItems||[]).filter(x=>x.id!==id) })).catch(()=>{});
+  }
   pipeSave(){
     const id=this.pipeCurId(); const it=(this.state.pipeItems||[]).find(x=>x.id===id); if(!it) return;
     const body={ title:it.title||'Untitled script', script:it.script||'', tags:it.tags||[], brief:it.brief, visuals:it.visuals, account:it.account, sourceShortcode:it.source_shortcode };
@@ -2429,6 +3052,135 @@ class Component extends DCLogic {
   }
   discToCC(permalink){ if(!permalink) return; this.setState({ view:'content', ccUrl:permalink }); if(typeof window!=='undefined') window.scrollTo(0,0); }
   discChip(on){ return { padding:'6px 13px',borderRadius:'999px',border:'1px solid '+(on?'var(--cc)':'var(--line)'),background:on?'var(--cc-soft)':'var(--surface)',color:on?'var(--cc)':'var(--text-2)',fontSize:'12.5px',fontWeight:'600',cursor:'pointer',fontFamily:'inherit' }; }
+
+  // ── Trending: creator watchlist → filterable content recommendations ───────
+  setDiscMode(mode){
+    this.setState({ discMode:mode });
+    if(mode==='creators'){ if(!this.state.wlLoaded) this.loadWatch(false); }
+    else if(mode==='recommend'){ this.loadRecommend(false); this.loadRecVideos(false); if(!this.state.wlLoaded) this.loadWatch(false); }
+    else if(mode==='topic'){ this.loadDiscovery(false); }
+  }
+  loadRecommend(force){
+    if(this.state.recLoading) return;
+    if(this.state.recLoaded && !force) return;
+    this.setState({ recLoading:true });
+    fetch('/api/watch/recommend')
+      .then(r=>r.json())
+      .then(j=>this.setState({ recLoading:false, recLoaded:true, recData:j }))
+      .catch(()=>this.setState({ recLoading:false, recLoaded:true }));
+  }
+  loadRecVideos(force){
+    if(this.state.recVideosLoading) return;
+    if(this.state.recVideos && !force) return;
+    this.setState({ recVideosLoading:true });
+    fetch('/api/watch/niche')
+      .then(r=>r.json())
+      .then(j=>this.setState({ recVideosLoading:false, recVideos:j.items||[], recPersonalized:j.personalized!==false }))
+      .catch(()=>this.setState({ recVideosLoading:false, recVideos:[] }));
+  }
+  recAdd(rec){
+    const recs=((this.state.recData&&this.state.recData.recommendations)||[]).filter(x=>x.username!==rec.username);
+    this.setState({ recData:Object.assign({}, this.state.recData||{}, { recommendations:recs }) });
+    this.wlAddProfile({ username:rec.username, igUserId:rec.igUserId||null, fullName:rec.fullName||null, followerCount:rec.followerCount!=null?rec.followerCount:null, avatar:rec.avatar||null });
+  }
+  loadWatch(force){
+    if(this.state.wlLoading) return;
+    if(this.state.wlLoaded && !force){ this.loadFeed(false); return; }
+    this.setState({ wlLoading:true, wlError:'' });
+    fetch('/api/watchlist')
+      .then(r=>r.json())
+      .then(j=>{ this.setState({ wlLoading:false, wlLoaded:true, wlCreators:j.creators||[], wlConfigured:j.configured!==false, wlVendor:j.vendor!==false }); this.loadFeed(true); })
+      .catch(e=>this.setState({ wlLoading:false, wlLoaded:true, wlError:String(e) }));
+  }
+  feedQuery(){
+    const f=this.state.wlFilters||{}, p=new URLSearchParams();
+    p.set('sort', f.sort||'velocity');
+    if(f.minOutlier!=null) p.set('minOutlier', f.minOutlier);
+    if(f.duration) p.set('duration', f.duration);
+    if(f.sinceDays!=null) p.set('sinceDays', f.sinceDays);
+    if(f.audioId) p.set('audioId', f.audioId);
+    return p.toString();
+  }
+  loadFeed(force){
+    if(this.state.wlFeedLoading && !force) return;
+    this.setState({ wlFeedLoading:true });
+    fetch('/api/watch/feed?'+this.feedQuery())
+      .then(r=>r.json())
+      .then(j=>this.setState({ wlFeedLoading:false, wlFeed:j, wlConfigured:j.configured!==false }))
+      .catch(e=>this.setState({ wlFeedLoading:false, wlError:String(e) }));
+  }
+  onWlInput(v){
+    this.setState({ wlAddInput:v, wlPicked:null, wlError:'' });
+    if(this._wlST) clearTimeout(this._wlST);
+    const q=(v||'').replace(/^@/,'').trim();
+    if(q.length<2){ this.setState({ wlSearchResults:[], wlSearchOpen:false }); return; }
+    this._wlST=setTimeout(()=>this.wlSearch(q), 260);   // debounce type-ahead
+  }
+  wlSearch(q){
+    this.setState({ wlSearching:true });
+    fetch('/api/watch/search?q='+encodeURIComponent(q))
+      .then(r=>r.json())
+      .then(j=>{
+        if(((this.state.wlAddInput||'').replace(/^@/,'').trim())!==q) return;   // stale — input moved on
+        this.setState({ wlSearching:false, wlSearchResults:j.results||[], wlSearchOpen:(j.results||[]).length>0 });
+      })
+      .catch(()=>this.setState({ wlSearching:false }));
+  }
+  wlPick(acc){ this.setState({ wlAddInput:acc.username, wlPicked:acc, wlSearchOpen:false, wlSearchResults:[] }); }
+  wlAddProfile(p){
+    if(!p||!p.username){ this.setState({ wlError:'Type or pick a creator.' }); return; }
+    this.setState({ wlBusy:true, wlError:'', wlMsg:'' });
+    fetch('/api/watchlist',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ username:p.username, igUserId:p.igUserId||null, fullName:p.fullName||null, followerCount:p.followerCount!=null?p.followerCount:null, avatar:p.avatar||null, region:'US' }) })
+      .then(r=>r.json())
+      .then(j=>{
+        if(j.error){ this.setState({ wlBusy:false, wlError:j.error }); return; }
+        const name=(j.creator&&j.creator.username)||p.username, n=(j.swept&&j.swept.reels)||0;
+        this.setState({ wlBusy:false, wlAddInput:'', wlPicked:null, wlSearchOpen:false, wlSearchResults:[], wlMsg:'Added @'+name+' · '+n+' reel'+(n===1?'':'s')+' swept.', wlLoaded:false });
+        this.loadWatch(true);
+        this.loadRecVideos(true);
+      })
+      .catch(e=>this.setState({ wlBusy:false, wlError:String(e) }));
+  }
+  wlAdd(){ this.wlAddProfile(this.state.wlPicked || { username:(this.state.wlAddInput||'').trim().replace(/^@/,'') }); }
+  wlAddSuggestion(sug){ this.wlAddProfile(sug); }
+  wlFindSimilar(self){
+    const picked=this.state.wlPicked, handle=(this.state.wlAddInput||'').trim().replace(/^@/,'');
+    if(!self && !handle && !picked){ this.setState({ wlError:'Type an influencer to find similar creators.' }); return; }
+    this.setState({ wlRelatedBusy:true, wlError:'', wlMsg:'' });
+    const body = self ? { self:true } : { username:(picked&&picked.username)||handle, igUserId:(picked&&picked.igUserId)||null };
+    fetch('/api/watch/related',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify(body) })
+      .then(r=>r.json())
+      .then(j=>{ if(j.error){ this.setState({ wlRelatedBusy:false, wlError:j.error }); return; } this.setState({ wlRelatedBusy:false, wlRelated:j, wlSearchOpen:false }); })
+      .catch(e=>this.setState({ wlRelatedBusy:false, wlError:String(e) }));
+  }
+  wlLookup(){
+    const picked=this.state.wlPicked, handle=(this.state.wlAddInput||'').trim().replace(/^@/,'');
+    if(!handle && !picked){ this.setState({ wlError:'Type an @handle to look up.' }); return; }
+    this.setState({ wlLookupBusy:true, wlError:'', wlMsg:'', wlSearchOpen:false });
+    fetch('/api/watch/lookup',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ username:(picked&&picked.username)||handle, igUserId:(picked&&picked.igUserId)||null, followerCount:(picked&&picked.followerCount)||null }) })
+      .then(r=>r.json())
+      .then(j=>{ if(j.error){ this.setState({ wlLookupBusy:false, wlError:j.error }); return; } this.setState({ wlLookupBusy:false, wlLookup:j }); })
+      .catch(e=>this.setState({ wlLookupBusy:false, wlError:String(e) }));
+  }
+  wlLookupAdd(){ const lk=this.state.wlLookup; if(lk&&lk.creator){ this.wlAddProfile({ username:lk.creator.username, igUserId:lk.creator.igUserId||null, followerCount:lk.creator.followerCount||null }); } }
+  wlRemove(username){
+    fetch('/api/watchlist/'+encodeURIComponent(username),{ method:'DELETE' })
+      .then(r=>r.json())
+      .then(()=>{ this.setState({ wlCreators:(this.state.wlCreators||[]).filter(c=>c.username!==username) }); this.loadFeed(true); })
+      .catch(()=>{});
+  }
+  wlSweep(){
+    this.setState({ wlSweeping:true, wlError:'', wlMsg:'Sweeping in the background — refreshing shortly…' });
+    fetch('/api/watch/sweep',{ method:'POST' })
+      .then(r=>r.json())
+      .then(j=>{ if(j.error){ this.setState({ wlSweeping:false, wlError:j.error }); return; }
+        setTimeout(()=>{ this.setState({ wlSweeping:false, wlMsg:'Sweep complete.' }); this.loadWatch(true); }, 15000); })
+      .catch(e=>this.setState({ wlSweeping:false, wlError:String(e) }));
+  }
+  wlSetSort(v){ const f=Object.assign({}, this.state.wlFilters||{}); f.sort=v; this.setState({ wlFilters:f }); this.loadFeed(true); }
+  wlToggleFilter(key,val){ const f=Object.assign({}, this.state.wlFilters||{}); f[key]=(String(f[key])===String(val)?null:val); this.setState({ wlFilters:f }); this.loadFeed(true); }
+  wlClearFilters(){ const f={ sort:(this.state.wlFilters&&this.state.wlFilters.sort)||'velocity', minOutlier:null, duration:null, sinceDays:null, audioId:null }; this.setState({ wlFilters:f }); this.loadFeed(true); }
+
   // ── Studio: RAG "what works" advisor ──────────────────────────────────────
   studioRun(history){
     this.setState({ stuBusy:true, stuError:'' });
@@ -2640,6 +3392,14 @@ class Component extends DCLogic {
       drivers:_skd.map(d=>{ const good=d.coef<0; const w=Math.round(Math.abs(d.coef)/_skmax*50);
         return { label:this._predLabel(d.feature), coefTxt:(d.coef>0?'+':'')+d.coef+'pp', color:good?'var(--good)':'var(--bad)',
           barStyle:{ position:'absolute', top:'0', height:'100%', width:w+'%', background:good?'var(--good)':'var(--bad)', opacity:'0.72', ...(good?{ left:'50%', borderRadius:'0 5px 5px 0' }:{ right:'50%', borderRadius:'5px 0 0 5px' }) } }; }) };
+    // likes / comments engagement RATE models — what makes people react (served with /api/predict)
+    const _engModel=(_em)=>{ const _d=(_em.drivers||[]).slice(0,7); const _mx=Math.max(0.01,..._d.map(d=>Math.abs(d.coef)));
+      return { has:_d.length>0 && _em.looR2!=null, r2:(_em.looR2!=null?_em.looR2.toFixed(2):'—'), n:_em.n||0, mean:(_em.meanRate!=null?_em.meanRate:'—'),
+        drivers:_d.map(d=>{ const good=d.coef>0; const w=Math.round(Math.abs(d.coef)/_mx*50);
+          return { label:this._predLabel(d.feature), coefTxt:(d.coef>0?'+':'')+d.coef+'pp', color:good?'var(--good)':'var(--bad)',
+            barStyle:{ position:'absolute', top:'0', height:'100%', width:w+'%', background:good?'var(--good)':'var(--bad)', opacity:'0.72', ...(good?{ left:'50%', borderRadius:'0 5px 5px 0' }:{ right:'50%', borderRadius:'5px 0 0 5px' }) } }; }) };
+    };
+    const LIKES=_engModel(_pd.likes||{}); const COMMENTS=_engModel(_pd.comments||{});
     // attention model → headline accuracy, per-second drivers, residual reels
     const _ad=s.labAttData||{}; const _acv=_ad.cv||{};
     const _adrv=(_ad.contentDrivers||[]).slice(0,9);
@@ -2695,6 +3455,8 @@ class Component extends DCLogic {
       hasPredict: PRED.has, predVerdict: PRED.verdict, predContentR2: PRED.contentR2, predRetR2: PRED.retR2, predFullR2: PRED.fullR2,
       predGrowth: PRED.growth, predMaturity: PRED.maturity, predDrivers: PRED.drivers,
       hasSkipModel: SKIP.has, skipR2: SKIP.r2, skipN: SKIP.n, skipVerdict: SKIP.verdict, skipDrivers: SKIP.drivers,
+      hasLikesModel: LIKES.has, likesR2: LIKES.r2, likesN: LIKES.n, likesMean: LIKES.mean, likesDrivers: LIKES.drivers,
+      hasCommentsModel: COMMENTS.has, commentsR2: COMMENTS.r2, commentsN: COMMENTS.n, commentsMean: COMMENTS.mean, commentsDrivers: COMMENTS.drivers,
       hasHooks: HOOKS.has, hookN: HOOKS.n, hookRows: HOOKS.rows, hookBest: HOOKS.best, hookWorst: HOOKS.worst,
       hasTopics: HOOKS.topics.length>1, hookTopics: HOOKS.topics,
       retrain:()=>this.labRetrain(), retrainLabel: s.labRebuilding?'Retraining…':'↻ Retrain',
@@ -3143,11 +3905,39 @@ Hier ist das Skript:
     else if(dirty){ statusText='● Unsaved changes'; statusColor='var(--warn)'; saveLabel='Save'; saveBg='var(--cc)'; saveColor='var(--cc-on)'; }
     else { statusText='All changes saved'; statusColor='var(--text-3)'; saveLabel='Save'; saveBg='var(--fill)'; saveColor='var(--text-3)'; }
 
+    const fkv=(v)=> v==null?'—':this.fmtK(v);
+    const relD=(iso)=>{ if(!iso) return '—'; const h=(Date.now()-Date.parse(iso))/3600000; if(h<24) return Math.max(1,Math.round(h))+'h'; const d=h/24; if(d<30) return Math.round(d)+'d'; return Math.round(d/30)+'mo'; };
+    const vsort=s.pipeVidSort||'added';
+    const vkey={ match:(v)=>v.match||0, outlier:(v)=>v.outlier||0, views:(v)=>v.views||0, length:(v)=>v.duration_sec||0, posted:(v)=>(v.taken_at?Date.parse(v.taken_at):0), added:(v)=>(v.added_at?Date.parse(v.added_at):0) }[vsort]||((v)=>(v.added_at?Date.parse(v.added_at):0));
+    const vh=(col)=>({ border:'none',background:'transparent',cursor:'pointer',fontFamily:'inherit',textAlign:'right',padding:'0',fontSize:'11px',fontWeight:(vsort===col?'700':'600'),color:(vsort===col?'var(--cc)':'var(--text-3)') });
+    const vs=(col)=>(()=>this.setState({ pipeVidSort:col }));
+    const va=(col)=>(vsort===col?' ▼':'');
+    const pipeVideos=(s.pipeVidItems||[]).slice().sort((a,b)=>vkey(b)-vkey(a)).map(v=>({
+      thumb:this.imgurl(v.thumbnail_url), hasThumb:!!v.thumbnail_url,
+      caption:(v.caption||'').slice(0,110)||'(no caption)',
+      source:'@'+(v.source_account||''), permalink:v.permalink||'#',
+      match: v.match!=null?(v.match+''):'—', hasMatch: v.match!=null,
+      outlier: v.outlier!=null?((Math.round(v.outlier*10)/10)+'×'):'—',
+      views:fkv(v.views), length: v.duration_sec!=null?this.fmtT(v.duration_sec):'—',
+      posted: relD(v.taken_at), added: relD(v.added_at),
+      toCC:(()=>{ const p=v.permalink||''; return ()=>this.discToCC(p); })(),
+      del:(()=>{ const id=v.id; return ()=>this.deletePipeVideo(id); })()
+    }));
+    const tab=s.pipeTab||'scripts';
+
     return Object.assign({
-      totalCount: all.length,
+      totalCount: tab==='videos'?pipeVideos.length:all.length,
+      tab, tabScripts: tab==='scripts', tabVideos: tab==='videos',
+      segScripts:this.ccSeg(tab==='scripts'), segVideos:this.ccSeg(tab==='videos'),
+      tabScriptsClick:()=>this.setPipeTab('scripts'), tabVideosClick:()=>this.setPipeTab('videos'),
+      videos:pipeVideos, hasVideos:pipeVideos.length>0, videosEmpty: s.pipeVidLoaded && !s.pipeVidLoading && pipeVideos.length===0, videosLoading: !!s.pipeVidLoading && !pipeVideos.length,
+      vhMatch:vh('match'), vhOut:vh('outlier'), vhViews:vh('views'), vhLen:vh('length'), vhPosted:vh('posted'), vhSaved:vh('added'),
+      vsMatch:vs('match'), vsOut:vs('outlier'), vsViews:vs('views'), vsLen:vs('length'), vsPosted:vs('posted'), vsSaved:vs('added'),
+      vaMatch:va('match'), vaOut:va('outlier'), vaViews:va('views'), vaLen:va('length'), vaPosted:va('posted'), vaSaved:va('added'),
       query: s.pipeQuery||'', onSearch:(e)=>this.setState({ pipeQuery: e&&e.target?e.target.value:'' }),
-      onRefresh:()=>this.pipeRefresh(), refreshIconStyle:{ display:'inline-block', fontSize:'14px', transformOrigin:'center', animation: s.pipeRefreshing?'spin .7s linear infinite':'none' },
+      onRefresh:()=> (tab==='videos'?this.loadPipeVideos(true):this.pipeRefresh()), refreshIconStyle:{ display:'inline-block', fontSize:'14px', transformOrigin:'center', animation: s.pipeRefreshing?'spin .7s linear infinite':'none' },
       onNew:()=>this.pipeNew(),
+      onNewVideo:()=>{ this.setView('discovery'); this.setDiscMode('recommend'); if(typeof window!=='undefined') window.scrollTo(0,0); },
       filterChips, resultLabel: list.length+' of '+all.length,
       hasResults: list.length>0, noResults: s.pipeLoaded && !s.pipeLoading && list.length===0,
       loading: !!s.pipeLoading, notConfigured: s.pipeConfigured===false, error: s.pipeError||'',
@@ -3169,7 +3959,7 @@ Hier ist das Skript:
         id:it.id, permalink:it.permalink||'#', shortcode:it.shortcode||'',
         account: it.ig_account ? ('@'+String(it.ig_account).replace(/^@/,'')) : '',
         caption: (it.caption||'').slice(0,150) || '(no caption)',
-        thumb: it.thumbnail_url||'', hasThumb: !!it.thumbnail_url,
+        thumb: this.imgurl(it.thumbnail_url), hasThumb: !!it.thumbnail_url,
         views:fk(it.views), likes:fk(it.like_count), comments:fk(it.comments_count),
         hasOutlier: it.outlier!=null && it.outlier>=1.5,
         outlierTxt: it.outlier!=null ? (Math.round(it.outlier*10)/10)+'× median' : '',
@@ -3184,8 +3974,20 @@ Hier ist das Skript:
       };
     });
     const chips=[{label:'All',v:''}].concat((s.discCats||[]).map(c=>({label:c,v:c}))).map(ch=>({ label:ch.label, style:this.discChip(filter===ch.v), click:(()=>{ const v=ch.v; return ()=>this.setState({discFilter:v}); })() }));
+    const mode=s.discMode||'recommend';
+    const subtitles={
+      recommend:'Creators in your niche, auto-found from the ones you already rate — no manual hunting. Add them, and their best reels rank under Creator search.',
+      creators:'Search creators, build your watchlist, and rank their reels by velocity, outlier score and engagement — this is where the video outlier scores live.',
+      topic:'Find reels by hashtag or by pasting links, then browse the topic library.'
+    };
+    const heads={ recommend:'for you', creators:((s.wlCreators||[]).length+' creators'), topic:all.length };
     return {
       items, count:items.length, totalCount:all.length, chips,
+      headCount: heads[mode],
+      subtitle: subtitles[mode],
+      modeRecommend: mode==='recommend', modeCreators: mode==='creators', modeTopic: mode==='topic',
+      segRecommend:this.ccSeg(mode==='recommend'), segCreators:this.ccSeg(mode==='creators'), segTopic:this.ccSeg(mode==='topic'),
+      modeRec:()=>this.setDiscMode('recommend'), modeCre:()=>this.setDiscMode('creators'), modeTop:()=>this.setDiscMode('topic'),
       loading:!!s.discLoading, empty: s.discLoaded&&!s.discLoading&&!all.length&&s.discConfigured!==false,
       notConfigured: s.discConfigured===false, error:s.discError||'', msg:s.discMsg||'', busy:!!s.discBusy,
       hashtag:s.discHashtag||'', onHashtag:(e)=>this.setState({ discHashtag:e&&e.target?e.target.value:'' }),
@@ -3195,7 +3997,170 @@ Hier ist das Skript:
       links:s.discLinks||'', onLinks:(e)=>this.setState({ discLinks:e&&e.target?e.target.value:'' }),
       discoverHashtag:()=>this.discoverHashtag(), discoverLinks:()=>this.discoverLinks(),
       discoverLabel: s.discBusy?'Working…':'Discover', addLabel: s.discBusy?'Working…':'Add links',
-      refresh:()=>this.loadDiscovery(true)
+      refresh:()=> (s.discMode==='creators' ? this.loadWatch(true) : (s.discMode==='recommend' ? this.loadRecommend(true) : this.loadDiscovery(true)))
+    };
+  }
+
+  recVals(){
+    const s=this.state, d=s.recData||{}, recs=d.recommendations||[];
+    const ageTxt=(iso)=>{ if(!iso) return '—'; const h=(Date.now()-Date.parse(iso))/3600000; if(h<24) return Math.max(1,Math.round(h))+'h'; const dd=h/24; if(dd<30) return Math.round(dd)+'d'; return Math.round(dd/30)+'mo'; };
+    const outStyle=(o)=>({ fontSize:'11px',fontWeight:'700',padding:'2px 7px',borderRadius:'99px',whiteSpace:'nowrap',
+      background:(o>=5?'var(--warn)':(o>=2?'var(--accent-soft)':'var(--fill)')), color:(o>=5?'#fff':(o>=2?'var(--accent)':'var(--text-3)')) });
+    const sortKey=s.recSort||'match';
+    const keyOf={ match:(it)=>it.match||0, views:(it)=>it.views||0, velocity:(it)=>it.velocity||0, outlier:(it)=>it.outlier||0,
+      engagement:(it)=>it.engagement||0, length:(it)=>it.duration_sec||0, age:(it)=>(it.taken_at?Date.parse(it.taken_at):0) }[sortKey]||((it)=>it.match||0);
+    const rh=(col)=>({ border:'none',background:'transparent',cursor:'pointer',fontFamily:'inherit',textAlign:'right',padding:'0',fontSize:'11px',fontWeight:(sortKey===col?'700':'600'),color:(sortKey===col?'var(--cc)':'var(--text-3)') });
+    const rs=(col)=>(()=>this.setState({ recSort:col }));
+    const ra=(col)=>(sortKey===col?' ▼':'');
+    const videos=(s.recVideos||[]).slice().sort((a,b)=>keyOf(b)-keyOf(a)).map(it=>({
+      thumb:this.imgurl(it.thumbnail_url), hasThumb:!!it.thumbnail_url,
+      caption:(it.caption||'').slice(0,120)||'(no caption)',
+      match: it.match!=null?it.match:'—',
+      matchStyle:{ fontSize:'11px',fontWeight:'800',padding:'2px 8px',borderRadius:'99px',whiteSpace:'nowrap',
+        background:(it.match>=70?'var(--cc)':(it.match>=40?'var(--cc-soft)':'var(--fill)')), color:(it.match>=70?'var(--cc-on)':(it.match>=40?'var(--cc)':'var(--text-3)')) },
+      why: (it.match_terms&&it.match_terms.length)?('matches your content: '+it.match_terms.join(', ')):'',
+      hasWhy: !!(it.match_terms&&it.match_terms.length),
+      creator:it.creator_username||'', permalink:it.permalink||'#',
+      views: it.views!=null?this.fmtK(it.views):'—',
+      velocity: it.velocity!=null?this.fmtK(it.velocity):'—',
+      outlier: it.outlier!=null?((Math.round(it.outlier*10)/10)+'×'):'—',
+      outlierStyle:outStyle(it.outlier||0),
+      engagement: it.engagement!=null?((Math.round(it.engagement*1000)/10)+'%'):'—',
+      length: it.duration_sec!=null?this.fmtT(it.duration_sec):'—',
+      age:ageTxt(it.taken_at),
+      toCC:(()=>{ const p=it.permalink||''; return ()=>this.discToCC(p); })(),
+      save:(()=>{ const raw=it; return ()=>this.savePipeVideo(raw); })(),
+      saveLabel: (s.pipeVidSaved && s.pipeVidSaved[it.shortcode])?'Saved ✓':'⤓ Save'
+    }));
+    const items=recs.map(r=>({
+      at:'@'+r.username, name:r.fullName||'', verified:!!r.isVerified,
+      avatar:this.imgurl(r.avatar), hasAvatar:!!r.avatar,
+      why: r.seedCount>1 ? ('↳ suggested by '+r.seedCount+' of your creators') : ('↳ like @'+((r.from&&r.from[0])||'')),
+      add:(()=>{ const rr=r; return ()=>this.recAdd(rr); })()
+    }));
+    return {
+      loading: !!s.recLoading && !recs.length,
+      items, hasItems: items.length>0,
+      empty: s.recLoaded && !s.recLoading && !recs.length,
+      note: d.note || 'No recommendations yet — add a couple of creators you rate, then refresh.',
+      seedsText: (d.seeds&&d.seeds.length) ? ('from your top: '+d.seeds.map(x=>'@'+x).join(', ')) : '',
+      videos, hasVideos: videos.length>0,
+      videosLoading: !!s.recVideosLoading && !videos.length,
+      videosEmpty: s.recVideos!=null && !s.recVideosLoading && !videos.length,
+      hMatch:rh('match'), hViews:rh('views'), hVel:rh('velocity'), hOut:rh('outlier'), hEng:rh('engagement'), hLen:rh('length'), hAge:rh('age'),
+      sMatch:rs('match'), sViews:rs('views'), sVel:rs('velocity'), sOut:rs('outlier'), sEng:rs('engagement'), sLen:rs('length'), sAge:rs('age'),
+      aMatch:ra('match'), aViews:ra('views'), aVel:ra('velocity'), aOut:ra('outlier'), aEng:ra('engagement'), aLen:ra('length'), aAge:ra('age'),
+      refresh:()=>{ this.loadRecommend(true); this.loadRecVideos(true); }
+    };
+  }
+
+  trendingVals(){
+    const s=this.state, feed=s.wlFeed||{}, items=feed.items||[], f=s.wlFilters||{ sort:'velocity' };
+    const fk=(v)=> v==null?'—':this.fmtK(v);
+    const outStyle=(o)=>({ fontSize:'11px',fontWeight:'700',padding:'2px 7px',borderRadius:'99px',whiteSpace:'nowrap',
+      background:(o>=5?'var(--warn)':(o>=2?'var(--accent-soft)':'var(--fill)')), color:(o>=5?'#fff':(o>=2?'var(--accent)':'var(--text-3)')) });
+    const ageTxt=(iso)=>{ if(!iso) return '—'; const h=(Date.now()-Date.parse(iso))/3600000; if(h<24) return Math.max(1,Math.round(h))+'h'; const d=h/24; if(d<30) return Math.round(d)+'d'; return Math.round(d/30)+'mo'; };
+    const pct=(v)=> v==null?'—':(Math.round(v*1000)/10)+'%';
+    const x1=(v)=> v==null?'—':(Math.round(v*10)/10)+'×';
+
+    const rows=items.map(it=>({
+      thumb:this.imgurl(it.thumbnail_url), hasThumb:!!it.thumbnail_url,
+      caption:(it.caption||'').slice(0,120)||'(no caption)',
+      creator:it.creator_username||'', permalink:it.permalink||'#',
+      views:fk(it.views), velocity: it.velocity!=null?fk(it.velocity):'—',
+      outlier:x1(it.outlier), outlierStyle:outStyle(it.outlier||0),
+      engagement:pct(it.engagement),
+      length: it.duration_sec!=null?this.fmtT(it.duration_sec):'—',
+      age:ageTxt(it.taken_at),
+      toCC:(()=>{ const p=it.permalink||''; return ()=>this.discToCC(p); })(),
+      save:(()=>{ const raw=it; return ()=>this.savePipeVideo(raw); })(),
+      saveLabel: (s.pipeVidSaved && s.pipeVidSaved[it.shortcode])?'Saved ✓':'⤓ Save'
+    }));
+
+    const creators=(s.wlCreators||[]).map(c=>({
+      label:'@'+c.username+(c.follower_count!=null?(' · '+this.fmtK(c.follower_count)):''),
+      avatar:this.imgurl(c.avatar_url), hasAvatar:!!c.avatar_url,
+      remove:(()=>{ const u=c.username; return ()=>this.wlRemove(u); })()
+    }));
+
+    const clusters=(feed.clusters||[]).map(cl=>({
+      title:cl.title||'Original audio',
+      meta:cl.creatorCount+' creators · '+this.fmtK(cl.totalViews||0)+' views',
+      style:{ flex:'none', textAlign:'left', padding:'11px 14px', borderRadius:'12px', cursor:'pointer', fontFamily:'inherit',
+        border:'1px solid '+(f.audioId===cl.audioId?'var(--cc)':'var(--line)'), background:(f.audioId===cl.audioId?'var(--cc-soft)':'var(--surface)') },
+      filter:(()=>{ const a=cl.audioId; return ()=>this.wlToggleFilter('audioId',a); })()
+    }));
+
+    const fmts=(feed.formats||[]), bestOut=Math.max.apply(null,[0].concat(fmts.map(x=>x.medOutlier||0)));
+    const formats=fmts.map(x=>({
+      label:x.label, count:x.count, medOutlier: x.medOutlier!=null?(Math.round(x.medOutlier*10)/10):'—',
+      style:{ flex:'none', minWidth:'104px', padding:'11px 14px', borderRadius:'12px',
+        border:'1px solid '+((x.medOutlier||0)>=bestOut&&bestOut>0?'var(--cc)':'var(--line)'), background:'var(--surface)' }
+    }));
+
+    const sortDefs=[['velocity','Velocity'],['outlier','Outlier'],['engagement','Engagement'],['views','Views'],['recent','Recent']];
+    const sortChips=sortDefs.map(d=>({ label:d[1], style:this.ccChip((f.sort||'velocity')===d[0]), click:(()=>{ const v=d[0]; return ()=>this.wlSetSort(v); })() }));
+    const outlierChips=[['1.5','1.5×+'],['2','2×+'],['3','3×+'],['5','5×+']].map(d=>({ label:d[1], style:this.ccChip(String(f.minOutlier)===d[0]), click:(()=>{ const v=d[0]; return ()=>this.wlToggleFilter('minOutlier',v); })() }));
+    const durationChips=[['short','<12s'],['mid','12–30s'],['long','30–60s'],['xlong','60s+']].map(d=>({ label:d[1], style:this.ccChip(f.duration===d[0]), click:(()=>{ const v=d[0]; return ()=>this.wlToggleFilter('duration',v); })() }));
+    const recencyChips=[['1','24h'],['7','7d'],['30','30d']].map(d=>({ label:d[1], style:this.ccChip(String(f.sinceDays)===d[0]), click:(()=>{ const v=d[0]; return ()=>this.wlToggleFilter('sinceDays',v); })() }));
+
+    const hStyle=(col)=>({ border:'none',background:'transparent',cursor:'pointer',fontFamily:'inherit',textAlign:'right',padding:'0',fontSize:'11px',fontWeight:(f.sort===col?'700':'600'),color:(f.sort===col?'var(--cc)':'var(--text-3)') });
+    const arr=(col)=> f.sort===col?' ▼':'';
+
+    const stats=feed.stats||{};
+    const sweepTxt= stats.lastSweep? ('swept '+ageTxt(stats.lastSweep)+' ago') : 'not swept yet';
+    const hasActiveFilter = !!(f.minOutlier||f.duration||f.sinceDays||f.audioId);
+
+    const lk=s.wlLookup;
+    const lookup = lk ? {
+      title:'@'+((lk.creator&&lk.creator.username)||'')+' · last '+((lk.reels||[]).length)+' reels'+((lk.creator&&lk.creator.followerCount!=null)?(' · '+this.fmtK(lk.creator.followerCount)+' followers'):''),
+      reels:(lk.reels||[]).map(r=>({ thumb:this.imgurl(r.thumbnail), hasThumb:!!r.thumbnail, caption:(r.caption||'').slice(0,90)||'(no caption)', views:fk(r.views), outlierTxt:x1(r.outlier), outlierStyle:outStyle(r.outlier||0), permalink:r.permalink||'#' }))
+    } : { title:'', reels:[] };
+
+    const searchResults=(s.wlSearchResults||[]).map(a=>({
+      at:'@'+a.username, name:a.fullName||'', verified:!!a.isVerified,
+      avatar:this.imgurl(a.avatar), hasAvatar:!!a.avatar,
+      pick:(()=>{ const acc=a; return ()=>this.wlPick(acc); })()
+    }));
+    const watchedSet=new Set((s.wlCreators||[]).map(c=>c.username));
+    const relAddStyle=(w)=> w
+      ? { padding:'5px 10px',borderRadius:'8px',border:'1px solid var(--line)',background:'var(--fill)',color:'var(--text-3)',fontSize:'11px',fontWeight:'600',cursor:'default',flex:'none',fontFamily:'inherit',whiteSpace:'nowrap' }
+      : { padding:'5px 10px',borderRadius:'8px',border:'none',background:'var(--cc)',color:'var(--cc-on)',fontSize:'11px',fontWeight:'650',cursor:'pointer',flex:'none',fontFamily:'inherit',whiteSpace:'nowrap' };
+    const rel=s.wlRelated;
+    const related = rel ? {
+      title:'Creators like @'+((rel.seed&&rel.seed.username)||''),
+      items:(rel.suggestions||[]).map(sug=>{
+        const w=watchedSet.has((sug.username||'').toLowerCase())||!!sug.watched;
+        return { at:'@'+sug.username, name:sug.fullName||'', verified:!!sug.isVerified, avatar:this.imgurl(sug.avatar), hasAvatar:!!sug.avatar,
+          addLabel:w?'Watching ✓':'+ Watch', addStyle:relAddStyle(w),
+          add:(()=>{ const ss=sug, watched=w; return ()=>{ if(!watched) this.wlAddSuggestion(ss); }; })() };
+      })
+    } : null;
+
+    const loadedFeed=!!s.wlFeed;
+    return {
+      creatorCount:(s.wlCreators||[]).length, sweepTxt,
+      sweep:()=>this.wlSweep(), sweepLabel: s.wlSweeping?'Sweeping…':'↻ Sweep now',
+      sweepBtnStyle:{ padding:'7px 14px',border:'1px solid var(--line)',borderRadius:'9px',background:'var(--surface)',color:'var(--text)',fontSize:'12px',fontWeight:'650',cursor:'pointer',fontFamily:'inherit' },
+      addInput:s.wlAddInput||'', onAddInput:(e)=>this.onWlInput(e&&e.target?e.target.value:''),
+      onInputBlur:()=>{ setTimeout(()=>this.setState({ wlSearchOpen:false }), 180); },
+      searchResults, searchOpen: !!s.wlSearchOpen && searchResults.length>0, searching:!!s.wlSearching,
+      onLookup:()=>this.wlLookup(), lookupLabel: s.wlLookupBusy?'Looking…':'Look up',
+      onAdd:()=>this.wlAdd(), addLabel: s.wlBusy?'Adding…':'+ Watch',
+      findSimilar:()=>this.wlFindSimilar(false), findSimilarSelf:()=>this.wlFindSimilar(true), similarLabel: s.wlRelatedBusy?'Finding…':'Similar creators',
+      hasRelated:!!related, related: related||{ title:'', items:[] },
+      error:s.wlError||'', msg:s.wlMsg||'', creators,
+      hasLookup:!!lk, lookup, lookupAdd:()=>this.wlLookupAdd(),
+      clusters, hasClusters:clusters.length>0, formats, hasFormats:formats.length>0,
+      sortChips, outlierChips, durationChips, recencyChips, hasActiveFilter, clearFilters:()=>this.wlClearFilters(),
+      items:rows, hasItems:rows.length>0,
+      loading:(!!s.wlLoading||!!s.wlFeedLoading)&&!rows.length,
+      empty: loadedFeed && !s.wlFeedLoading && rows.length===0 && s.wlConfigured!==false && s.wlVendor!==false && (s.wlCreators&&s.wlCreators.length>0),
+      notConfigured: s.wlConfigured===false,
+      vendorMissing: s.wlVendor===false && s.wlConfigured!==false,
+      sortViews:()=>this.wlSetSort('views'), sortVelocity:()=>this.wlSetSort('velocity'), sortOutlier:()=>this.wlSetSort('outlier'), sortEngagement:()=>this.wlSetSort('engagement'), sortRecent:()=>this.wlSetSort('recent'),
+      hViews:hStyle('views'), hVel:hStyle('velocity'), hOut:hStyle('outlier'), hEng:hStyle('engagement'), hAge:hStyle('recent'),
+      arrViews:arr('views'), arrVel:arr('velocity'), arrOut:arr('outlier'), arrEng:arr('engagement'), arrAge:arr('recent')
     };
   }
 
@@ -3224,9 +4189,14 @@ Hier ist das Skript:
   renderVals(){
     const head = this.headerVals();
 
+    // Guides — reel → written guide (with guide-scope skills) → Supabase + PDF.
+    if(this.state.view==='guides'){
+      return Object.assign({ showOverview:false, hasDetail:false, showContent:false, showPipeline:false, showDiscovery:false, showStudio:false, showLab:false, showClippers:false, showGuides:true, loading:false, showBanner:false }, head, { GUIDE:this.guidesVals(), SK:this.skillsVals('guide') });
+    }
+
     // Studio — RAG "what works" advisor.
     if(this.state.view==='studio'){
-      return Object.assign({ showOverview:false, hasDetail:false, showContent:false, showPipeline:false, showDiscovery:false, showStudio:true, loading:false, showBanner:false }, head, { STU:this.studioVals() });
+      return Object.assign({ showOverview:false, hasDetail:false, showContent:false, showPipeline:false, showDiscovery:false, showStudio:true, loading:false, showBanner:false }, head, { STU:this.studioVals(), SK:this.skillsVals('script') });
     }
 
     // Lab — causal ledger + next experiment.
@@ -3239,14 +4209,14 @@ Hier ist das Skript:
       return Object.assign({ showOverview:false, hasDetail:false, showContent:false, showPipeline:false, showDiscovery:false, showStudio:false, showLab:false, showClippers:true, loading:false, showBanner:false }, head, { CLIP:this.clippersVals() });
     }
 
-    // Reels Discovery tab — inspiration library from Supabase.
+    // Reels Discovery tab — inspiration library + Trending recommendations.
     if(this.state.view==='discovery'){
-      return Object.assign({ showOverview:false, hasDetail:false, showContent:false, showPipeline:false, showDiscovery:true, loading:false, showBanner:false }, head, { DISC:this.discoveryVals() });
+      return Object.assign({ showOverview:false, hasDetail:false, showContent:false, showPipeline:false, showDiscovery:true, loading:false, showBanner:false }, head, { DISC:this.discoveryVals(), TR:this.trendingVals(), REC:this.recVals() });
     }
 
     // Content Creation tab — independent of the reels payload.
     if(this.state.view==='content'){
-      return Object.assign({ showOverview:false, hasDetail:false, showContent:true, loading:false, showBanner:false }, head, { CC:this.contentVals() });
+      return Object.assign({ showOverview:false, hasDetail:false, showContent:true, loading:false, showBanner:false }, head, { CC:this.contentVals(), SK:this.skillsVals('script') });
     }
 
     // Reels Pipeline tab — saved scripts/visuals from Supabase.
@@ -3291,12 +4261,15 @@ Hier ist das Skript:
     out.reelCount = cur.length;
     out.sourceLabel = ({ live:'consolidated from Meta Insights', supabase:'from your stored reels', demo:'demo data' })[(this.db&&this.db.meta&&this.db.meta.source)||'demo'] || 'stored data';
 
-    // KPI sparklines + deltas. Reach/Plays deltas come from the daily trend
-    // series (real history); the rest compare current vs previous reel windows.
+    // KPI sparklines + deltas. Every card's delta compares the SAME cohorts as its
+    // headline number: reels posted in this window vs reels posted in the previous
+    // window. (The daily account series still draws the sparklines/trend chart, but
+    // it counts views of OLD reels too — and daily plays is modeled off reach, so
+    // using it for deltas made Reach/Plays show identical, misleading percentages.)
     const sliceLast=(arr,n)=>arr.slice(Math.max(0,arr.length-n));
     const reachS=this.db.reachS, playsS=this.db.playsS;
-    const curR=sliceLast(reachS,N), prevR=reachS.slice(Math.max(0,reachS.length-2*N), Math.max(0,reachS.length-N));
-    const curP=sliceLast(playsS,N), prevP=playsS.slice(Math.max(0,playsS.length-2*N), Math.max(0,playsS.length-N));
+    const curR=sliceLast(reachS,N);
+    const curP=sliceLast(playsS,N);
     const mkDelta=(cur,prev,ok)=>{ if(!ok || !prev) return null; const d=(cur-prev)/prev*100; return { up:d>=0, text:Math.abs(Math.round(d*10)/10)+'%' }; };
     const card=(label,value,series,delta)=>{
       const sp=this.sparkPath(series);
@@ -3306,8 +4279,8 @@ Hier ist das Skript:
       return c;
     };
     out.kpis=[
-      card('Reach', this.fmtK(a.reach), curR.length?curR:cur.map(r=>r.reach), mkDelta(this.sum(curR),this.sum(prevR),prevR.length>0)),
-      card('Plays', this.fmtK(a.plays), curP.length?curP:cur.map(r=>r.plays), mkDelta(this.sum(curP),this.sum(prevP),prevP.length>0)),
+      card('Reach', this.fmtK(a.reach), curR.length?curR:cur.map(r=>r.reach), mkDelta(a.reach,pa.reach,prev.length>0)),
+      card('Plays', this.fmtK(a.plays), curP.length?curP:cur.map(r=>r.plays), mkDelta(a.plays,pa.plays,prev.length>0)),
       card('Avg watch', this.fmtT(a.avgWatch), cur.map(r=>r.avgWatch), mkDelta(a.avgWatch,pa.avgWatch,prev.length>0)),
       card('Watch-through', this.pct(a.avgCompletion), cur.map(r=>r.completion), mkDelta(a.avgCompletion,pa.avgCompletion,prev.length>0)),
       card('Eng. rate', this.pct1(a.engRate), cur.map(r=>r.engRate), mkDelta(a.engRate,pa.engRate,prev.length>0)),

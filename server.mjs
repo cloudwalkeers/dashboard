@@ -79,10 +79,28 @@ const server = http.createServer(async (req, res) => {
   try {
     const u = new URL(req.url, "http://localhost");
 
+    // Image proxy: Instagram/fbcdn profile pics + reel thumbnails block hotlinking
+    // from the browser, so fetch them server-side (host-allowlisted against SSRF) and
+    // stream them back. Public images — kept OUT of the creator auth gate so <img> tags
+    // (which can't send a JSON 401) always resolve.
+    if (u.pathname === "/api/img") {
+      const raw = u.searchParams.get("u") || "";
+      let target; try { target = new URL(raw); } catch { return send(res, 400, ".json", JSON.stringify({ error: "bad url" })); }
+      const okHost = /(^|\.)(cdninstagram\.com|fbcdn\.net|instagram\.com)$/i.test(target.hostname);
+      if (target.protocol !== "https:" || !okHost) return send(res, 403, ".json", JSON.stringify({ error: "host not allowed" }));
+      try {
+        const r = await fetch(target.href, { headers: { "user-agent": "Mozilla/5.0", accept: "image/*,*/*" } });
+        if (!r.ok) { res.writeHead(r.status); return res.end(); }
+        const buf = Buffer.from(await r.arrayBuffer());
+        res.writeHead(200, { "content-type": r.headers.get("content-type") || "image/jpeg", "cache-control": "public, max-age=86400" });
+        return res.end(buf);
+      } catch { res.writeHead(502); return res.end(); }
+    }
+
     // Multi-tenant gate: every creator-data endpoint requires login and runs scoped
     // to the logged-in creator — their reels, their scripts, their clippers, and
     // live Instagram calls made with THEIR connected token (never the shared one).
-    if (/^\/api\/(data|causal|predict|drops|attention|audit|hooks|extract|generate-script|scripts|discovery|discover|clippers|assignments|studio|animate|youtube|reel)(\/|$)/.test(u.pathname)) {
+    if (/^\/api\/(data|causal|predict|drops|attention|audit|hooks|extract|generate-script|scripts|skills|guides|pipeline-videos|discovery|discover|watchlist|watch|clippers|assignments|studio|animate|youtube|reel)(\/|$)/.test(u.pathname)) {
       const creator = await requireCreator(req);
       if (!creator) return send(res, 401, ".json", JSON.stringify({ error: "unauthenticated", code: "AUTH" }));
       let igAuth = null;
@@ -164,6 +182,106 @@ const server = http.createServer(async (req, res) => {
       }
     }
 
+    // Guides: generate a written guide from a reel (streaming), then list/edit/delete.
+    if (u.pathname === "/api/guides") {
+      const store = await import("./lib/store/guides.mjs");
+      if (!store.isConfigured())
+        return send(res, 200, ".json", JSON.stringify({ items: [], configured: false }));
+      if (req.method === "GET") {
+        try { return send(res, 200, ".json", JSON.stringify({ items: await store.listGuides(), configured: true })); }
+        catch (e) { return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) })); }
+      }
+      if (req.method === "POST") {
+        const body = await readJson(req);
+        if (!body.url) return send(res, 400, ".json", JSON.stringify({ error: "provide a reel URL" }));
+        res.writeHead(200, { "content-type": "application/x-ndjson; charset=utf-8", "cache-control": "no-cache", "x-accel-buffering": "no" });
+        const write = (o) => res.write(JSON.stringify(o) + "\n");
+        try {
+          const { generateGuide } = await import("./lib/guides.mjs");
+          const guide = await generateGuide(body.url, { onStep: (s) => write({ step: s }) });
+          const saved = await store.createGuide(guide);
+          write({ done: true, guide: saved });
+        } catch (e) { write({ error: e && e.message ? e.message : String(e) }); }
+        return res.end();
+      }
+    }
+    const gdm = u.pathname.match(/^\/api\/guides\/([^/]+)$/);
+    if (gdm) {
+      const store = await import("./lib/store/guides.mjs");
+      const id = decodeURIComponent(gdm[1]);
+      try {
+        if (req.method === "GET") return send(res, 200, ".json", JSON.stringify({ item: await store.getGuide(id) }));
+        if (req.method === "PUT") { const body = await readJson(req); return send(res, 200, ".json", JSON.stringify({ item: await store.updateGuide(id, body) })); }
+        if (req.method === "DELETE") return send(res, 200, ".json", JSON.stringify(await store.deleteGuide(id)));
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
+
+    // Creator skills: per-tenant reusable instructions injected into script generation.
+    if (u.pathname === "/api/skills") {
+      const store = await import("./lib/store/skills.mjs");
+      if (!store.isConfigured())
+        return send(res, 200, ".json", JSON.stringify({ items: [], configured: false }));
+      try {
+        if (req.method === "GET")
+          return send(res, 200, ".json", JSON.stringify({ items: await store.listSkills(), configured: true }));
+        if (req.method === "POST") {
+          const body = await readJson(req);
+          return send(res, 200, ".json", JSON.stringify({ item: await store.saveSkill(body) }));
+        }
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
+    const skm = u.pathname.match(/^\/api\/skills\/([^/]+)$/);
+    if (skm) {
+      const store = await import("./lib/store/skills.mjs");
+      const id = decodeURIComponent(skm[1]);
+      try {
+        if (req.method === "PUT") {
+          const body = await readJson(req);
+          return send(res, 200, ".json", JSON.stringify({ item: await store.saveSkill({ ...body, id }) }));
+        }
+        if (req.method === "DELETE")
+          return send(res, 200, ".json", JSON.stringify(await store.deleteSkill(id)));
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
+
+    // Pipeline "Videos": reels saved from Discovery for later extraction.
+    if (u.pathname === "/api/pipeline-videos") {
+      const store = await import("./lib/store/pipelineVideos.mjs");
+      if (!store.isConfigured())
+        return send(res, 200, ".json", JSON.stringify({ items: [], configured: false }));
+      try {
+        if (req.method === "GET")
+          return send(res, 200, ".json", JSON.stringify({ items: await store.listVideos(), configured: true }));
+        if (req.method === "POST") {
+          const body = await readJson(req);
+          return send(res, 200, ".json", JSON.stringify({ item: await store.saveVideo(body) }));
+        }
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
+    const pvm = u.pathname.match(/^\/api\/pipeline-videos\/([^/]+)$/);
+    if (pvm) {
+      const store = await import("./lib/store/pipelineVideos.mjs");
+      const id = decodeURIComponent(pvm[1]);
+      try {
+        if (req.method === "PUT") {
+          const body = await readJson(req);
+          return send(res, 200, ".json", JSON.stringify({ item: await store.updateVideo(id, body) }));
+        }
+        if (req.method === "DELETE")
+          return send(res, 200, ".json", JSON.stringify(await store.deleteVideo(id)));
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
+
     // Reels discovery: library (list/edit/delete) + live discover (hashtag / links).
     if (u.pathname === "/api/discovery") {
       const store = await import("./lib/store/discovery.mjs");
@@ -207,6 +325,144 @@ const server = http.createServer(async (req, res) => {
       } catch (e) {
         return send(res, e && e.code === "NO_CREDS" ? 200 : 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e), code: e && e.code }));
       }
+    }
+
+    // Trending lane: shared creator watchlist → filterable content recommendations.
+    // GET  /api/watchlist            → watched creators
+    // POST /api/watchlist            → { username, region } add + immediate sweep
+    // DEL  /api/watchlist/:username  → remove
+    if (u.pathname === "/api/watchlist") {
+      const wl = await import("./lib/watchlist.mjs");
+      if (!wl.isConfigured())
+        return send(res, 200, ".json", JSON.stringify({ creators: [], configured: false }));
+      const wstore = await import("./lib/store/watchlist.mjs");
+      try {
+        if (req.method === "GET")
+          return send(res, 200, ".json", JSON.stringify({ creators: await wstore.listCreators(), configured: true, vendor: wl.vendorConfigured() }));
+        if (req.method === "POST") {
+          const body = await readJson(req);
+          if (!body.username) return send(res, 400, ".json", JSON.stringify({ error: "username required" }));
+          if (!wl.vendorConfigured()) return send(res, 200, ".json", JSON.stringify({ error: "Add HIKERAPI_KEY on the server to look up and sweep creators.", code: "NO_VENDOR" }));
+          const out = await wl.addAndSweep(body.username, {
+            region: body.region || null,
+            igUserId: body.igUserId || null,
+            fullName: body.fullName || null,
+            followerCount: body.followerCount != null ? body.followerCount : null,
+            avatar: body.avatar || null,
+          });
+          return send(res, 200, ".json", JSON.stringify(out));
+        }
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
+    const wm = u.pathname.match(/^\/api\/watchlist\/([^/]+)$/);
+    if (wm && req.method === "DELETE") {
+      const wstore = await import("./lib/store/watchlist.mjs");
+      try {
+        return send(res, 200, ".json", JSON.stringify(await wstore.removeCreator(decodeURIComponent(wm[1]))));
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
+
+    // The Trending feed: ranked + filtered reels, audio clusters, format rollup.
+    if (u.pathname === "/api/watch/feed" && req.method === "GET") {
+      const wl = await import("./lib/watchlist.mjs");
+      if (!wl.isConfigured())
+        return send(res, 200, ".json", JSON.stringify({ items: [], clusters: [], formats: [], stats: {}, configured: false }));
+      try {
+        const p = u.searchParams;
+        const num = (k) => (p.get(k) != null && p.get(k) !== "" ? Number(p.get(k)) : null);
+        const feed = await wl.getFeed({
+          sort: p.get("sort") || "velocity",
+          minOutlier: num("minOutlier"), minVelocity: num("minVelocity"), minEngagement: num("minEngagement"),
+          duration: p.get("duration") || null, sinceDays: num("sinceDays"),
+          audioId: p.get("audioId") || null, creator: p.get("creator") || null, region: p.get("region") || null,
+          collabOnly: p.get("collabOnly") === "1", limit: num("limit") || 60,
+        });
+        return send(res, 200, ".json", JSON.stringify({ ...feed, configured: true }));
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
+
+    // On-demand: any handle's last reels with in-batch outlier scores (not saved).
+    if (u.pathname === "/api/watch/lookup" && req.method === "POST") {
+      const wl = await import("./lib/watchlist.mjs");
+      if (!wl.vendorConfigured())
+        return send(res, 200, ".json", JSON.stringify({ error: "Add HIKERAPI_KEY on the server first.", code: "NO_VENDOR" }));
+      try {
+        const body = await readJson(req);
+        if (!body.username) return send(res, 400, ".json", JSON.stringify({ error: "username required" }));
+        return send(res, 200, ".json", JSON.stringify(await wl.lookupCreator({ username: body.username, igUserId: body.igUserId || null, followerCount: body.followerCount != null ? body.followerCount : null })));
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
+
+    // Type-ahead account search (for the watchlist input suggestions dropdown).
+    if (u.pathname === "/api/watch/search" && req.method === "GET") {
+      const wl = await import("./lib/watchlist.mjs");
+      if (!wl.vendorConfigured()) return send(res, 200, ".json", JSON.stringify({ results: [], code: "NO_VENDOR" }));
+      try {
+        const q = u.searchParams.get("q") || "";
+        if (q.replace(/^@/, "").trim().length < 2) return send(res, 200, ".json", JSON.stringify({ results: [] }));
+        return send(res, 200, ".json", JSON.stringify({ results: await wl.searchAccounts(q, { limit: 6 }) }));
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
+
+    // "Creators like @X": suggested/related accounts for a seed handle (or own account).
+    if (u.pathname === "/api/watch/related" && req.method === "POST") {
+      const wl = await import("./lib/watchlist.mjs");
+      if (!wl.vendorConfigured())
+        return send(res, 200, ".json", JSON.stringify({ error: "Add HIKERAPI_KEY on the server first.", code: "NO_VENDOR" }));
+      try {
+        const body = await readJson(req);
+        let handle = body.username;
+        if (!handle && body.self) handle = (currentScope() || {}).igAccount || null;   // "creators like my account"
+        if (!handle) return send(res, 400, ".json", JSON.stringify({ error: "Type a handle, or connect Instagram to use ‘like my account’." }));
+        return send(res, 200, ".json", JSON.stringify(await wl.relatedCreators({ username: handle, igUserId: body.igUserId || null })));
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
+
+    // Personalized video feed: watched reels ranked by fit to THIS creator's content.
+    if (u.pathname === "/api/watch/niche" && req.method === "GET") {
+      const wl = await import("./lib/watchlist.mjs");
+      if (!wl.isConfigured()) return send(res, 200, ".json", JSON.stringify({ items: [], configured: false }));
+      try {
+        return send(res, 200, ".json", JSON.stringify({ ...(await wl.nicheFeed()), configured: true }));
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
+
+    // Niche recommendations: creators to watch, derived from your best performers.
+    if (u.pathname === "/api/watch/recommend" && req.method === "GET") {
+      const wl = await import("./lib/watchlist.mjs");
+      if (!wl.isConfigured()) return send(res, 200, ".json", JSON.stringify({ recommendations: [], configured: false }));
+      if (!wl.vendorConfigured()) return send(res, 200, ".json", JSON.stringify({ recommendations: [], code: "NO_VENDOR" }));
+      try {
+        return send(res, 200, ".json", JSON.stringify({ ...(await wl.recommendCreators()), configured: true }));
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
+
+    // Manually kick a sweep of THIS creator's watchlist (background; returns now).
+    if (u.pathname === "/api/watch/sweep" && req.method === "POST") {
+      const wl = await import("./lib/watchlist.mjs");
+      if (!wl.vendorConfigured())
+        return send(res, 200, ".json", JSON.stringify({ error: "Add HIKERAPI_KEY on the server first.", code: "NO_VENDOR" }));
+      const cid = currentCreatorId();
+      runInScope({ creator: { id: cid } }, () => wl.sweepAll({ onStep: (s) => console.log("  [watch-sweep] " + s) })
+        .then((r) => console.log(`  [watch-sweep] done: ${r.reels} reels across ${r.creators} creators`))
+        .catch((e) => console.log("  [watch-sweep] failed:", e && e.message ? e.message : e)));
+      return send(res, 200, ".json", JSON.stringify({ started: true }));
     }
 
     // Lab: causal ledger (de-confounded hypotheses) + the next experiment.
@@ -329,7 +585,9 @@ const server = http.createServer(async (req, res) => {
         const withRet = await predict.trainViewsModel({ withRetention: true });
         const full = await predict.trainViewsModel({ withRetention: true, withEngagement: true });
         const skip = await predict.trainSkipModel();
-        return send(res, 200, ".json", JSON.stringify({ configured: true, n: full.n, meta: full.meta, contentR2: contentOnly.looR2, retentionR2: withRet.looR2, fullR2: full.looR2, medianErrorPct: full.medianErrorPct, drivers: full.drivers, skip, note: full.note }));
+        const likes = await predict.trainEngagementModel("like");
+        const comments = await predict.trainEngagementModel("comment");
+        return send(res, 200, ".json", JSON.stringify({ configured: true, n: full.n, meta: full.meta, contentR2: contentOnly.looR2, retentionR2: withRet.looR2, fullR2: full.looR2, medianErrorPct: full.medianErrorPct, drivers: full.drivers, skip, likes, comments, note: full.note }));
       } catch (e) {
         return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
       }
@@ -784,6 +1042,31 @@ server.listen(PORT, () => {
     setTimeout(run, 25000);                 // shortly after boot
     setInterval(run, 3 * 60 * 60 * 1000);   // and every 3 hours
   } catch { /* clippers optional */ }
+})();
+
+// Background: sweep each workspace's own creator watchlist (Trending lane). Every pass
+// snapshots each reel's view/like/comment counts so velocity (Δviews/hour) can be
+// derived, and recomputes outlier/engagement. Runs per-tenant inside that creator's
+// scope. Twice daily keeps vendor cost bounded (watched creators × sweeps). Best-effort.
+(async () => {
+  try {
+    const wl = await import("./lib/watchlist.mjs");
+    if (!wl.isConfigured() || !wl.vendorConfigured()) return;
+    const wstore = await import("./lib/store/watchlist.mjs");
+    const run = async () => {
+      try {
+        const tenants = await wstore.listTenantsWithWatchlist();
+        let total = 0;
+        for (const cid of tenants) {
+          const r = await runInScope({ creator: { id: cid } }, () => wl.sweepAll({ onStep: () => {} }));
+          total += (r && r.reels) || 0;
+        }
+        if (tenants.length) console.log(`  [watch-sweep] ${total} reels across ${tenants.length} workspaces`);
+      } catch (e) { console.log("  [watch-sweep] skipped:", e && e.message ? e.message : e); }
+    };
+    setTimeout(run, 60000);                  // shortly after boot
+    setInterval(run, 12 * 60 * 60 * 1000);   // twice daily
+  } catch { /* trending lane optional */ }
 })();
 
 // Live Graph API pull → payload. Fast now: skips the per-reel duration probe using
