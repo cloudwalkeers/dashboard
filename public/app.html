@@ -1760,7 +1760,11 @@ button{font-family:inherit}
           <div style="flex:1"></div>
           <button onClick="{{ GUIDE.del }}" style="padding:7px 11px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--bad);font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit">Delete</button>
         </div>
-        <textarea value="{{ GUIDE.draftBody }}" onInput="{{ GUIDE.onBody }}" placeholder="Guide markdown…" class="cc-mono" style="width:100%;box-sizing:border-box;min-height:460px;resize:vertical;padding:16px;border:1px solid var(--line);border-radius:12px;font-size:13px;line-height:1.6;font-family:'JetBrains Mono',ui-monospace,monospace;background:var(--surface-2);color:var(--text)"></textarea>
+        <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center">
+          <input value="{{ GUIDE.followup }}" onInput="{{ GUIDE.onFollowup }}" placeholder="Follow-up prompt: e.g. make the prompts more advanced, add a section on pricing, shorten the intro…" style="flex:1;min-width:0;padding:10px 13px;border:1px solid var(--cc);border-radius:10px;font-size:13px;font-family:inherit;background:var(--cc-soft);color:var(--text)"/>
+          <button onClick="{{ GUIDE.refine }}" style="flex:none;padding:10px 16px;border:none;border-radius:10px;background:var(--cc);color:var(--cc-on);font-size:13px;font-weight:650;cursor:pointer;font-family:inherit">{{ GUIDE.refineLabel }}</button>
+        </div>
+        <textarea value="{{ GUIDE.draftBody }}" onInput="{{ GUIDE.onBody }}" placeholder="Guide markdown…" class="cc-mono" style="width:100%;box-sizing:border-box;min-height:440px;resize:vertical;padding:16px;border:1px solid var(--line);border-radius:12px;font-size:13px;line-height:1.6;font-family:'JetBrains Mono',ui-monospace,monospace;background:var(--surface-2);color:var(--text)"></textarea>
       </div>
       </sc-if>
 
@@ -2284,7 +2288,7 @@ class Component extends DCLogic {
       skills:null, skillsLoading:false, skillsLoaded:false, skillDraftId:null, skillDraftName:'', skillDraftContent:'', skillDraftScope:'script', skillComposerOpen:false, skillBusy:false, skillError:'',
       guideUrl:'', guideGenerating:false, guideStep:'', guideError:'', guides:null, guidesLoading:false, guidesLoaded:false,
       guideSel:null, guideDraftTitle:'', guideDraftBody:'', guideDirty:false, guideSaving:false, guideSaved:'', guidePreview:false,
-      guideMode:'reel', guideBrief:'', guideSource:'',
+      guideMode:'reel', guideBrief:'', guideSource:'', guideFollowup:'', guideRefining:false,
       pipeSel:null, pipeQuery:'', pipeActiveTags:[], pipeTagDraft:'', pipeSaveStatus:'idle', pipeDeleteArmed:false, pipeRefreshing:false,
       discItems:null, discCats:[], discLoading:false, discLoaded:false, discError:'', discMsg:'', discBusy:false,
       discHashtag:'', discType:'top', discCategory:'', discLinks:'', discFilter:'', discMode:'recommend',
@@ -2924,7 +2928,16 @@ class Component extends DCLogic {
       })
       .catch(e=>this.setState({ guideGenerating:false, guideError:String(e) }));
   }
-  guideSelect(g){ this.setState({ guideSel:g.id, guideDraftTitle:g.title||'', guideDraftBody:g.body_md||'', guideDirty:false, guideSaved:'', guidePreview:false }); if(typeof window!=='undefined') window.scrollTo(0,0); }
+  guideSelect(g){ this.setState({ guideSel:g.id, guideDraftTitle:g.title||'', guideDraftBody:g.body_md||'', guideDirty:false, guideSaved:'', guidePreview:false, guideFollowup:'' }); if(typeof window!=='undefined') window.scrollTo(0,0); }
+  guideRefine(){
+    const id=this.state.guideSel, instruction=(this.state.guideFollowup||'').trim(); if(!id||!instruction) return;
+    this.setState({ guideRefining:true, guideError:'' });
+    fetch('/api/guides/'+encodeURIComponent(id)+'/refine',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ instruction }) })
+      .then(r=>r.json())
+      .then(j=>{ if(j.error){ this.setState({ guideRefining:false, guideError:j.error }); return; }
+        const it=j.item||{}; this.setState({ guideRefining:false, guideFollowup:'', guideDraftTitle:it.title||this.state.guideDraftTitle, guideDraftBody:it.body_md||this.state.guideDraftBody, guideDirty:false, guideSaved:'Refined ✓', guides:(this.state.guides||[]).map(x=>x.id===id?it:x) }); })
+      .catch(e=>this.setState({ guideRefining:false, guideError:String(e) }));
+  }
   guideSave(){
     const id=this.state.guideSel; if(!id) return;
     this.setState({ guideSaving:true });
@@ -2991,6 +3004,8 @@ class Component extends DCLogic {
       draftTitle:s.guideDraftTitle||'', onTitle:(e)=>this.setState({ guideDraftTitle:e&&e.target?e.target.value:'', guideDirty:true, guideSaved:'' }),
       draftBody:s.guideDraftBody||'', onBody:(e)=>this.setState({ guideDraftBody:e&&e.target?e.target.value:'', guideDirty:true, guideSaved:'' }),
       save:()=>this.guideSave(), saveLabel: s.guideSaving?'Saving…':'Save', saved:s.guideSaved||'',
+      followup:s.guideFollowup||'', onFollowup:(e)=>this.setState({ guideFollowup:e&&e.target?e.target.value:'' }),
+      refine:()=>this.guideRefine(), refineLabel: s.guideRefining?'Refining…':'↻ Refine', refining:!!s.guideRefining,
       publish:()=>this.guidePublish(), publishLabel: (sel&&sel.status==='published')?'Unpublish':'Publish',
       preview:()=>this.guideOpenRendered(false), pdf:()=>this.guideOpenRendered(true), del:()=>{ if(sel) this.guideDelete(sel.id); },
       slug: sel&&sel.slug ? ('slug: /'+sel.slug) : ''

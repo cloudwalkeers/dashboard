@@ -211,6 +211,22 @@ const server = http.createServer(async (req, res) => {
         return res.end();
       }
     }
+    const grm = u.pathname.match(/^\/api\/guides\/([^/]+)\/refine$/);
+    if (grm && req.method === "POST") {
+      const store = await import("./lib/store/guides.mjs");
+      const id = decodeURIComponent(grm[1]);
+      try {
+        const body = await readJson(req);
+        const g = await store.getGuide(id);
+        if (!g) return send(res, 404, ".json", JSON.stringify({ error: "guide not found" }));
+        const { refineGuide } = await import("./lib/guides.mjs");
+        const refined = await refineGuide({ title: g.title, body_md: g.body_md, instruction: body.instruction || "" });
+        const saved = await store.updateGuide(id, { title: refined.title, body_md: refined.body_md });
+        return send(res, 200, ".json", JSON.stringify({ item: saved }));
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
     const gdm = u.pathname.match(/^\/api\/guides\/([^/]+)$/);
     if (gdm) {
       const store = await import("./lib/store/guides.mjs");
