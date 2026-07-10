@@ -211,6 +211,26 @@ const server = http.createServer(async (req, res) => {
         return res.end();
       }
     }
+    // Import an existing guide from an uploaded file (PDF text-extracted, or md/txt).
+    if (u.pathname === "/api/guides/import" && req.method === "POST") {
+      const store = await import("./lib/store/guides.mjs");
+      if (!store.isConfigured()) return send(res, 200, ".json", JSON.stringify({ configured: false }));
+      try {
+        const body = await readJson(req);
+        const title = (body.title || "Imported guide").slice(0, 200);
+        let body_md = body.body_md || "";
+        if (!body_md && body.pdfBase64) {
+          const { extractPdfText } = await import("./lib/guides.mjs");
+          body_md = await extractPdfText(body.pdfBase64);
+        }
+        if (!String(body_md).trim()) return send(res, 400, ".json", JSON.stringify({ error: "The file was empty or unreadable." }));
+        const saved = await store.createGuide({ title, body_md });
+        return send(res, 200, ".json", JSON.stringify({ item: saved }));
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
+
     const grm = u.pathname.match(/^\/api\/guides\/([^/]+)\/refine$/);
     if (grm && req.method === "POST") {
       const store = await import("./lib/store/guides.mjs");

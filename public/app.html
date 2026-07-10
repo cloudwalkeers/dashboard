@@ -1679,13 +1679,21 @@ button{font-family:inherit}
 
   <sc-if value="{{ showGuides }}" hint-placeholder-val="{{ false }}">
   <main class="cc-font" style="max-width:1180px;margin:0 auto;padding:30px 28px 90px">
-    <h1 style="margin:0 0 4px;font-size:24px;font-weight:800;letter-spacing:-.03em">Guides</h1>
-    <p style="margin:0 0 20px;font-size:13.5px;color:var(--text-2);max-width:680px">Paste a reel link — we pull its transcript and write a polished, standalone guide (applying your guide skills). Edit it, publish it to Supabase for your site, or download a PDF.</p>
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;flex-wrap:wrap">
+      <h1 style="margin:0;font-size:24px;font-weight:800;letter-spacing:-.03em">Guides</h1>
+      <div style="display:inline-flex;background:var(--fill);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px">
+        <button onClick="{{ GUIDE.setTabCreate }}" style="{{ GUIDE.segTabCreate }}">Create</button>
+        <button onClick="{{ GUIDE.setTabInventory }}" style="{{ GUIDE.segTabInventory }}">Inventory · {{ GUIDE.count }}</button>
+      </div>
+    </div>
+
+    <sc-if value="{{ GUIDE.tabCreate }}" hint-placeholder-val="{{ true }}">
+    <p style="margin:0 0 16px;font-size:13.5px;color:var(--text-2);max-width:700px">Generate a polished guide from a reel's transcript, or import an existing guide (PDF / Markdown / text). Your active guide skills are applied. Edit, refine and publish under Inventory.</p>
 
     <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin-bottom:16px;box-shadow:var(--shadow)">
       <div style="display:inline-flex;background:var(--fill);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px;margin-bottom:12px">
         <button onClick="{{ GUIDE.setModeReel }}" style="{{ GUIDE.segReel }}">From reel</button>
-        <button onClick="{{ GUIDE.setModePrompt }}" style="{{ GUIDE.segPrompt }}">From prompt</button>
+        <button onClick="{{ GUIDE.setModeUpload }}" style="{{ GUIDE.segUpload }}">Upload existing</button>
       </div>
       <sc-if value="{{ GUIDE.modeReel }}" hint-placeholder-val="{{ true }}">
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
@@ -1693,57 +1701,56 @@ button{font-family:inherit}
           <button onClick="{{ GUIDE.generate }}" style="padding:11px 20px;border:none;border-radius:10px;background:var(--cc);color:var(--cc-on);font-size:13px;font-weight:650;cursor:pointer;font-family:inherit">{{ GUIDE.genLabel }}</button>
         </div>
       </sc-if>
-      <sc-if value="{{ GUIDE.modePrompt }}" hint-placeholder-val="{{ false }}">
-        <textarea value="{{ GUIDE.brief }}" onInput="{{ GUIDE.onBrief }}" placeholder="What should this guide cover? Topic, angle, who it's for… Your active guide skills are applied automatically." style="width:100%;box-sizing:border-box;min-height:94px;resize:vertical;padding:11px 13px;border:1px solid var(--line);border-radius:10px;font-size:13px;line-height:1.5;font-family:inherit;background:var(--surface);color:var(--text)"></textarea>
-        <sc-if value="{{ GUIDE.hasSourceChips }}" hint-placeholder-val="{{ false }}">
-          <div style="margin-top:11px"><div style="font-size:11px;color:var(--text-3);margin-bottom:6px">Optionally base it on an existing guide:</div>
-          <div style="display:flex;gap:7px;flex-wrap:wrap"><sc-for list="{{ GUIDE.sourceChips }}" as="sc" hint-placeholder-count="3"><button onClick="{{ sc.click }}" style="{{ sc.style }}">{{ sc.label }}</button></sc-for></div></div>
-        </sc-if>
-        <button onClick="{{ GUIDE.generate }}" style="margin-top:12px;padding:11px 20px;border:none;border-radius:10px;background:var(--cc);color:var(--cc-on);font-size:13px;font-weight:650;cursor:pointer;font-family:inherit">{{ GUIDE.genLabel }}</button>
+      <sc-if value="{{ GUIDE.modeUpload }}" hint-placeholder-val="{{ false }}">
+        <div style="border:1px dashed var(--line);border-radius:12px;padding:22px;text-align:center;background:var(--surface-2)">
+          <div style="font-size:13px;color:var(--text-2);margin-bottom:12px">Import an existing guide — <strong>PDF</strong>, Markdown (.md) or text (.txt). It lands in your Inventory as a draft you can refine.</div>
+          <label style="display:inline-block;padding:10px 18px;border:none;border-radius:10px;background:var(--cc);color:var(--cc-on);font-size:13px;font-weight:650;cursor:pointer;font-family:inherit"><input type="file" accept=".pdf,.md,.markdown,.txt" onChange="{{ GUIDE.onFile }}" style="display:none"/>Choose file…</label>
+          <div style="font-size:11px;color:var(--text-3);margin-top:9px">Max ~3 MB. PDF text extraction runs on the deployed server.</div>
+        </div>
       </sc-if>
       <sc-if value="{{ GUIDE.generating }}" hint-placeholder-val="{{ false }}"><div style="margin-top:10px;font-size:12.5px;color:var(--text-3)">⏳ {{ GUIDE.step }}</div></sc-if>
       <sc-if value="{{ GUIDE.error }}" hint-placeholder-val="{{ false }}"><div style="margin-top:10px;font-size:12.5px;color:var(--bad)">{{ GUIDE.error }}</div></sc-if>
     </div>
 
-    <div style="display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start">
-      <div style="display:flex;flex-direction:column;gap:16px">
-        <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 18px;box-shadow:var(--shadow)">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px">
-            <div style="font-size:13.5px;font-weight:700">Guide skills <span style="color:var(--text-faint);font-weight:500;font-size:12px">· {{ SK.activeCount }} active</span></div>
-            <button onClick="{{ SK.onNew }}" style="flex:none;padding:6px 11px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">+ New</button>
-          </div>
-          <sc-if value="{{ SK.composerOpen }}" hint-placeholder-val="{{ false }}">
-          <div style="border:1px solid var(--cc);border-radius:11px;padding:11px;margin-bottom:10px;background:var(--cc-soft)">
-            <input value="{{ SK.draftName }}" onInput="{{ SK.onName }}" placeholder="Skill name (e.g. Step-by-step tutorial format)" style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);margin-bottom:8px"/>
-            <textarea value="{{ SK.draftContent }}" onInput="{{ SK.onContent }}" placeholder="Paste the guide skill (markdown) — structure, tone, formatting rules…" style="width:100%;box-sizing:border-box;min-height:110px;resize:vertical;padding:9px 11px;border:1px solid var(--line);border-radius:8px;font-size:12.5px;line-height:1.5;font-family:inherit;background:var(--surface);color:var(--text)"></textarea>
-            <div style="display:flex;gap:8px;margin-top:9px">
-              <button onClick="{{ SK.onSave }}" style="padding:7px 14px;border:none;border-radius:8px;background:var(--cc);color:var(--cc-on);font-size:12.5px;font-weight:650;cursor:pointer;font-family:inherit">{{ SK.saveLabel }}</button>
-              <button onClick="{{ SK.onCancel }}" style="padding:7px 14px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text-2);font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit">Cancel</button>
-            </div>
-          </div>
-          </sc-if>
-          <sc-if value="{{ SK.empty }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px;color:var(--text-3);padding:6px 0">No guide skills yet — add one to shape how guides are written.</div></sc-if>
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <sc-for list="{{ SK.items }}" as="sk" hint-placeholder-count="2">
-              <div style="{{ sk.rowStyle }}">
-                <span style="{{ sk.dotStyle }}"></span>
-                <div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:650;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ sk.name }}</div><div style="font-size:11px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ sk.preview }}</div></div>
-                <button onClick="{{ sk.toggle }}" style="{{ sk.toggleStyle }}">{{ sk.toggleLabel }}</button>
-                <button onClick="{{ sk.edit }}" style="border:none;background:transparent;color:var(--cc);cursor:pointer;font-size:12px;font-family:inherit;font-weight:600">Edit</button>
-                <button onClick="{{ sk.del }}" style="border:none;background:transparent;color:var(--bad);cursor:pointer;font-size:13px;font-family:inherit">✕</button>
-              </div>
-            </sc-for>
-          </div>
+    <div style="max-width:620px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 18px;box-shadow:var(--shadow)">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px">
+        <div style="font-size:13.5px;font-weight:700">Guide skills <span style="color:var(--text-faint);font-weight:500;font-size:12px">· {{ SK.activeCount }} active</span></div>
+        <button onClick="{{ SK.onNew }}" style="flex:none;padding:6px 11px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">+ New</button>
+      </div>
+      <sc-if value="{{ SK.composerOpen }}" hint-placeholder-val="{{ false }}">
+      <div style="border:1px solid var(--cc);border-radius:11px;padding:11px;margin-bottom:10px;background:var(--cc-soft)">
+        <input value="{{ SK.draftName }}" onInput="{{ SK.onName }}" placeholder="Skill name (e.g. Step-by-step tutorial format)" style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);margin-bottom:8px"/>
+        <textarea value="{{ SK.draftContent }}" onInput="{{ SK.onContent }}" placeholder="Paste the guide skill (markdown) — structure, tone, formatting rules…" style="width:100%;box-sizing:border-box;min-height:110px;resize:vertical;padding:9px 11px;border:1px solid var(--line);border-radius:8px;font-size:12.5px;line-height:1.5;font-family:inherit;background:var(--surface);color:var(--text)"></textarea>
+        <div style="display:flex;gap:8px;margin-top:9px">
+          <button onClick="{{ SK.onSave }}" style="padding:7px 14px;border:none;border-radius:8px;background:var(--cc);color:var(--cc-on);font-size:12.5px;font-weight:650;cursor:pointer;font-family:inherit">{{ SK.saveLabel }}</button>
+          <button onClick="{{ SK.onCancel }}" style="padding:7px 14px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text-2);font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit">Cancel</button>
         </div>
-
-        <div>
-          <div class="cc-mono" style="font-size:10px;letter-spacing:.1em;color:var(--text-3);margin-bottom:8px">YOUR GUIDES</div>
-          <sc-if value="{{ GUIDE.empty }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px;color:var(--text-3)">No guides yet — generate one above.</div></sc-if>
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <sc-for list="{{ GUIDE.items }}" as="g" hint-placeholder-count="4">
-              <div onClick="{{ g.select }}" style="{{ g.cardStyle }}"><div style="font-size:13px;font-weight:650;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ g.title }}</div><div style="{{ g.metaStyle }}">{{ g.meta }}</div></div>
-            </sc-for>
+      </div>
+      </sc-if>
+      <sc-if value="{{ SK.empty }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px;color:var(--text-3);padding:6px 0">No guide skills yet — add one to shape how guides are written.</div></sc-if>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <sc-for list="{{ SK.items }}" as="sk" hint-placeholder-count="2">
+          <div style="{{ sk.rowStyle }}">
+            <span style="{{ sk.dotStyle }}"></span>
+            <div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:650;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ sk.name }}</div><div style="font-size:11px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ sk.preview }}</div></div>
+            <button onClick="{{ sk.toggle }}" style="{{ sk.toggleStyle }}">{{ sk.toggleLabel }}</button>
+            <button onClick="{{ sk.edit }}" style="border:none;background:transparent;color:var(--cc);cursor:pointer;font-size:12px;font-family:inherit;font-weight:600">Edit</button>
+            <button onClick="{{ sk.del }}" style="border:none;background:transparent;color:var(--bad);cursor:pointer;font-size:13px;font-family:inherit">✕</button>
           </div>
+        </sc-for>
+      </div>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ GUIDE.tabInventory }}" hint-placeholder-val="{{ false }}">
+    <div style="display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start">
+      <div>
+        <div class="cc-mono" style="font-size:10px;letter-spacing:.1em;color:var(--text-3);margin-bottom:8px">YOUR GUIDES · {{ GUIDE.count }}</div>
+        <sc-if value="{{ GUIDE.empty }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px;color:var(--text-3)">No guides yet — create one under the Create tab.</div></sc-if>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <sc-for list="{{ GUIDE.items }}" as="g" hint-placeholder-count="5">
+            <div onClick="{{ g.select }}" style="{{ g.cardStyle }}"><div style="font-size:13px;font-weight:650;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ g.title }}</div><div style="{{ g.metaStyle }}">{{ g.meta }}</div></div>
+          </sc-for>
         </div>
       </div>
 
@@ -1767,8 +1774,9 @@ button{font-family:inherit}
         <textarea value="{{ GUIDE.draftBody }}" onInput="{{ GUIDE.onBody }}" placeholder="Guide markdown…" class="cc-mono" style="width:100%;box-sizing:border-box;min-height:440px;resize:vertical;padding:16px;border:1px solid var(--line);border-radius:12px;font-size:13px;line-height:1.6;font-family:'JetBrains Mono',ui-monospace,monospace;background:var(--surface-2);color:var(--text)"></textarea>
       </div>
       </sc-if>
-
+      <sc-if value="{{ GUIDE.noSel }}" hint-placeholder-val="{{ false }}"><div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:40px 24px;text-align:center;font-size:14px;color:var(--text-2)">Select a guide on the left to edit &amp; refine it.</div></sc-if>
     </div>
+    </sc-if>
   </main>
   </sc-if>
 
@@ -2288,7 +2296,7 @@ class Component extends DCLogic {
       skills:null, skillsLoading:false, skillsLoaded:false, skillDraftId:null, skillDraftName:'', skillDraftContent:'', skillDraftScope:'script', skillComposerOpen:false, skillBusy:false, skillError:'',
       guideUrl:'', guideGenerating:false, guideStep:'', guideError:'', guides:null, guidesLoading:false, guidesLoaded:false,
       guideSel:null, guideDraftTitle:'', guideDraftBody:'', guideDirty:false, guideSaving:false, guideSaved:'', guidePreview:false,
-      guideMode:'reel', guideBrief:'', guideSource:'', guideFollowup:'', guideRefining:false,
+      guideTab:'create', guideMode:'reel', guideBrief:'', guideSource:'', guideFollowup:'', guideRefining:false,
       pipeSel:null, pipeQuery:'', pipeActiveTags:[], pipeTagDraft:'', pipeSaveStatus:'idle', pipeDeleteArmed:false, pipeRefreshing:false,
       discItems:null, discCats:[], discLoading:false, discLoaded:false, discError:'', discMsg:'', discBusy:false,
       discHashtag:'', discType:'top', discCategory:'', discLinks:'', discFilter:'', discMode:'recommend',
@@ -2908,13 +2916,30 @@ class Component extends DCLogic {
       .then(j=>this.setState({ guidesLoading:false, guidesLoaded:true, guides:j.items||[] }))
       .catch(()=>this.setState({ guidesLoading:false, guidesLoaded:true }));
   }
+  setGuideTab(t){ this.setState({ guideTab:t }); }
+  guideUpload(file){
+    if(!file) return;
+    const name=(file.name||'guide').replace(/\.[^.]+$/,'').slice(0,180);
+    const isPdf = /\.pdf$/i.test(file.name||'') || file.type==='application/pdf';
+    if(file.size > 4.5e6){ this.setState({ guideError:'File is too large (max ~3 MB).' }); return; }
+    this.setState({ guideGenerating:true, guideError:'', guideStep:'reading file…' });
+    const rdr=new FileReader();
+    rdr.onload=()=>{
+      const payload = isPdf ? { title:name, pdfBase64:String(rdr.result) } : { title:name, body_md:String(rdr.result) };
+      this.setState({ guideStep: isPdf?'extracting PDF text…':'importing…' });
+      fetch('/api/guides/import',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify(payload) })
+        .then(r=>r.json())
+        .then(j=>{ if(j.error){ this.setState({ guideGenerating:false, guideStep:'', guideError:j.error }); return; }
+          this.setState({ guideGenerating:false, guideStep:'', guidesLoaded:false, guideTab:'inventory' }); this.loadGuides(true); if(j.item) this.guideSelect(j.item); })
+        .catch(e=>this.setState({ guideGenerating:false, guideStep:'', guideError:String(e) }));
+    };
+    rdr.onerror=()=>this.setState({ guideGenerating:false, guideError:'Could not read that file.' });
+    if(isPdf) rdr.readAsDataURL(file); else rdr.readAsText(file);
+  }
   guideGenerate(){
-    const mode=this.state.guideMode||'reel';
-    let body;
-    if(mode==='reel'){ const url=(this.state.guideUrl||'').trim(); if(!url){ this.setState({ guideError:'Paste a reel link.' }); return; } body={ url }; }
-    else { const brief=(this.state.guideBrief||'').trim(), sourceId=this.state.guideSource||null; if(!brief && !sourceId){ this.setState({ guideError:'Write a prompt, or pick a source guide.' }); return; } body={ brief, sourceId }; }
+    const url=(this.state.guideUrl||'').trim(); if(!url){ this.setState({ guideError:'Paste a reel link.' }); return; }
     this.setState({ guideGenerating:true, guideError:'', guideStep:'starting…' });
-    fetch('/api/guides',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify(body) })
+    fetch('/api/guides',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ url }) })
       .then(async r=>{
         const reader=r.body.getReader(), dec=new TextDecoder(); let buf='';
         while(true){ const {value,done}=await reader.read(); if(done) break; buf+=dec.decode(value,{stream:true});
@@ -2922,7 +2947,7 @@ class Component extends DCLogic {
             let o; try{ o=JSON.parse(line); }catch(e){ continue; }
             if(o.step) this.setState({ guideStep:o.step });
             if(o.error) this.setState({ guideGenerating:false, guideError:o.error });
-            if(o.done){ this.setState({ guideGenerating:false, guideStep:'', guideUrl:'', guideBrief:'', guidesLoaded:false }); this.loadGuides(true); if(o.guide) this.guideSelect(o.guide); }
+            if(o.done){ this.setState({ guideGenerating:false, guideStep:'', guideUrl:'', guideBrief:'', guidesLoaded:false, guideTab:'inventory' }); this.loadGuides(true); if(o.guide) this.guideSelect(o.guide); }
           }
         }
       })
@@ -2987,15 +3012,16 @@ class Component extends DCLogic {
       cardStyle:{ padding:'11px 13px', border:'1px solid '+(g.id===s.guideSel?'var(--cc)':'var(--line)'), borderRadius:'11px', cursor:'pointer', background: g.id===s.guideSel?'var(--cc-soft)':'var(--surface)' },
       metaStyle:{ fontSize:'11px', marginTop:'3px', color:(g.status==='published'?'var(--good)':'var(--text-3)') }
     }));
-    const mode=s.guideMode||'reel';
-    const sourceChips=list.map(g=>({ label:g.title||'Untitled', style:this.discChip(s.guideSource===g.id),
-      click:(()=>{ const id=g.id; return ()=>this.setState({ guideSource: this.state.guideSource===id?'':id }); })() }));
+    const mode=s.guideMode||'reel', tab=s.guideTab||'create';
     return {
-      modeReel: mode==='reel', modePrompt: mode==='prompt',
-      segReel:this.ccSeg(mode==='reel'), segPrompt:this.ccSeg(mode==='prompt'),
-      setModeReel:()=>this.setState({ guideMode:'reel', guideError:'' }), setModePrompt:()=>this.setState({ guideMode:'prompt', guideError:'' }),
-      brief:s.guideBrief||'', onBrief:(e)=>this.setState({ guideBrief:e&&e.target?e.target.value:'' }),
-      sourceChips, hasSourceChips: sourceChips.length>0,
+      tabCreate: tab==='create', tabInventory: tab==='inventory', count:list.length,
+      segTabCreate:this.ccSeg(tab==='create'), segTabInventory:this.ccSeg(tab==='inventory'),
+      setTabCreate:()=>this.setGuideTab('create'), setTabInventory:()=>this.setGuideTab('inventory'),
+      noSel: tab==='inventory' && !sel && list.length>0,
+      modeReel: mode==='reel', modeUpload: mode==='upload',
+      segReel:this.ccSeg(mode==='reel'), segUpload:this.ccSeg(mode==='upload'),
+      setModeReel:()=>this.setState({ guideMode:'reel', guideError:'' }), setModeUpload:()=>this.setState({ guideMode:'upload', guideError:'' }),
+      onFile:(e)=>{ const f=e&&e.target&&e.target.files&&e.target.files[0]; this.guideUpload(f); },
       url:s.guideUrl||'', onUrl:(e)=>this.setState({ guideUrl:e&&e.target?e.target.value:'' }),
       generate:()=>this.guideGenerate(), genLabel: s.guideGenerating?'Generating…':'Generate guide', generating:!!s.guideGenerating,
       step:s.guideStep||'', error:s.guideError||'',

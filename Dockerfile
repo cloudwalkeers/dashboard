@@ -4,8 +4,9 @@
 FROM node:22-bookworm-slim
 
 # yt-dlp runs as a Python module: `python -m yt_dlp`. Install Python + yt-dlp.
+# poppler-utils provides `pdftotext` for importing existing guides from PDF.
 RUN apt-get update \
- && apt-get install -y --no-install-recommends python3 python3-pip ca-certificates \
+ && apt-get install -y --no-install-recommends python3 python3-pip ca-certificates poppler-utils \
  && pip3 install --no-cache-dir --break-system-packages yt-dlp \
  && apt-get clean && rm -rf /var/lib/apt/lists/*
 
