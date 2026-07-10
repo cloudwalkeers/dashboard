@@ -1683,10 +1683,24 @@ button{font-family:inherit}
     <p style="margin:0 0 20px;font-size:13.5px;color:var(--text-2);max-width:680px">Paste a reel link — we pull its transcript and write a polished, standalone guide (applying your guide skills). Edit it, publish it to Supabase for your site, or download a PDF.</p>
 
     <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin-bottom:16px;box-shadow:var(--shadow)">
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <input value="{{ GUIDE.url }}" onInput="{{ GUIDE.onUrl }}" placeholder="https://www.instagram.com/reel/…" style="flex:1;min-width:240px;padding:11px 13px;border:1px solid var(--line);border-radius:10px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text)"/>
-        <button onClick="{{ GUIDE.generate }}" style="padding:11px 20px;border:none;border-radius:10px;background:var(--cc);color:var(--cc-on);font-size:13px;font-weight:650;cursor:pointer;font-family:inherit">{{ GUIDE.genLabel }}</button>
+      <div style="display:inline-flex;background:var(--fill);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px;margin-bottom:12px">
+        <button onClick="{{ GUIDE.setModeReel }}" style="{{ GUIDE.segReel }}">From reel</button>
+        <button onClick="{{ GUIDE.setModePrompt }}" style="{{ GUIDE.segPrompt }}">From prompt</button>
       </div>
+      <sc-if value="{{ GUIDE.modeReel }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <input value="{{ GUIDE.url }}" onInput="{{ GUIDE.onUrl }}" placeholder="https://www.instagram.com/reel/…" style="flex:1;min-width:240px;padding:11px 13px;border:1px solid var(--line);border-radius:10px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text)"/>
+          <button onClick="{{ GUIDE.generate }}" style="padding:11px 20px;border:none;border-radius:10px;background:var(--cc);color:var(--cc-on);font-size:13px;font-weight:650;cursor:pointer;font-family:inherit">{{ GUIDE.genLabel }}</button>
+        </div>
+      </sc-if>
+      <sc-if value="{{ GUIDE.modePrompt }}" hint-placeholder-val="{{ false }}">
+        <textarea value="{{ GUIDE.brief }}" onInput="{{ GUIDE.onBrief }}" placeholder="What should this guide cover? Topic, angle, who it's for… Your active guide skills are applied automatically." style="width:100%;box-sizing:border-box;min-height:94px;resize:vertical;padding:11px 13px;border:1px solid var(--line);border-radius:10px;font-size:13px;line-height:1.5;font-family:inherit;background:var(--surface);color:var(--text)"></textarea>
+        <sc-if value="{{ GUIDE.hasSourceChips }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:11px"><div style="font-size:11px;color:var(--text-3);margin-bottom:6px">Optionally base it on an existing guide:</div>
+          <div style="display:flex;gap:7px;flex-wrap:wrap"><sc-for list="{{ GUIDE.sourceChips }}" as="sc" hint-placeholder-count="3"><button onClick="{{ sc.click }}" style="{{ sc.style }}">{{ sc.label }}</button></sc-for></div></div>
+        </sc-if>
+        <button onClick="{{ GUIDE.generate }}" style="margin-top:12px;padding:11px 20px;border:none;border-radius:10px;background:var(--cc);color:var(--cc-on);font-size:13px;font-weight:650;cursor:pointer;font-family:inherit">{{ GUIDE.genLabel }}</button>
+      </sc-if>
       <sc-if value="{{ GUIDE.generating }}" hint-placeholder-val="{{ false }}"><div style="margin-top:10px;font-size:12.5px;color:var(--text-3)">⏳ {{ GUIDE.step }}</div></sc-if>
       <sc-if value="{{ GUIDE.error }}" hint-placeholder-val="{{ false }}"><div style="margin-top:10px;font-size:12.5px;color:var(--bad)">{{ GUIDE.error }}</div></sc-if>
     </div>
@@ -2017,33 +2031,6 @@ button{font-family:inherit}
       </div>
     </sc-if>
 
-    <!-- likes engine: what drives the like RATE -->
-    <sc-if value="{{ LAB.hasLikesModel }}" hint-placeholder-val="{{ false }}">
-      <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--text-3);margin:20px 0 6px"><span style="display:inline-block;width:7px;height:7px;border-radius:2px;background:var(--good);margin-right:7px"></span>WHAT DRIVES LIKES · <span style="color:var(--text-faint)">like‑rate model · LOO R² {{ LAB.likesR2 }} · n {{ LAB.likesN }} · avg {{ LAB.likesMean }}% · effect in like‑rate points · recent reels included</span></div>
-      <div style="display:flex;flex-direction:column;gap:6px">
-        <sc-for list="{{ LAB.likesDrivers }}" as="sd" hint-placeholder-count="6">
-          <div style="display:grid;grid-template-columns:220px 1fr 92px;gap:12px;align-items:center">
-            <div style="font-size:12.5px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ sd.label }}</div>
-            <div style="height:10px;background:var(--fill);border-radius:5px;position:relative;overflow:hidden"><div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--line)"></div><div style="{{ sd.barStyle }}"></div></div>
-            <div style="text-align:right;font-size:11px;font-weight:700;color:{{ sd.color }}">{{ sd.coefTxt }}</div>
-          </div>
-        </sc-for>
-      </div>
-    </sc-if>
-
-    <!-- comments engine: what drives the comment RATE -->
-    <sc-if value="{{ LAB.hasCommentsModel }}" hint-placeholder-val="{{ false }}">
-      <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--text-3);margin:20px 0 6px"><span style="display:inline-block;width:7px;height:7px;border-radius:2px;background:var(--good);margin-right:7px"></span>WHAT DRIVES COMMENTS · <span style="color:var(--text-faint)">comment‑rate model · LOO R² {{ LAB.commentsR2 }} · n {{ LAB.commentsN }} · avg {{ LAB.commentsMean }}% · effect in comment‑rate points · recent reels included</span></div>
-      <div style="display:flex;flex-direction:column;gap:6px">
-        <sc-for list="{{ LAB.commentsDrivers }}" as="sd" hint-placeholder-count="6">
-          <div style="display:grid;grid-template-columns:220px 1fr 92px;gap:12px;align-items:center">
-            <div style="font-size:12.5px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ sd.label }}</div>
-            <div style="height:10px;background:var(--fill);border-radius:5px;position:relative;overflow:hidden"><div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--line)"></div><div style="{{ sd.barStyle }}"></div></div>
-            <div style="text-align:right;font-size:11px;font-weight:700;color:{{ sd.color }}">{{ sd.coefTxt }}</div>
-          </div>
-        </sc-for>
-      </div>
-    </sc-if>
     </div>
     </sc-if>
 
@@ -2131,6 +2118,38 @@ button{font-family:inherit}
         </sc-for>
       </div>
       <p style="margin:14px 0 0;font-size:11px;color:var(--text-3);line-height:1.55">R² is out‑of‑sample (leave‑one‑out): 0 = no better than guessing your average, 1 = perfect. Content covers the deterministic script + format + posting features (regex over your transcripts, counted frames, the timestamp). The engagement tier only exists <em>after</em> posting and its rates use views as denominator — read those coefficients as quality signals, not levers you can pull in advance. Too‑fresh reels are excluded so unsettled view counts don't skew it.</p>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ LAB.hasLikesModel }}" hint-placeholder-val="{{ false }}">
+    <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 22px;box-shadow:var(--shadow);margin:14px 0 0">
+      <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--text-3);margin:0 0 4px"><span style="display:inline-block;width:7px;height:7px;border-radius:2px;background:var(--good);margin-right:7px"></span>WHAT DRIVES LIKES · <span style="color:var(--text-faint)">like‑rate model · LOO R² {{ LAB.likesR2 }} · n {{ LAB.likesN }} · avg {{ LAB.likesMean }}% · effect in like‑rate points · recent reels included</span></div>
+      <div style="font-size:12px;color:var(--text-3);margin-bottom:12px">Regresses the REAL per‑view like rate on your pre‑posting content features — what makes people tap ♥, independent of how far the reel reached.</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <sc-for list="{{ LAB.likesDrivers }}" as="sd" hint-placeholder-count="6">
+          <div style="display:grid;grid-template-columns:220px 1fr 92px;gap:12px;align-items:center">
+            <div style="font-size:12.5px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ sd.label }}</div>
+            <div style="height:10px;background:var(--fill);border-radius:5px;position:relative;overflow:hidden"><div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--line)"></div><div style="{{ sd.barStyle }}"></div></div>
+            <div style="text-align:right;font-size:11px;font-weight:700;color:{{ sd.color }}">{{ sd.coefTxt }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ LAB.hasCommentsModel }}" hint-placeholder-val="{{ false }}">
+    <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 22px;box-shadow:var(--shadow);margin:14px 0 0">
+      <div class="cc-mono" style="font-size:10px;letter-spacing:.09em;color:var(--text-3);margin:0 0 4px"><span style="display:inline-block;width:7px;height:7px;border-radius:2px;background:var(--good);margin-right:7px"></span>WHAT DRIVES COMMENTS · <span style="color:var(--text-faint)">comment‑rate model · LOO R² {{ LAB.commentsR2 }} · n {{ LAB.commentsN }} · avg {{ LAB.commentsMean }}% · effect in comment‑rate points · recent reels included</span></div>
+      <div style="font-size:12px;color:var(--text-3);margin-bottom:12px">Same, for the per‑view comment rate — what actually makes people reply.</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <sc-for list="{{ LAB.commentsDrivers }}" as="sd" hint-placeholder-count="6">
+          <div style="display:grid;grid-template-columns:220px 1fr 92px;gap:12px;align-items:center">
+            <div style="font-size:12.5px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ sd.label }}</div>
+            <div style="height:10px;background:var(--fill);border-radius:5px;position:relative;overflow:hidden"><div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--line)"></div><div style="{{ sd.barStyle }}"></div></div>
+            <div style="text-align:right;font-size:11px;font-weight:700;color:{{ sd.color }}">{{ sd.coefTxt }}</div>
+          </div>
+        </sc-for>
+      </div>
     </div>
     </sc-if>
     </sc-if>
@@ -2265,6 +2284,7 @@ class Component extends DCLogic {
       skills:null, skillsLoading:false, skillsLoaded:false, skillDraftId:null, skillDraftName:'', skillDraftContent:'', skillDraftScope:'script', skillComposerOpen:false, skillBusy:false, skillError:'',
       guideUrl:'', guideGenerating:false, guideStep:'', guideError:'', guides:null, guidesLoading:false, guidesLoaded:false,
       guideSel:null, guideDraftTitle:'', guideDraftBody:'', guideDirty:false, guideSaving:false, guideSaved:'', guidePreview:false,
+      guideMode:'reel', guideBrief:'', guideSource:'',
       pipeSel:null, pipeQuery:'', pipeActiveTags:[], pipeTagDraft:'', pipeSaveStatus:'idle', pipeDeleteArmed:false, pipeRefreshing:false,
       discItems:null, discCats:[], discLoading:false, discLoaded:false, discError:'', discMsg:'', discBusy:false,
       discHashtag:'', discType:'top', discCategory:'', discLinks:'', discFilter:'', discMode:'recommend',
@@ -2885,9 +2905,12 @@ class Component extends DCLogic {
       .catch(()=>this.setState({ guidesLoading:false, guidesLoaded:true }));
   }
   guideGenerate(){
-    const url=(this.state.guideUrl||'').trim(); if(!url){ this.setState({ guideError:'Paste a reel link.' }); return; }
+    const mode=this.state.guideMode||'reel';
+    let body;
+    if(mode==='reel'){ const url=(this.state.guideUrl||'').trim(); if(!url){ this.setState({ guideError:'Paste a reel link.' }); return; } body={ url }; }
+    else { const brief=(this.state.guideBrief||'').trim(), sourceId=this.state.guideSource||null; if(!brief && !sourceId){ this.setState({ guideError:'Write a prompt, or pick a source guide.' }); return; } body={ brief, sourceId }; }
     this.setState({ guideGenerating:true, guideError:'', guideStep:'starting…' });
-    fetch('/api/guides',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ url }) })
+    fetch('/api/guides',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify(body) })
       .then(async r=>{
         const reader=r.body.getReader(), dec=new TextDecoder(); let buf='';
         while(true){ const {value,done}=await reader.read(); if(done) break; buf+=dec.decode(value,{stream:true});
@@ -2895,7 +2918,7 @@ class Component extends DCLogic {
             let o; try{ o=JSON.parse(line); }catch(e){ continue; }
             if(o.step) this.setState({ guideStep:o.step });
             if(o.error) this.setState({ guideGenerating:false, guideError:o.error });
-            if(o.done){ this.setState({ guideGenerating:false, guideStep:'', guideUrl:'', guidesLoaded:false }); this.loadGuides(true); if(o.guide) this.guideSelect(o.guide); }
+            if(o.done){ this.setState({ guideGenerating:false, guideStep:'', guideUrl:'', guideBrief:'', guidesLoaded:false }); this.loadGuides(true); if(o.guide) this.guideSelect(o.guide); }
           }
         }
       })
@@ -2951,7 +2974,15 @@ class Component extends DCLogic {
       cardStyle:{ padding:'11px 13px', border:'1px solid '+(g.id===s.guideSel?'var(--cc)':'var(--line)'), borderRadius:'11px', cursor:'pointer', background: g.id===s.guideSel?'var(--cc-soft)':'var(--surface)' },
       metaStyle:{ fontSize:'11px', marginTop:'3px', color:(g.status==='published'?'var(--good)':'var(--text-3)') }
     }));
+    const mode=s.guideMode||'reel';
+    const sourceChips=list.map(g=>({ label:g.title||'Untitled', style:this.discChip(s.guideSource===g.id),
+      click:(()=>{ const id=g.id; return ()=>this.setState({ guideSource: this.state.guideSource===id?'':id }); })() }));
     return {
+      modeReel: mode==='reel', modePrompt: mode==='prompt',
+      segReel:this.ccSeg(mode==='reel'), segPrompt:this.ccSeg(mode==='prompt'),
+      setModeReel:()=>this.setState({ guideMode:'reel', guideError:'' }), setModePrompt:()=>this.setState({ guideMode:'prompt', guideError:'' }),
+      brief:s.guideBrief||'', onBrief:(e)=>this.setState({ guideBrief:e&&e.target?e.target.value:'' }),
+      sourceChips, hasSourceChips: sourceChips.length>0,
       url:s.guideUrl||'', onUrl:(e)=>this.setState({ guideUrl:e&&e.target?e.target.value:'' }),
       generate:()=>this.guideGenerate(), genLabel: s.guideGenerating?'Generating…':'Generate guide', generating:!!s.guideGenerating,
       step:s.guideStep||'', error:s.guideError||'',

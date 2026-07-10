@@ -193,12 +193,18 @@ const server = http.createServer(async (req, res) => {
       }
       if (req.method === "POST") {
         const body = await readJson(req);
-        if (!body.url) return send(res, 400, ".json", JSON.stringify({ error: "provide a reel URL" }));
+        if (!body.url && !body.brief && !body.sourceId) return send(res, 400, ".json", JSON.stringify({ error: "provide a reel URL, or a prompt / source guide" }));
         res.writeHead(200, { "content-type": "application/x-ndjson; charset=utf-8", "cache-control": "no-cache", "x-accel-buffering": "no" });
         const write = (o) => res.write(JSON.stringify(o) + "\n");
         try {
-          const { generateGuide } = await import("./lib/guides.mjs");
-          const guide = await generateGuide(body.url, { onStep: (s) => write({ step: s }) });
+          const guides = await import("./lib/guides.mjs");
+          let guide;
+          if (body.url) {
+            guide = await guides.generateGuide(body.url, { onStep: (s) => write({ step: s }) });
+          } else {
+            write({ step: "writing guide" });
+            guide = await guides.generateGuideFromPrompt({ brief: body.brief || "", sourceId: body.sourceId || null });
+          }
           const saved = await store.createGuide(guide);
           write({ done: true, guide: saved });
         } catch (e) { write({ error: e && e.message ? e.message : String(e) }); }
