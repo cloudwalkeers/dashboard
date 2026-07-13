@@ -1017,6 +1017,7 @@ button{font-family:inherit}
         <div style="border:1px solid var(--cc);border-radius:11px;padding:11px;margin-bottom:10px;background:var(--cc-soft)">
           <input value="{{ SK.draftName }}" onInput="{{ SK.onName }}" placeholder="Skill name (e.g. German hook voice)" style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);margin-bottom:8px"/>
           <textarea value="{{ SK.draftContent }}" onInput="{{ SK.onContent }}" placeholder="Paste the skill content (markdown) — style rules, format, examples, voice…" style="width:100%;box-sizing:border-box;min-height:120px;resize:vertical;padding:9px 11px;border:1px solid var(--line);border-radius:8px;font-size:12.5px;line-height:1.5;font-family:inherit;background:var(--surface);color:var(--text)"></textarea>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:9px;flex-wrap:wrap"><span style="font-size:11px;color:var(--text-3);font-weight:600;margin-right:2px">Applies to:</span><button onClick="{{ SK.setScopeScript }}" style="{{ SK.segScript }}">Scripts</button><button onClick="{{ SK.setScopeGuide }}" style="{{ SK.segGuide }}">Guides</button><button onClick="{{ SK.setScopeBoth }}" style="{{ SK.segBoth }}">Both</button></div>
           <div style="display:flex;gap:8px;margin-top:9px">
             <button onClick="{{ SK.onSave }}" style="padding:7px 14px;border:none;border-radius:8px;background:var(--cc);color:var(--cc-on);font-size:12.5px;font-weight:650;cursor:pointer;font-family:inherit">{{ SK.saveLabel }}</button>
             <button onClick="{{ SK.onCancel }}" style="padding:7px 14px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text-2);font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit">Cancel</button>
@@ -1028,7 +1029,7 @@ button{font-family:inherit}
           <sc-for list="{{ SK.items }}" as="sk" hint-placeholder-count="3">
             <div style="{{ sk.rowStyle }}">
               <span style="{{ sk.dotStyle }}"></span>
-              <div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:650;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ sk.name }}</div><div style="font-size:11px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ sk.preview }}</div></div>
+              <div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:6px;min-width:0"><span style="font-size:12.5px;font-weight:650;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ sk.name }}</span><span style="flex:none;font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text-3);background:var(--fill);border:1px solid var(--line);border-radius:5px;padding:1px 5px">{{ sk.scopeTag }}</span></div><div style="font-size:11px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ sk.preview }}</div></div>
               <button onClick="{{ sk.toggle }}" style="{{ sk.toggleStyle }}">{{ sk.toggleLabel }}</button>
               <button onClick="{{ sk.edit }}" style="border:none;background:transparent;color:var(--cc);cursor:pointer;font-size:12px;font-family:inherit;font-weight:600">Edit</button>
               <button onClick="{{ sk.del }}" style="border:none;background:transparent;color:var(--bad);cursor:pointer;font-size:13px;font-family:inherit">✕</button>
@@ -1753,6 +1754,7 @@ button{font-family:inherit}
       <div style="border:1px solid var(--cc);border-radius:11px;padding:11px;margin-bottom:10px;background:var(--cc-soft)">
         <input value="{{ SK.draftName }}" onInput="{{ SK.onName }}" placeholder="Skill name (e.g. Step-by-step tutorial format)" style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);margin-bottom:8px"/>
         <textarea value="{{ SK.draftContent }}" onInput="{{ SK.onContent }}" placeholder="Paste the guide skill (markdown) — structure, tone, formatting rules…" style="width:100%;box-sizing:border-box;min-height:110px;resize:vertical;padding:9px 11px;border:1px solid var(--line);border-radius:8px;font-size:12.5px;line-height:1.5;font-family:inherit;background:var(--surface);color:var(--text)"></textarea>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:9px;flex-wrap:wrap"><span style="font-size:11px;color:var(--text-3);font-weight:600;margin-right:2px">Applies to:</span><button onClick="{{ SK.setScopeScript }}" style="{{ SK.segScript }}">Scripts</button><button onClick="{{ SK.setScopeGuide }}" style="{{ SK.segGuide }}">Guides</button><button onClick="{{ SK.setScopeBoth }}" style="{{ SK.segBoth }}">Both</button></div>
         <div style="display:flex;gap:8px;margin-top:9px">
           <button onClick="{{ SK.onSave }}" style="padding:7px 14px;border:none;border-radius:8px;background:var(--cc);color:var(--cc-on);font-size:12.5px;font-weight:650;cursor:pointer;font-family:inherit">{{ SK.saveLabel }}</button>
           <button onClick="{{ SK.onCancel }}" style="padding:7px 14px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text-2);font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit">Cancel</button>
@@ -1764,7 +1766,7 @@ button{font-family:inherit}
         <sc-for list="{{ SK.items }}" as="sk" hint-placeholder-count="2">
           <div style="{{ sk.rowStyle }}">
             <span style="{{ sk.dotStyle }}"></span>
-            <div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:650;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ sk.name }}</div><div style="font-size:11px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ sk.preview }}</div></div>
+            <div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:6px;min-width:0"><span style="font-size:12.5px;font-weight:650;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ sk.name }}</span><span style="flex:none;font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text-3);background:var(--fill);border:1px solid var(--line);border-radius:5px;padding:1px 5px">{{ sk.scopeTag }}</span></div><div style="font-size:11px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ sk.preview }}</div></div>
             <button onClick="{{ sk.toggle }}" style="{{ sk.toggleStyle }}">{{ sk.toggleLabel }}</button>
             <button onClick="{{ sk.edit }}" style="border:none;background:transparent;color:var(--cc);cursor:pointer;font-size:12px;font-family:inherit;font-weight:600">Edit</button>
             <button onClick="{{ sk.del }}" style="border:none;background:transparent;color:var(--bad);cursor:pointer;font-size:13px;font-family:inherit">✕</button>
@@ -1855,6 +1857,7 @@ button{font-family:inherit}
           <div style="border:1px solid var(--cc);border-radius:11px;padding:11px;margin-bottom:10px;background:var(--cc-soft)">
             <input value="{{ SK.draftName }}" onInput="{{ SK.onName }}" placeholder="Skill name (e.g. German hook voice)" style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);margin-bottom:8px"/>
             <textarea value="{{ SK.draftContent }}" onInput="{{ SK.onContent }}" placeholder="Paste the skill content (markdown) — style rules, format, examples, voice…" style="width:100%;box-sizing:border-box;min-height:120px;resize:vertical;padding:9px 11px;border:1px solid var(--line);border-radius:8px;font-size:12.5px;line-height:1.5;font-family:inherit;background:var(--surface);color:var(--text)"></textarea>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:9px;flex-wrap:wrap"><span style="font-size:11px;color:var(--text-3);font-weight:600;margin-right:2px">Applies to:</span><button onClick="{{ SK.setScopeScript }}" style="{{ SK.segScript }}">Scripts</button><button onClick="{{ SK.setScopeGuide }}" style="{{ SK.segGuide }}">Guides</button><button onClick="{{ SK.setScopeBoth }}" style="{{ SK.segBoth }}">Both</button></div>
             <div style="display:flex;gap:8px;margin-top:9px">
               <button onClick="{{ SK.onSave }}" style="padding:7px 14px;border:none;border-radius:8px;background:var(--cc);color:var(--cc-on);font-size:12.5px;font-weight:650;cursor:pointer;font-family:inherit">{{ SK.saveLabel }}</button>
               <button onClick="{{ SK.onCancel }}" style="padding:7px 14px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text-2);font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit">Cancel</button>
@@ -1866,7 +1869,7 @@ button{font-family:inherit}
             <sc-for list="{{ SK.items }}" as="sk" hint-placeholder-count="3">
               <div style="{{ sk.rowStyle }}">
                 <span style="{{ sk.dotStyle }}"></span>
-                <div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:650;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ sk.name }}</div><div style="font-size:11px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ sk.preview }}</div></div>
+                <div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:6px;min-width:0"><span style="font-size:12.5px;font-weight:650;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ sk.name }}</span><span style="flex:none;font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text-3);background:var(--fill);border:1px solid var(--line);border-radius:5px;padding:1px 5px">{{ sk.scopeTag }}</span></div><div style="font-size:11px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ sk.preview }}</div></div>
                 <button onClick="{{ sk.toggle }}" style="{{ sk.toggleStyle }}">{{ sk.toggleLabel }}</button>
                 <button onClick="{{ sk.edit }}" style="border:none;background:transparent;color:var(--cc);cursor:pointer;font-size:12px;font-family:inherit;font-weight:600">Edit</button>
                 <button onClick="{{ sk.del }}" style="border:none;background:transparent;color:var(--bad);cursor:pointer;font-size:13px;font-family:inherit">✕</button>
@@ -2340,7 +2343,7 @@ class Component extends DCLogic {
       ccCur:0, ccCView:'scrubber', ccPlaying:false, ccZones:false, ccPromptSrc:'original', ccIncVis:false, ccToast:'',
       pipeItems:null, pipeLoading:false, pipeError:'', pipeLoaded:false,
       pipeTab:'scripts', pipeVidItems:null, pipeVidLoading:false, pipeVidLoaded:false, pipeVidSaved:{}, pipeVidSort:'added',
-      skills:null, skillsLoading:false, skillsLoaded:false, skillDraftId:null, skillDraftName:'', skillDraftContent:'', skillDraftScope:'script', skillComposerOpen:false, skillBusy:false, skillError:'',
+      skills:null, skillsLoading:false, skillsLoaded:false, skillDraftId:null, skillDraftName:'', skillDraftContent:'', skillDraftScope:'script', skillComposerPanel:'script', skillComposerOpen:false, skillBusy:false, skillError:'',
       guideUrl:'', guideGenerating:false, guideStep:'', guideError:'', guides:null, guidesLoading:false, guidesLoaded:false,
       guideSel:null, guideDraftTitle:'', guideDraftBody:'', guideDirty:false, guideSaving:false, guideSaved:'', guidePreview:false,
       guideTab:'create', guideMode:'reel', guideBrief:'', guideSource:'', guideFollowup:'', guideRefining:false,
@@ -2907,8 +2910,8 @@ class Component extends DCLogic {
       .then(j=>this.setState({ skillsLoading:false, skillsLoaded:true, skills:j.items||[] }))
       .catch(()=>this.setState({ skillsLoading:false, skillsLoaded:true }));
   }
-  skillNew(scope){ this.setState({ skillComposerOpen:true, skillDraftId:null, skillDraftName:'', skillDraftContent:'', skillDraftScope:scope||'script' }); }
-  skillEdit(sk){ this.setState({ skillComposerOpen:true, skillDraftId:sk.id, skillDraftName:sk.name||'', skillDraftContent:sk.content||'', skillDraftScope:sk.scope||'script' }); }
+  skillNew(scope){ this.setState({ skillComposerOpen:true, skillComposerPanel:scope||'script', skillDraftId:null, skillDraftName:'', skillDraftContent:'', skillDraftScope:scope||'script' }); }
+  skillEdit(sk, panel){ this.setState({ skillComposerOpen:true, skillComposerPanel:panel||sk.scope||'script', skillDraftId:sk.id, skillDraftName:sk.name||'', skillDraftContent:sk.content||'', skillDraftScope:sk.scope||'script' }); }
   skillCancel(){ this.setState({ skillComposerOpen:false, skillDraftId:null, skillDraftName:'', skillDraftContent:'' }); }
   skillSave(){
     let name=(this.state.skillDraftName||'').trim(); const content=(this.state.skillDraftContent||'').trim();
@@ -2932,12 +2935,14 @@ class Component extends DCLogic {
   }
   skillsVals(scope){
     scope=scope||'script';
-    const s=this.state, list=(s.skills||[]).filter(sk=>(sk.scope||'script')===scope);
+    const s=this.state, list=(s.skills||[]).filter(sk=>{ const sc=sk.scope||'script'; return sc===scope||sc==='both'; });
+    const scopeLabel={ script:'Scripts', guide:'Guides', both:'Scripts + Guides' };
     const items=list.map(sk=>({
       name:sk.name||'Untitled', active:!!sk.active,
       preview:(sk.content||'').replace(/\s+/g,' ').slice(0,90)||'(empty)',
+      scopeTag: (sk.scope==='both'?'Both':(sk.scope==='guide'?'Guides':'Scripts')),
       toggle:(()=>{ const x=sk; return ()=>this.skillToggle(x); })(),
-      edit:(()=>{ const x=sk; return ()=>this.skillEdit(x); })(),
+      edit:(()=>{ const x=sk; return ()=>this.skillEdit(x, scope); })(),
       del:(()=>{ const id=sk.id; return ()=>this.skillDelete(id); })(),
       dotStyle:{ width:'8px',height:'8px',borderRadius:'50%',flex:'none',background: sk.active?'var(--good)':'var(--line)' },
       rowStyle:{ display:'flex',alignItems:'center',gap:'9px',padding:'9px 11px',border:'1px solid var(--line)',borderRadius:'10px',background: sk.active?'var(--surface)':'var(--fill)' },
@@ -2947,9 +2952,12 @@ class Component extends DCLogic {
     return {
       items, hasItems:items.length>0, count:list.length, activeCount:list.filter(x=>x.active).length,
       empty: s.skillsLoaded && !s.skillsLoading && !items.length,
-      composerOpen: !!s.skillComposerOpen && (s.skillDraftScope||'script')===scope,
+      composerOpen: !!s.skillComposerOpen && (s.skillComposerPanel||'script')===scope,
       draftName:s.skillDraftName||'', onName:(e)=>this.setState({ skillDraftName:e&&e.target?e.target.value:'' }),
       draftContent:s.skillDraftContent||'', onContent:(e)=>this.setState({ skillDraftContent:e&&e.target?e.target.value:'' }),
+      draftScope:s.skillDraftScope||'script',
+      segScript:this.ccSeg((s.skillDraftScope||'script')==='script'), segGuide:this.ccSeg((s.skillDraftScope||'script')==='guide'), segBoth:this.ccSeg((s.skillDraftScope||'script')==='both'),
+      setScopeScript:()=>this.setState({ skillDraftScope:'script' }), setScopeGuide:()=>this.setState({ skillDraftScope:'guide' }), setScopeBoth:()=>this.setState({ skillDraftScope:'both' }),
       onNew:()=>this.skillNew(scope), onSave:()=>this.skillSave(), onCancel:()=>this.skillCancel(),
       saveLabel: s.skillBusy?'Saving…':(s.skillDraftId?'Update skill':'Add skill'),
       error: s.skillError||''
