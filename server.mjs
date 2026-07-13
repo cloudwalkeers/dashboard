@@ -744,12 +744,13 @@ const server = http.createServer(async (req, res) => {
         const studio = await import("./lib/studio.mjs");
         if (!studio.isConfigured())
           return send(res, 200, ".json", JSON.stringify({ error: "Supabase not configured", configured: false }));
-        // A refinement turn is durable style feedback — remember it so every FUTURE
-        // generation honors it too (creator_prefs.style_notes, injected into the prompt).
+        // A refinement turn is durable style feedback — capture it into the creator's
+        // editable "Refinements" skill (created on first refinement), so it's applied to
+        // every FUTURE generation AND visible/editable/toggleable like any other skill.
         const hist = body.history || [];
         const last = hist[hist.length - 1];
         if (hist.length > 1 && last && last.role === "user" && last.content) {
-          import("./lib/store/prefs.mjs").then((p) => p.addStyleNote(last.content)).catch(() => {});
+          import("./lib/store/skills.mjs").then((s) => s.appendRefinement(last.content)).catch(() => {});
         }
         const out = await studio.studioGenerate({ brief: body.brief || "", goal: body.goal || "likes", history: hist });
         return send(res, 200, ".json", JSON.stringify(out));
