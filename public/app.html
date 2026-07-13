@@ -998,6 +998,13 @@ button{font-family:inherit}
             <button onClick="{{ CC.generate }}" style="border:none;background:var(--cc);color:var(--cc-on);font-family:inherit;font-weight:600;font-size:13px;padding:8px 16px;border-radius:10px;cursor:pointer">{{ CC.genLabel }}</button>
           </div>
           <input value="{{ CC.brief }}" onInput="{{ CC.onBrief }}" placeholder="optional brief: topic / angle / length…" style="width:100%;border:1px solid var(--line);background:var(--surface);border-radius:11px;padding:13px 15px;font-size:13px;font-family:inherit;outline:none;margin-bottom:12px;color:var(--text)"/>
+          <sc-if value="{{ CC.gHasBase }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:9px">
+            <button onClick="{{ CC.gSetFinal }}" style="{{ CC.gViewFinalSeg }}">✦ Skills applied</button>
+            <button onClick="{{ CC.gSetBase }}" style="{{ CC.gViewBaseSeg }}">Original</button>
+            <span style="font-size:11px;color:var(--text-3)">generated first, then rewritten by your skills — the original stays intact</span>
+          </div>
+          </sc-if>
           <div style="background:var(--surface-2);border:1px solid var(--line);border-radius:16px;padding:22px;font-size:14px;line-height:1.7;color:var(--text-2);white-space:pre-wrap;min-height:200px">{{ CC.gscript }}</div>
           <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;align-items:center">
             <button onClick="{{ CC.copyAi }}" style="border:1px solid var(--line);background:var(--surface);color:var(--text);font-family:inherit;font-weight:600;font-size:13px;padding:9px 16px;border-radius:10px;cursor:pointer">Copy new script</button>
@@ -1921,7 +1928,11 @@ button{font-family:inherit}
         <div class="sg-panel" style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow)">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
             <div class="cc-mono" style="font-size:10px;letter-spacing:.1em;color:var(--text-3)">GENERATED SCRIPT</div>
-            <div style="display:flex;gap:8px;align-items:center">
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <sc-if value="{{ STU.hasBase }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ STU.setViewFinal }}" style="{{ STU.viewFinalSeg }}">✦ Skills applied</button>
+                <button onClick="{{ STU.setViewBase }}" style="{{ STU.viewBaseSeg }}">Original</button>
+              </sc-if>
               <span style="font-size:12px;color:var(--good)">{{ STU.saved }}</span>
               <button onClick="{{ STU.copy }}" style="padding:7px 13px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--text);font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit">Copy</button>
               <button onClick="{{ STU.save }}" style="padding:7px 13px;border:none;border-radius:9px;background:var(--cc);color:var(--cc-on);font-size:12.5px;font-weight:650;cursor:pointer;font-family:inherit">{{ STU.saveLabel }}</button>
@@ -2337,7 +2348,7 @@ class Component extends DCLogic {
     super(props);
     this.MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     this.state = { view:(function(){ try{ var h=(location.hash||'').replace('#',''); return ['content','pipeline','discovery','studio','lab','clippers','guides'].indexOf(h)>=0?h:'overview'; }catch(e){ return 'overview'; } })(), sel:null, range:'30D', sort:'reach', loading:true, syncing:false, loadError:null, analysis:null, analysisFor:null, analysisLoading:false,
-      ccUrl:'', ccLoading:false, ccResult:null, ccError:'', ccTab:'frames', ccScript:'', ccScriptLoading:false, ccBrief:'', ccProgress:0, ccStep:'',
+      ccUrl:'', ccLoading:false, ccResult:null, ccError:'', ccTab:'frames', ccScript:'', ccScriptBase:'', ccScriptView:'final', ccScriptLoading:false, ccBrief:'', ccProgress:0, ccStep:'',
       ccAnimScript:null, ccStoryboard:null, ccStoryLoading:false, ccStoryError:'', ccFrameHtml:{}, ccFrameBusy:{}, ccRenderingAll:false, ccZoom:null,
       ccSel:{}, ccExporting:false, ccSaving:false, ccSaved:'',
       ccCur:0, ccCView:'scrubber', ccPlaying:false, ccZones:false, ccPromptSrc:'original', ccIncVis:false, ccToast:'',
@@ -2357,7 +2368,7 @@ class Component extends DCLogic {
       wlFeed:null, wlFeedLoading:false, wlFilters:{ sort:'velocity', minOutlier:null, duration:null, sinceDays:null, audioId:null },
       wlAddInput:'', wlBusy:false, wlSweeping:false, wlError:'', wlMsg:'', wlLookup:null, wlLookupBusy:false,
       wlSearchResults:[], wlSearchOpen:false, wlSearching:false, wlPicked:null, wlRelated:null, wlRelatedBusy:false,
-      stuBrief:'', stuGoal:'likes', stuChat:[], stuApiHistory:[], stuResult:null, stuBusy:false, stuRefine:'', stuError:'', stuSaving:false, stuSaved:'',
+      stuBrief:'', stuGoal:'likes', stuChat:[], stuApiHistory:[], stuResult:null, stuBusy:false, stuRefine:'', stuError:'', stuSaving:false, stuSaved:'', stuScriptView:'final',
       labData:null, labLoading:false, labLoaded:false, labError:'', labOutcome:'rate', labRebuilding:false,
       clippersData:null, clippersLoading:false, clippersLoaded:false, clippersError:'', clipperSel:null, clipperAssignSel:{}, clipperAssignPlatforms:{}, clipperEdits:{}, clipperBusy:false,
       theme:this.initialTheme() };
@@ -2853,8 +2864,8 @@ class Component extends DCLogic {
     this.setState({ ccScriptLoading:true });
     fetch('/api/generate-script',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ id:r.id, brief:this.state.ccBrief||'' }) })
       .then(r=>r.json())
-      .then(j=>this.setState({ ccScriptLoading:false, ccScript: j.error ? ('Error: '+j.error) : j.script }))
-      .catch(e=>this.setState({ ccScriptLoading:false, ccScript:'Error: '+String(e) }));
+      .then(j=>this.setState({ ccScriptLoading:false, ccScript: j.error ? ('Error: '+j.error) : j.script, ccScriptBase: j.error?'':(j.baseScript||''), ccScriptView:'final' }))
+      .catch(e=>this.setState({ ccScriptLoading:false, ccScript:'Error: '+String(e), ccScriptBase:'' }));
   }
   // Save the current Content-Creation output (script + visual prompts) to the pipeline.
   saveCurrentScript(){
@@ -3373,7 +3384,7 @@ class Component extends DCLogic {
         if(j.error){ this.setState({ stuBusy:false, stuError:j.error }); return; }
         const apiHist = history.concat([{ role:'assistant', content: j.script||'' }]);
         const chat = (this.state.stuChat||[]).concat([{ role:'assistant', text: j.reply || 'Done.' }]);
-        this.setState({ stuBusy:false, stuApiHistory:apiHist, stuChat:chat, stuResult:j, stuSaved:'' });
+        this.setState({ stuBusy:false, stuApiHistory:apiHist, stuChat:chat, stuResult:j, stuSaved:'', stuScriptView:'final' });
       })
       .catch(e=>this.setState({ stuBusy:false, stuError:String(e) }));
   }
@@ -3981,7 +3992,10 @@ Hier ist das Skript:
       exportBtnStyle:{ display:'inline-flex',alignItems:'center',gap:'7px',padding:'8px 16px',borderRadius:'9px',border:'none',background:'var(--cc)',color:'var(--cc-on)',fontSize:'13px',fontWeight:'650',cursor:'pointer',fontFamily:'inherit' },
       miniBtnStyle:{ padding:'7px 12px',borderRadius:'8px',border:'1px solid var(--line)',background:'var(--surface)',color:'var(--text-2)',fontSize:'12.5px',fontWeight:'600',cursor:'pointer',fontFamily:'inherit' },
       title:'', creator:'', account:'', lang:'', hasLang:false, frames2:[], visuals:[], upNext:[], curFrame:{},
-      transcript:'', gscript:s.ccScript||'', summary:'', hook:'', dropoff:[], suggestions:[], pacing:'', climax:'',
+      gHasBase: !!(s.ccScriptBase||'').trim(),
+      gViewFinalSeg:this.ccChip((s.ccScriptView||'final')!=='base'), gViewBaseSeg:this.ccChip((s.ccScriptView||'final')==='base'),
+      gSetFinal:()=>this.setState({ ccScriptView:'final' }), gSetBase:()=>this.setState({ ccScriptView:'base' }),
+      transcript:'', gscript:((s.ccScriptView==='base'&&(s.ccScriptBase||'').trim())?s.ccScriptBase:(s.ccScript||'')), summary:'', hook:'', dropoff:[], suggestions:[], pacing:'', climax:'',
       frameCount:0, totalTime:'0s', counter:'00 / 0', cur:0, maxIdx:0, curTime:'0s', pct:'0%', selCount:0, exportLabel:'⬇ all',
       talkCount:0, uiCount:0, avgInt:'0.0'
     };
@@ -4015,7 +4029,7 @@ Hier ist das Skript:
     cc.upNext=[1,2,3].map(k=>{ const idx=n?((cur+k)%n):0; const f=base[idx]||{}; return { timeStr:f.timeStr||'', intColor:f.intColor||'var(--line)', src:f.src||'', short:String(f.spoken||f.d||'').slice(0,46), go:()=>this.ccGo(idx) }; });
     const selCount=Object.keys(sel).length; cc.selCount=selCount;
     cc.exportLabel=s.ccExporting?'Exporting…':('⬇ '+(selCount?(selCount+' selected'):'all'));
-    cc.gscript=s.ccScript||'';
+    cc.gscript=((s.ccScriptView==='base'&&(s.ccScriptBase||'').trim())?s.ccScriptBase:(s.ccScript||''));
     cc.talkCount=base.filter(f=>f.type==='talk').length; cc.uiCount=n-cc.talkCount;
     cc.avgInt=n?(base.reduce((x,f)=>x+f.intensity,0)/n).toFixed(1):'0.0';
     cc.summary=a.summary||''; cc.hook=a.hook||'';
@@ -4362,7 +4376,10 @@ Hier ist das Skript:
       formula:r.formula||[],
       references:(r.references||[]).map(x=>({ shortcode:x.shortcode, likes:this.fmtK(x.likes), comments:this.fmtK(x.comments), why:x.why, link:'https://www.instagram.com/reel/'+x.shortcode+'/' })),
       chat,
-      script:r.script||'', hooks:r.hooks||[],
+      script:((s.stuScriptView==='base'&&(r.baseScript||'').trim())?r.baseScript:(r.script||'')), hooks:r.hooks||[],
+      hasBase: !!(r.baseScript||'').trim(),
+      viewFinalSeg:this.ccChip((s.stuScriptView||'final')!=='base'), viewBaseSeg:this.ccChip((s.stuScriptView||'final')==='base'),
+      setViewFinal:()=>this.setState({ stuScriptView:'final' }), setViewBase:()=>this.setState({ stuScriptView:'base' }),
       visualPlan:(r.visualPlan||[]).map(v=>({ scene:v.scene||'', note:v.note||'', barH:(10+Math.max(0,Math.min(4,v.intensity||0))*9)+'px', intColor:INT[Math.max(0,Math.min(4,v.intensity||0))] })),
       refine:s.stuRefine||'', onRefine:(e)=>this.setState({ stuRefine:e&&e.target?e.target.value:'' }), sendRefine:()=>this.studioRefine(),
       copy:()=>this.studioCopy(), save:()=>this.studioSave(), saveLabel: s.stuSaving?'Saving…':'⤓ Save to pipeline', saved:s.stuSaved||''
