@@ -330,8 +330,11 @@ const server = http.createServer(async (req, res) => {
       if (!store.isConfigured())
         return send(res, 200, ".json", JSON.stringify({ items: [], configured: false }));
       try {
-        if (req.method === "GET")
+        if (req.method === "GET") {
+          // Keep the Refinements skill's auto "Lab learnings" section fresh (throttled).
+          await store.syncLabRefinements().catch(() => {});
           return send(res, 200, ".json", JSON.stringify({ items: await store.listSkills(), configured: true }));
+        }
         if (req.method === "POST") {
           const body = await readJson(req);
           return send(res, 200, ".json", JSON.stringify({ item: await store.saveSkill(body) }));
