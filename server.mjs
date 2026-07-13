@@ -256,6 +256,28 @@ const server = http.createServer(async (req, res) => {
         return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
       }
     }
+    // Render a guide (title + body_md) to the premium standalone HTML used by the in-app
+    // Preview and the PDF — the SAME renderer that produces the published page's body_html.
+    if (u.pathname === "/api/guides/render" && req.method === "POST") {
+      try {
+        const body = await readJson(req);
+        const { renderGuideDoc } = await import("./lib/guideHtml.mjs");
+        return send(res, 200, ".json", JSON.stringify({ html: renderGuideDoc({ title: body.title || "Guide", body_md: body.body_md || "" }) }));
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
+    // QA + enhance a DRAFT in the workbench (not persisted) — improved draft + report.
+    if (u.pathname === "/api/guides/review-draft" && req.method === "POST") {
+      try {
+        const body = await readJson(req);
+        const { reviewGuide } = await import("./lib/guides.mjs");
+        const out = await reviewGuide({ title: body.title || "", body_md: body.body_md || "" });
+        return send(res, 200, ".json", JSON.stringify({ guide: { title: out.title, body_md: out.body_md }, changes: out.changes, warnings: out.warnings }));
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
 
     const grm = u.pathname.match(/^\/api\/guides\/([^/]+)\/refine$/);
     if (grm && req.method === "POST") {
@@ -269,6 +291,22 @@ const server = http.createServer(async (req, res) => {
         const refined = await refineGuide({ title: g.title, body_md: g.body_md, instruction: body.instruction || "" });
         const saved = await store.updateGuide(id, { title: refined.title, body_md: refined.body_md });
         return send(res, 200, ".json", JSON.stringify({ item: saved }));
+      } catch (e) {
+        return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+      }
+    }
+    // QA + enhance a SAVED guide, persist the improved version, return it + report.
+    const grv = u.pathname.match(/^\/api\/guides\/([^/]+)\/review$/);
+    if (grv && req.method === "POST") {
+      const store = await import("./lib/store/guides.mjs");
+      const id = decodeURIComponent(grv[1]);
+      try {
+        const g = await store.getGuide(id);
+        if (!g) return send(res, 404, ".json", JSON.stringify({ error: "guide not found" }));
+        const { reviewGuide } = await import("./lib/guides.mjs");
+        const out = await reviewGuide({ title: g.title, body_md: g.body_md });
+        const saved = await store.updateGuide(id, { title: out.title, body_md: out.body_md });
+        return send(res, 200, ".json", JSON.stringify({ item: saved, changes: out.changes, warnings: out.warnings }));
       } catch (e) {
         return send(res, 500, ".json", JSON.stringify({ error: e && e.message ? e.message : String(e) }));
       }

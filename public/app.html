@@ -1720,11 +1720,27 @@ button{font-family:inherit}
         <button onClick="{{ GUIDE.cdRefine }}" style="flex:none;padding:10px 16px;border:none;border-radius:10px;background:var(--cc);color:var(--cc-on);font-size:13px;font-weight:650;cursor:pointer;font-family:inherit">{{ GUIDE.cdRefineLabel }}</button>
       </div>
       <textarea value="{{ GUIDE.cdBody }}" onInput="{{ GUIDE.onCdBody }}" class="cc-mono" style="width:100%;box-sizing:border-box;min-height:360px;resize:vertical;padding:16px;border:1px solid var(--line);border-radius:12px;font-size:13px;line-height:1.6;font-family:'JetBrains Mono',ui-monospace,monospace;background:var(--surface-2);color:var(--text)"></textarea>
-      <div style="display:flex;gap:8px;margin-top:12px;align-items:center">
+      <div style="display:flex;gap:8px;margin-top:12px;align-items:center;flex-wrap:wrap">
         <button onClick="{{ GUIDE.cdSave }}" style="padding:9px 18px;border:none;border-radius:9px;background:var(--cc);color:var(--cc-on);font-size:13px;font-weight:650;cursor:pointer;font-family:inherit">{{ GUIDE.cdSaveLabel }}</button>
+        <button onClick="{{ GUIDE.cdReview }}" title="A QA agent tests the guide, flags anything fake, and adds useful extras & examples" style="padding:9px 15px;border:1px solid var(--cc);border-radius:9px;background:var(--cc-soft);color:var(--cc);font-size:13px;font-weight:650;cursor:pointer;font-family:inherit">{{ GUIDE.cdReviewLabel }}</button>
+        <button onClick="{{ GUIDE.cdPreview }}" style="padding:9px 14px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Preview</button>
         <button onClick="{{ GUIDE.cdDiscard }}" style="padding:9px 14px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--text-2);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Discard</button>
         <span style="font-size:11.5px;color:var(--text-3)">Saving names it and moves it to Inventory, where you can keep refining.</span>
       </div>
+      <sc-if value="{{ GUIDE.cdReviewing }}" hint-placeholder-val="{{ false }}"><div style="margin-top:10px;font-size:12.5px;color:var(--text-3)">✦ QA agent testing &amp; improving the guide…</div></sc-if>
+      <sc-if value="{{ GUIDE.cdHasReport }}" hint-placeholder-val="{{ false }}">
+      <div style="margin-top:12px;border:1px solid var(--line);border-radius:12px;padding:13px 15px;background:var(--surface-2)">
+        <div style="font-size:12px;font-weight:750;letter-spacing:.01em;color:var(--text-2);margin-bottom:2px">✦ QA review · {{ GUIDE.cdReviewSummary }}</div>
+        <sc-if value="{{ GUIDE.cdHasChanges }}" hint-placeholder-val="{{ true }}">
+          <div style="font-size:10.5px;font-weight:750;letter-spacing:.08em;color:var(--good);margin:9px 0 3px">IMPROVED</div>
+          <ul style="margin:0;padding-left:18px"><sc-for list="{{ GUIDE.cdReportChanges }}" as="c" hint-placeholder-count="3"><li style="font-size:12.5px;color:var(--text);margin:2px 0">{{ c.text }}</li></sc-for></ul>
+        </sc-if>
+        <sc-if value="{{ GUIDE.cdHasWarnings }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:10.5px;font-weight:750;letter-spacing:.08em;color:var(--bad);margin:10px 0 3px">DOUBLE-CHECK BEFORE PUBLISHING</div>
+          <ul style="margin:0;padding-left:18px"><sc-for list="{{ GUIDE.cdReportWarnings }}" as="w" hint-placeholder-count="2"><li style="font-size:12.5px;color:var(--text-2);margin:2px 0">{{ w.text }}</li></sc-for></ul>
+        </sc-if>
+      </div>
+      </sc-if>
     </div>
     </sc-if>
 
@@ -1776,6 +1792,7 @@ button{font-family:inherit}
         <div style="font-size:11px;color:var(--text-3);margin-bottom:14px">{{ GUIDE.slug }}</div>
         <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
           <button onClick="{{ GUIDE.save }}" style="padding:7px 15px;border:none;border-radius:8px;background:var(--cc);color:var(--cc-on);font-size:12.5px;font-weight:650;cursor:pointer;font-family:inherit">{{ GUIDE.saveLabel }}</button>
+          <button onClick="{{ GUIDE.review }}" title="A QA agent tests the guide, flags anything fake, and adds useful extras & examples" style="padding:7px 13px;border:1px solid var(--cc);border-radius:8px;background:var(--cc-soft);color:var(--cc);font-size:12.5px;font-weight:650;cursor:pointer;font-family:inherit">{{ GUIDE.reviewLabel }}</button>
           <button onClick="{{ GUIDE.preview }}" style="padding:7px 13px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit">Preview</button>
           <button onClick="{{ GUIDE.pdf }}" style="padding:7px 13px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit">⬇ PDF</button>
           <button onClick="{{ GUIDE.publish }}" style="padding:7px 13px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit">{{ GUIDE.publishLabel }}</button>
@@ -1783,6 +1800,20 @@ button{font-family:inherit}
           <div style="flex:1"></div>
           <button onClick="{{ GUIDE.del }}" style="padding:7px 11px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--bad);font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit">Delete</button>
         </div>
+        <sc-if value="{{ GUIDE.reviewing }}" hint-placeholder-val="{{ false }}"><div style="margin-bottom:12px;font-size:12.5px;color:var(--text-3)">✦ QA agent testing &amp; improving the guide…</div></sc-if>
+        <sc-if value="{{ GUIDE.hasReport }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-bottom:12px;border:1px solid var(--line);border-radius:12px;padding:13px 15px;background:var(--surface-2)">
+          <div style="font-size:12px;font-weight:750;letter-spacing:.01em;color:var(--text-2);margin-bottom:2px">✦ QA review · {{ GUIDE.reviewSummary }}</div>
+          <sc-if value="{{ GUIDE.hasChanges }}" hint-placeholder-val="{{ true }}">
+            <div style="font-size:10.5px;font-weight:750;letter-spacing:.08em;color:var(--good);margin:9px 0 3px">IMPROVED</div>
+            <ul style="margin:0;padding-left:18px"><sc-for list="{{ GUIDE.reportChanges }}" as="c" hint-placeholder-count="3"><li style="font-size:12.5px;color:var(--text);margin:2px 0">{{ c.text }}</li></sc-for></ul>
+          </sc-if>
+          <sc-if value="{{ GUIDE.hasWarnings }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:10.5px;font-weight:750;letter-spacing:.08em;color:var(--bad);margin:10px 0 3px">DOUBLE-CHECK BEFORE PUBLISHING</div>
+            <ul style="margin:0;padding-left:18px"><sc-for list="{{ GUIDE.reportWarnings }}" as="w" hint-placeholder-count="2"><li style="font-size:12.5px;color:var(--text-2);margin:2px 0">{{ w.text }}</li></sc-for></ul>
+          </sc-if>
+        </div>
+        </sc-if>
         <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center">
           <input value="{{ GUIDE.followup }}" onInput="{{ GUIDE.onFollowup }}" placeholder="Follow-up prompt: e.g. make the prompts more advanced, add a section on pricing, shorten the intro…" style="flex:1;min-width:0;padding:10px 13px;border:1px solid var(--cc);border-radius:10px;font-size:13px;font-family:inherit;background:var(--cc-soft);color:var(--text)"/>
           <button onClick="{{ GUIDE.refine }}" style="flex:none;padding:10px 16px;border:none;border-radius:10px;background:var(--cc);color:var(--cc-on);font-size:13px;font-weight:650;cursor:pointer;font-family:inherit">{{ GUIDE.refineLabel }}</button>
@@ -2314,6 +2345,7 @@ class Component extends DCLogic {
       guideSel:null, guideDraftTitle:'', guideDraftBody:'', guideDirty:false, guideSaving:false, guideSaved:'', guidePreview:false,
       guideTab:'create', guideMode:'reel', guideBrief:'', guideSource:'', guideFollowup:'', guideRefining:false,
       guideFileText:'', guideFileName:'', guidePdfB64:'', cdTitle:'', cdBody:'', cdFollowup:'', cdRefining:false, cdSaving:false,
+      cdReviewing:false, cdReport:null, guideReviewing:false, guideReport:null,
       pipeSel:null, pipeQuery:'', pipeActiveTags:[], pipeTagDraft:'', pipeSaveStatus:'idle', pipeDeleteArmed:false, pipeRefreshing:false,
       discItems:null, discCats:[], discLoading:false, discLoaded:false, discError:'', discMsg:'', discBusy:false,
       discHashtag:'', discType:'top', discCategory:'', discLinks:'', discFilter:'', discMode:'recommend',
@@ -2957,7 +2989,7 @@ class Component extends DCLogic {
             let o; try{ o=JSON.parse(line); }catch(e){ continue; }
             if(o.step) this.setState({ guideStep:o.step });
             if(o.error) this.setState({ guideGenerating:false, guideError:o.error });
-            if(o.done){ const gd=o.guide||{}; this.setState({ guideGenerating:false, guideStep:'', cdTitle:gd.title||'Untitled guide', cdBody:gd.body_md||'', cdFollowup:'' }); }
+            if(o.done){ const gd=o.guide||{}; this.setState({ guideGenerating:false, guideStep:'', cdTitle:gd.title||'Untitled guide', cdBody:gd.body_md||'', cdFollowup:'', cdReport:null }); }
           }
         }
       })
@@ -2968,7 +3000,7 @@ class Component extends DCLogic {
     this.setState({ cdRefining:true, guideError:'' });
     fetch('/api/guides/refine-draft',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ title:this.state.cdTitle, body_md:this.state.cdBody, instruction }) })
       .then(r=>r.json())
-      .then(j=>{ if(j.error){ this.setState({ cdRefining:false, guideError:j.error }); return; } const gd=j.guide||{}; this.setState({ cdRefining:false, cdFollowup:'', cdTitle:gd.title||this.state.cdTitle, cdBody:gd.body_md||this.state.cdBody }); })
+      .then(j=>{ if(j.error){ this.setState({ cdRefining:false, guideError:j.error }); return; } const gd=j.guide||{}; this.setState({ cdRefining:false, cdFollowup:'', cdTitle:gd.title||this.state.cdTitle, cdBody:gd.body_md||this.state.cdBody, cdReport:null }); })
       .catch(e=>this.setState({ cdRefining:false, guideError:String(e) }));
   }
   cdSave(){
@@ -2977,18 +3009,18 @@ class Component extends DCLogic {
     fetch('/api/guides/import',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ title, body_md }) })
       .then(r=>r.json())
       .then(j=>{ if(j.error){ this.setState({ cdSaving:false, guideError:j.error }); return; }
-        this.setState({ cdSaving:false, cdTitle:'', cdBody:'', cdFollowup:'', guideUrl:'', guideBrief:'', guideFileText:'', guidePdfB64:'', guideFileName:'', guidesLoaded:false, guideTab:'inventory' }); this.loadGuides(true); if(j.item) this.guideSelect(j.item); })
+        this.setState({ cdSaving:false, cdTitle:'', cdBody:'', cdFollowup:'', cdReport:null, guideUrl:'', guideBrief:'', guideFileText:'', guidePdfB64:'', guideFileName:'', guidesLoaded:false, guideTab:'inventory' }); this.loadGuides(true); if(j.item) this.guideSelect(j.item); })
       .catch(e=>this.setState({ cdSaving:false, guideError:String(e) }));
   }
-  cdDiscard(){ this.setState({ cdTitle:'', cdBody:'', cdFollowup:'', guideError:'' }); }
-  guideSelect(g){ this.setState({ guideSel:g.id, guideDraftTitle:g.title||'', guideDraftBody:g.body_md||'', guideDirty:false, guideSaved:'', guidePreview:false, guideFollowup:'' }); if(typeof window!=='undefined') window.scrollTo(0,0); }
+  cdDiscard(){ this.setState({ cdTitle:'', cdBody:'', cdFollowup:'', guideError:'', cdReport:null }); }
+  guideSelect(g){ this.setState({ guideSel:g.id, guideDraftTitle:g.title||'', guideDraftBody:g.body_md||'', guideDirty:false, guideSaved:'', guidePreview:false, guideFollowup:'', guideReport:null }); if(typeof window!=='undefined') window.scrollTo(0,0); }
   guideRefine(){
     const id=this.state.guideSel, instruction=(this.state.guideFollowup||'').trim(); if(!id||!instruction) return;
     this.setState({ guideRefining:true, guideError:'' });
     fetch('/api/guides/'+encodeURIComponent(id)+'/refine',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ instruction }) })
       .then(r=>r.json())
       .then(j=>{ if(j.error){ this.setState({ guideRefining:false, guideError:j.error }); return; }
-        const it=j.item||{}; this.setState({ guideRefining:false, guideFollowup:'', guideDraftTitle:it.title||this.state.guideDraftTitle, guideDraftBody:it.body_md||this.state.guideDraftBody, guideDirty:false, guideSaved:'Refined ✓', guides:(this.state.guides||[]).map(x=>x.id===id?it:x) }); })
+        const it=j.item||{}; this.setState({ guideRefining:false, guideFollowup:'', guideDraftTitle:it.title||this.state.guideDraftTitle, guideDraftBody:it.body_md||this.state.guideDraftBody, guideDirty:false, guideSaved:'Refined ✓', guides:(this.state.guides||[]).map(x=>x.id===id?it:x), guideReport:null }); })
       .catch(e=>this.setState({ guideRefining:false, guideError:String(e) }));
   }
   guideSave(){
@@ -3008,12 +3040,33 @@ class Component extends DCLogic {
     fetch('/api/guides/'+encodeURIComponent(id),{ method:'DELETE' })
       .then(r=>r.json()).then(()=>this.setState({ guides:(this.state.guides||[]).filter(x=>x.id!==id), guideSel: this.state.guideSel===id?null:this.state.guideSel })).catch(()=>{});
   }
-  guideOpenRendered(doPrint){
+  guideOpenRendered(doPrint, title, body){
     if(typeof window==='undefined') return;
-    const title=(this.state.guideDraftTitle||'Guide').replace(/[<>]/g,''); const html=this.mdToHtml(this.state.guideDraftBody||'');
+    const t=(title!=null?title:(this.state.guideDraftTitle||'Guide'));
+    const b=(body!=null?body:(this.state.guideDraftBody||''));
     const w=window.open('','_blank'); if(!w) return;
-    w.document.write('<html><head><title>'+title+'</title><meta charset="utf-8"><style>body{font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif;max-width:720px;margin:40px auto;padding:0 26px;line-height:1.65;color:#1a1a1a}h1{font-size:2rem;letter-spacing:-.02em;margin:0 0 .4em}h2{margin:1.8em 0 .5em;font-size:1.3rem}h3{font-size:1.08rem}pre{background:#f5f4f1;padding:14px 16px;border-radius:9px;overflow-x:auto;font-size:.82rem;line-height:1.5}code{background:#f5f4f1;padding:1px 5px;border-radius:4px;font-size:.9em}pre code{background:none;padding:0}ul,ol{padding-left:1.4em}a{color:#5b50e6}</style></head><body><h1>'+title+'</h1>'+html+'</body></html>');
-    w.document.close(); if(doPrint) setTimeout(()=>{ try{ w.focus(); w.print(); }catch(e){} }, 350);
+    try{ w.document.write('<!doctype html><meta charset="utf-8"><title>Guide…</title><body style="margin:0;font-family:Inter,system-ui,sans-serif;color:#8a8a95;padding:48px 26px">Rendering…</body>'); w.document.close(); }catch(e){}
+    fetch('/api/guides/render',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ title:t, body_md:b }) })
+      .then(r=>r.json())
+      .then(j=>{ if(!j||!j.html) throw new Error((j&&j.error)||'render failed'); w.document.open(); w.document.write(j.html); w.document.close(); if(doPrint) setTimeout(()=>{ try{ w.focus(); w.print(); }catch(e){} }, 450); })
+      .catch(e=>{ try{ w.document.open(); w.document.write('<body style="font-family:sans-serif;padding:40px;color:#c0392b">Could not render preview: '+String(e).replace(/[<>]/g,'')+'</body>'); w.document.close(); }catch(_){}} );
+  }
+  cdReview(){
+    const title=this.state.cdTitle||'', body_md=this.state.cdBody||''; if(!body_md.trim()){ this.setState({ guideError:'Generate a draft first.' }); return; }
+    this.setState({ cdReviewing:true, guideError:'', cdReport:null });
+    fetch('/api/guides/review-draft',{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ title, body_md }) })
+      .then(r=>r.json())
+      .then(j=>{ if(j.error){ this.setState({ cdReviewing:false, guideError:j.error }); return; } const gd=j.guide||{}; this.setState({ cdReviewing:false, cdTitle:gd.title||title, cdBody:gd.body_md||body_md, cdReport:{ changes:j.changes||[], warnings:j.warnings||[] } }); })
+      .catch(e=>this.setState({ cdReviewing:false, guideError:String(e) }));
+  }
+  guideReview(){
+    const id=this.state.guideSel; if(!id) return;
+    this.setState({ guideReviewing:true, guideError:'', guideReport:null });
+    fetch('/api/guides/'+encodeURIComponent(id)+'/review',{ method:'POST', headers:{'content-type':'application/json'} })
+      .then(r=>r.json())
+      .then(j=>{ if(j.error){ this.setState({ guideReviewing:false, guideError:j.error }); return; }
+        const it=j.item||{}; this.setState({ guideReviewing:false, guideDraftTitle:it.title||this.state.guideDraftTitle, guideDraftBody:it.body_md||this.state.guideDraftBody, guideDirty:false, guideSaved:'Reviewed ✓', guides:(this.state.guides||[]).map(x=>x.id===id?it:x), guideReport:{ changes:j.changes||[], warnings:j.warnings||[] } }); })
+      .catch(e=>this.setState({ guideReviewing:false, guideError:String(e) }));
   }
   mdToHtml(md){
     md=String(md||''); const esc=(s)=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -3041,6 +3094,15 @@ class Component extends DCLogic {
       metaStyle:{ fontSize:'11px', marginTop:'3px', color:(g.status==='published'?'var(--good)':'var(--text-3)') }
     }));
     const mode=s.guideMode||'reel', tab=s.guideTab||'create';
+    const mkReport=(rep)=>({
+      has: !!rep,
+      summary: rep ? (((rep.changes&&rep.changes.length)? (rep.changes.length+' improvement'+(rep.changes.length===1?'':'s')) : 'no changes needed') + ((rep.warnings&&rep.warnings.length)? (' · '+rep.warnings.length+' to double-check') : '')) : '',
+      hasChanges: !!(rep&&rep.changes&&rep.changes.length),
+      changes: ((rep&&rep.changes)||[]).map(t=>({ text:String(t) })),
+      hasWarnings: !!(rep&&rep.warnings&&rep.warnings.length),
+      warnings: ((rep&&rep.warnings)||[]).map(t=>({ text:String(t) })),
+    });
+    const cdR=mkReport(s.cdReport), invR=mkReport(s.guideReport);
     return {
       tabCreate: tab==='create', tabInventory: tab==='inventory', count:list.length,
       segTabCreate:this.ccSeg(tab==='create'), segTabInventory:this.ccSeg(tab==='inventory'),
@@ -3058,6 +3120,9 @@ class Component extends DCLogic {
       cdFollowup:s.cdFollowup||'', onCdFollowup:(e)=>this.setState({ cdFollowup:e&&e.target?e.target.value:'' }),
       cdRefine:()=>this.cdRefine(), cdRefineLabel: s.cdRefining?'Refining…':'↻ Refine',
       cdSave:()=>this.cdSave(), cdSaveLabel: s.cdSaving?'Saving…':'✓ Save to Inventory', cdDiscard:()=>this.cdDiscard(),
+      cdReview:()=>this.cdReview(), cdReviewLabel: s.cdReviewing?'Reviewing…':'✦ Review & improve', cdReviewing:!!s.cdReviewing,
+      cdPreview:()=>this.guideOpenRendered(false, s.cdTitle||'Guide', s.cdBody||''),
+      cdHasReport:cdR.has, cdReviewSummary:cdR.summary, cdHasChanges:cdR.hasChanges, cdReportChanges:cdR.changes, cdHasWarnings:cdR.hasWarnings, cdReportWarnings:cdR.warnings,
       url:s.guideUrl||'', onUrl:(e)=>this.setState({ guideUrl:e&&e.target?e.target.value:'' }),
       generate:()=>this.guideGenerate(), genLabel: s.guideGenerating?'Generating…':'Generate draft', generating:!!s.guideGenerating,
       step:s.guideStep||'', error:s.guideError||'',
@@ -3068,6 +3133,8 @@ class Component extends DCLogic {
       save:()=>this.guideSave(), saveLabel: s.guideSaving?'Saving…':'Save', saved:s.guideSaved||'',
       followup:s.guideFollowup||'', onFollowup:(e)=>this.setState({ guideFollowup:e&&e.target?e.target.value:'' }),
       refine:()=>this.guideRefine(), refineLabel: s.guideRefining?'Refining…':'↻ Refine', refining:!!s.guideRefining,
+      review:()=>this.guideReview(), reviewLabel: s.guideReviewing?'Reviewing…':'✦ Review & improve', reviewing:!!s.guideReviewing,
+      hasReport:invR.has, reviewSummary:invR.summary, hasChanges:invR.hasChanges, reportChanges:invR.changes, hasWarnings:invR.hasWarnings, reportWarnings:invR.warnings,
       publish:()=>this.guidePublish(), publishLabel: (sel&&sel.status==='published')?'Unpublish':'Publish',
       preview:()=>this.guideOpenRendered(false), pdf:()=>this.guideOpenRendered(true), del:()=>{ if(sel) this.guideDelete(sel.id); },
       slug: sel&&sel.slug ? ('slug: /'+sel.slug) : ''
